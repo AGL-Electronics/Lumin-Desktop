@@ -48,12 +48,17 @@
             "daisyui",
             "deepmerge",
             "kobalte",
+            "lofi",
             "lumin",
+            "nord",
             "outin",
             "solidjs",
             "specta",
+            "synthwave",
             "typecheck",
-            "Unlisten"
+            "Unlisten",
+            "Welp",
+            "wireframe"
         ]
     }
 }

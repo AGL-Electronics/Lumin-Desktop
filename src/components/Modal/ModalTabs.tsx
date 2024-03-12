@@ -32,7 +32,7 @@ const CropModalTabs: ParentComponent<{
                     <div class="" />
                 </Show>
                 <TabsTrigger onPointerDown={handleTabActive} value="account">
-                    Crop Settings
+                    {/* {props.tabName} */}
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="crop_settings">{props.children}</TabsContent>

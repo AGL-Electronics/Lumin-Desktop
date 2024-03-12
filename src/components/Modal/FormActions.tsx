@@ -10,22 +10,22 @@ interface FormActionsProps extends ModalEvents {
 }
 
 const FormActions: Component<FormActionsProps> = (props) => {
-    const handleSubmit = () => {
+    const handleSubmit = (e: PointerEvent) => {
         console.log('submitting')
-        props.onSubmit()
+        props.onSubmit(e)
     }
 
-    const handleCancel = (e) => {
+    const handleCancel = (e: PointerEvent) => {
         e.stopPropagation()
-        props.onCancel()
+        props.onCancel(e)
     }
 
     return (
         <Flex class="gap-4" alignItems="end" justifyContent="end" flexDirection="row">
-            <Button variant="ghost" type="button" onClick={handleCancel}>
+            <Button variant="ghost" type="button" onPointerDown={handleCancel}>
                 <Label styles="pointer">{props.cancelLabel}</Label>
             </Button>
-            <Button variant="accent" type="submit" onClick={handleSubmit}>
+            <Button variant="accent" type="submit" onPointerDown={handleSubmit}>
                 <Label styles="pointer">{props.submitLabel}</Label>
             </Button>
         </Flex>

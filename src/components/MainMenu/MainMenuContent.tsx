@@ -1,5 +1,4 @@
 import { Component, For } from 'solid-js'
-import CalendarSelector from './CalendarSelector'
 import MenuHeading from './MenuHeading'
 import MenuItem from './MenuItem'
 import { Flex } from '@components/ui/flex'
@@ -23,9 +22,6 @@ const MainMenuContent: Component<{
                     props.navigate('/')
                 }}
             />
-
-            {/* Menu Items */}
-            <CalendarSelector onHover={props.onHover} isHovered={props.isHovered} />
 
             <For each={createRoutes()}>
                 {(item, index) => (

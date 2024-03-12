@@ -1,73 +1,9 @@
-import dayjs from 'dayjs'
 import type { ENotificationType, ENotificationAction } from '@static/enums'
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
 
 export interface MainApp {
     loggedIn: boolean
-}
-
-//**********************************************************************************************************************************************************************/
-//*                                                                                                                                                                    */
-//*                                                                  Calendar Interfaces                                                                               */
-//*                                                                                                                                                                    */
-//**********************************************************************************************************************************************************************/
-
-export interface CalendarState {
-    calendars: Calendar[]
-    selectedCalendar: Calendar | null
-}
-
-export type CropsContextMenu = 'delete' | 'hide'
-export type CropContextMenu = 'duplicate' | 'edit' | 'succession' | CropsContextMenu
-export type CalendarDate = Date | string | number | dayjs.Dayjs
-export type CalendarEventTType = 'event' | 'task' | 'reminder'
-export type CalendarEventModify = 'push' | 'update' | 'delete'
-export type CalendarEventTasks =
-    | 'Seeding'
-    | 'Direct Seed'
-    | 'Transplanting'
-    | 'Cultivating'
-    | 'Harvesting'
-    | 'Bed Preparation'
-
-export interface DateUtilityObject {
-    date?: CalendarDate
-    daySelected?: CalendarDate
-}
-
-export interface CalendarLabel {
-    label: string
-    checked: boolean
-}
-
-export interface CalendarEvent {
-    type: CalendarEventTType
-    task: CalendarEventTasks
-    label: string
-    uuid: string
-    payload: CalendarEventContent
-}
-
-export interface CalendarEventContent extends DateUtilityObject {
-    title: string
-    description: string
-    start: CalendarDate
-    end: CalendarDate
-    color?: string
-}
-
-export interface Calendar extends DateUtilityObject {
-    //smallCalendarWidget: DateUtilityObject
-    id: string
-    name: string
-    currentMonthIdx: number
-    daySelected: CalendarDate
-    events: CalendarEvent[]
-    selectedEvent: CalendarEvent | null
-    labels: CalendarLabel[]
-    filteredEvents: CalendarEvent[]
-    showEventModal: boolean
 }
 
 //*  App Store Interfaces  */
@@ -144,7 +80,7 @@ export type BackendConfig = {
 //* Utility Interfaces
 
 export interface GeneralError {
-    readonly _tag: 'ETVRError'
+    readonly _tag: 'Error'
     readonly error: string | number | unknown
 }
 
@@ -157,6 +93,8 @@ export interface Internal {
 export interface Inputs {
     input: (props?: Internal) => JSXElement
 }
+
+//********************************* UI *************************************/
 
 export interface SkeletonHandlerProps {
     render?: boolean

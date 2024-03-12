@@ -23,26 +23,11 @@ const MenuItem: Component<{
 
         return (
             <Switch>
-                <Match when={props.label === 'Calendar'}>
+                <Match when={props.label === 'Dashboard'}>
                     <Icons.calendar {...options} />
-                </Match>
-                <Match when={props.label === 'Journal'}>
-                    <Icons.journal {...options} />
-                </Match>
-                <Match when={props.label === 'Tasks'}>
-                    <Icons.tasks {...options} />
-                </Match>
-                <Match when={props.label === 'Aichat'}>
-                    <Icons.chat {...options} />
                 </Match>
                 <Match when={props.label === 'Settings'}>
                     <Icons.gear {...options} />
-                </Match>
-                <Match when={props.label === 'Help Docs'}>
-                    <Icons.question {...options} />
-                </Match>
-                <Match when={props.label === 'Profile'}>
-                    <Icons.profile {...options} />
                 </Match>
             </Switch>
         )
