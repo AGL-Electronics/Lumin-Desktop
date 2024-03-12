@@ -5,12 +5,10 @@ import { createContext, useContext, createMemo, type ParentComponent, Accessor }
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener } from 'solidjs-use'
 import { attachConsole, debug } from 'tauri-plugin-log-api'
-
 import type { MainApp } from '@static/types'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ExitCodes } from '@static/enums'
 import { AppProvider } from '@store/context/app'
-import { CalendarProvider } from '@store/context/calendar'
 import { AppNotificationProvider } from '@store/context/notifications'
 import { usePersistentStore } from '@store/tauriStore'
 import { setFrontendReady } from 'tauri-plugin-splashscreen'
@@ -118,9 +116,7 @@ export const AppContextMainProvider: ParentComponent = (props) => {
                 setLoggedIn,
             }}>
             <AppNotificationProvider>
-                <AppProvider>
-                    <CalendarProvider>{props.children}</CalendarProvider>
-                </AppProvider>
+                <AppProvider>{props.children}</AppProvider>
             </AppNotificationProvider>
         </AppContextMain.Provider>
     )

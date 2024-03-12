@@ -3,9 +3,7 @@ import { appDataDir } from '@tauri-apps/api/path'
 import { ParentComponent, lazy, onMount, Show } from 'solid-js'
 import { Transition } from 'solid-transition-group'
 import MainMenu from '@components/MainMenu'
-import { useCalendarContext } from '@store/context/calendar'
 import { useAppContextMain } from '@store/context/main'
-//import GlobalStyles from '@styles/globalstyles'
 
 // TODO: Add ability to have more than one calendar
 // TODO: Add algorithm to detect winter days based on location and timezone
@@ -14,7 +12,6 @@ const ToastNotificationWindow = lazy(() => import('@components/Notifications'))
 
 const App: ParentComponent = (props) => {
     const { handleTitlebar, handleAppBoot } = useAppContextMain()
-    const { createNewCalendar, setSelectedCalendar, calendars } = useCalendarContext()
     //const ref = document.getElementById('titlebar')
     const path = useLocation()
 
@@ -25,22 +22,6 @@ const App: ParentComponent = (props) => {
         appDataDir().then((res) => {
             console.log(res)
         })
-
-        // TODO: Read the last calendar used and set it as the selected calendar, if none exists, create a new one
-
-        createNewCalendar('Almanac')
-        createNewCalendar('Bob')
-        createNewCalendar('Joe')
-        createNewCalendar('Harry')
-        createNewCalendar('Moe')
-        createNewCalendar('Larry')
-        const defaultCalendar = calendars().find((cal) => cal.name === 'Almanac')
-
-        console.log(calendars())
-
-        if (defaultCalendar) {
-            setSelectedCalendar(defaultCalendar)
-        }
     })
 
     return (

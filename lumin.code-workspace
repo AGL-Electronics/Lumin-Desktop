@@ -49,9 +49,11 @@
             "deepmerge",
             "kobalte",
             "lumin",
+            "outin",
             "solidjs",
             "specta",
-            "typecheck"
+            "typecheck",
+            "Unlisten"
         ]
     }
 }
