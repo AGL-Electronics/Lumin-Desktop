@@ -1,28 +1,147 @@
 [package]
-name = "app"
+name = "lumin-desktop"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
-default-run = "app"
+description = "Lumin Desktop is a desktop application for the Lumin platform. It allows you to manage your Lumin devices, create and manage your Lumin account, and more."
+authors = ["DaOfficialWizard"]
+license = "MIT"
+repository = "https://github.com/AGL-Electronics/Lumin-Desktop"
+default-run = "lumin-desktop"
 edition = "2021"
-rust-version = "1.64"
+rust-version = "1.69"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[build-dependencies]
-tauri-build = { version = "1.4.0", features = [] }
+[dependencies.tauri-plugin-splashscreen]
+path = "src/lib/splashscreen"
+
+[dependencies.tauri-plugin-window-state]
+git = "https://github.com/tauri-apps/plugins-workspace"
+branch = "dev"
+
+[dependencies.tauri-plugin-single-instance]
+git = "https://github.com/tauri-apps/tauri-plugin-single-instance/"
+branch = "dev"
+
+[dependencies.tauri-plugin-upload]
+git = "https://github.com/tauri-apps/plugins-workspace"
+branch = "dev"
+
+[dependencies.tauri-plugin-oauth]
+workspace = true
+
+[dependencies.tauri-plugin-log]
+git = "https://github.com/tauri-apps/plugins-workspace"
+branch = "dev"
+
+[dependencies.tauri-plugin-store]
+git = "https://github.com/tauri-apps/plugins-workspace"
+branch = "dev"
+
+#[dependencies.tauri-plugin-authenticator]
+## TODO: https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/authenticator
+#git = "https://github.com/tauri-apps/plugins-workspace"
+#branch = "dev"
+
+[dependencies.tauri-plugin-autostart]
+# TODO: https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/autostart
+git = "https://github.com/tauri-apps/plugins-workspace"
+branch = "dev"
+
+[dependencies.tokio]
+version = "1"
+features = ["full"]
 
 [dependencies]
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.4.1", features = [] }
+sysinfo = "0.29.10"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tauri = { workspace = true }
+log = { workspace = true }
+specta = { workspace = true }
+dialoguer = { workspace = true }
+tauri-specta = { workspace = true }
+reqwest = { workspace = true }
+tiny_http = { workspace = true }
+anyhow = { workspace = true }
+url = { workspace = true }
+
+[workspace.dependencies]
+anyhow = "1.0.75"
+url = "2.5.0"
+dialoguer = "0.11.0"
+log = "0.4.20"
+tiny_http = "0.12.0"
+reqwest = { version = "0.11", features = ["rustls-tls", "json", "stream"] }
+serde = { version = "1.0.189", features = ["derive"] }
+serde_json = "1"
+specta = { version = "2.0.0-rc.5", features = ["functions", "tauri"] }
+tauri-specta = { version = "2.0.0-rc.2", features = [
+    "javascript",
+    "typescript",
+] }
+tauri-plugin-oauth = { git = "https://github.com/FabianLars/tauri-plugin-oauth", branch = "main" }
+tauri = { version = "1.5", features = [
+    "process-exit",
+    "protocol-asset",
+    "fs-all",
+    "dialog-all",
+    "http-all",
+    "icon-ico",
+    "notification-all",
+    "os-all",
+    "path-all",
+    "process-relaunch",
+    "system-tray",
+    "window-center",
+    "window-close",
+    "window-create",
+    "window-hide",
+    "window-maximize",
+    "window-minimize",
+    "window-request-user-attention",
+    "window-set-decorations",
+    "window-set-focus",
+    "window-set-fullscreen",
+    "window-set-position",
+    "window-set-resizable",
+    "window-set-size",
+    "window-set-title",
+    "window-show",
+    "window-start-dragging",
+    "window-unmaximize",
+    "window-unminimize",
+] }
+
+
+[workspace]
+members = ["src/lib/util", "src/lib/splashscreen"]
 
 [features]
-# by default Tauri runs in production mode
-# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = [ "custom-protocol" ]
-# this feature is used for production builds where `devPath` points to the filesystem
-# DO NOT remove this
-custom-protocol = [ "tauri/custom-protocol" ]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+updater = ["tauri/updater"]
+
+[build-dependencies.tauri-build]
+version = "1.5"
+features = []
+
+# //* If we need to implement OS specific commands, we can use these
+#[target.'cfg(target_os = "linux")'.dependencies]
+#sd-desktop-linux = { path = "./crates/linux" }
+#
+#[target.'cfg(target_os = "macos")'.dependencies]
+#sd-desktop-macos = { path = "./crates/macos" }
+#
+#[target.'cfg(target_os = "windows")'.dependencies]
+#sd-desktop-windows = { path = "./crates/windows" }
+
+[profile]
+[profile.dev]
+debug = 0
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

@@ -1,0 +1,19 @@
+/** Import all project related CSS files here */
+/*! Do not put raw CSS code in this file  */
+
+/* TailWindCSS Files */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom Imports */
+@import 'index.css';
+@import 'scrollbar.css';
+@import 'buttons.css';
+@import 'burger.css';
+@import 'components/sidebar.css';
+
+/* Custom tailwind class overrides */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

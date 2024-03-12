@@ -1,7 +1,26 @@
-/* @refresh reload */
+/* import {
+    ColorModeProvider,
+    ColorModeScript,
+    createCookieStorageManager,
+    createLocalStorageManager,
+} from '@kobalte/core' */
 import { render } from 'solid-js/web'
+import AppRoutes from '@routes/routes'
+import { AppContextMainProvider } from '@store/context/main'
+import '@styles/imports.css'
 
-import './index.css'
-import App from './App'
+//const storageManager = createCookieStorageManager('colorMode', document.cookie)
+//const storageManager = createLocalStorageManager('colorMode')
 
-render(() => <App />, document.getElementById('root') as HTMLElement)
+render(
+    () => (
+        <>
+            <AppContextMainProvider>
+                <AppRoutes />
+            </AppContextMainProvider>
+            {/* <ColorModeScript storageType={storageManager.type} />
+            <ColorModeProvider storageManager={storageManager}></ColorModeProvider> */}
+        </>
+    ),
+    document.getElementById('root') as HTMLElement,
+)
