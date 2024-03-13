@@ -1,23 +1,13 @@
 import PageWrapper from './PageWrapper'
 import type { Component } from 'solid-js'
+import DeviceSettingsContent from '@components/DeviceSettings'
 
-// TODO: Implement DeviceSettings
-
-// TODO: Settings to be implemented:
-// - Device Name
-// - Device Mdns Name
-// - Device Type
-// - Controls for LEDS
-// - SSID and Password for WiFi
-// - Bound printer
-// - If this is a new device, or an existing device, if new device then show a button to create a new device
-
+// TODO: Set the main menu icon to be on the settings section when this page is active
 
 const DeviceSettings: Component = (props) => {
-    
     return (
         <PageWrapper>
-            
+            <DeviceSettingsContent param="TODO" />
         </PageWrapper>
     )
 }
