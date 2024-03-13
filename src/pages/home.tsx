@@ -1,19 +1,40 @@
+import { useNavigate } from '@solidjs/router'
 import { createEffect, createSignal } from 'solid-js'
+import Dashboard from '@components/Dashboard'
 import { Card, CardContent } from '@components/ui/card'
-import PageWrapper from '@src/pages/PageWrapper'
-
-// TODO: Add journal
-// TODO: Add Tasks with Todo list
+import PageWrapper from '@pages/PageWrapper'
+import { useAppAPIContext } from '@store/context/api'
+import { useAppDeviceContext } from '@store/context/device'
+import { useAppUIContext } from '@store/context/ui'
 
 export default function Main() {
+    const { getFirmwareVersion, setRESTDevice } = useAppAPIContext()
+    const { getDevices, setSelectedDevice, resetSelectedDevice } = useAppDeviceContext()
+    const [firmwareVersion, setFirmwareVersion] = createSignal('0.0.0')
+
+    createEffect(() => {
+        setFirmwareVersion(getFirmwareVersion())
+    })
+
+    const navigate = useNavigate()
+
     return (
         <PageWrapper>
-            <Card class="overflow-auto border-none w-auto rounded-none bg-primary-300 h-screen">
+            <Card class="overflow-auto w-auto bg-primary-300 h-full pb-8">
                 <CardContent class="flex flex-1">
-                    <div class="flex flex-col">
-                        <h1 class="text-3xl font-bold">Welcome to the Dashboard</h1>
-                        <p class="text-lg">This is the main page of the dashboard</p>
-                    </div>
+                    <Dashboard
+                        firmwareVersion={firmwareVersion()}
+                        devices={getDevices()}
+                        onClickNavigateDevice={(device) => {
+                            navigate('/settings/false', { replace: true })
+                            setSelectedDevice(device)
+                            setRESTDevice(device.address)
+                        }}
+                        onClickNavigateCreateDevice={() => {
+                            navigate('/settings/true', { replace: true })
+                            resetSelectedDevice()
+                        }}
+                    />
                 </CardContent>
             </Card>
         </PageWrapper>

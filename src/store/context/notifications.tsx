@@ -6,11 +6,7 @@ import {
 import { createContext, useContext, createMemo, type ParentComponent, Accessor } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import { ToasterStore } from 'terracotta'
-import type {
-    Notifications,
-    NotificationAction,
-    AppStoreNotifications,
-} from '@static/types/interfaces'
+import type { Notifications, NotificationAction, AppStoreNotifications } from '@static/types'
 import { ENotificationAction } from '@static/enums'
 
 interface AppNotificationsContext {

@@ -41,6 +41,7 @@
         },
         "liveServer.settings.multiRootWorkspaceName": "Example",
         "cSpell.words": [
+            "AGLELECTRONICS",
             "APPCONFIG",
             "APPDATA",
             "artboard",
@@ -52,13 +53,17 @@
             "lumin",
             "nord",
             "outin",
+            "ratelimit",
             "solidjs",
+            "soundfile",
             "specta",
             "synthwave",
             "typecheck",
             "Unlisten",
+            "uuidv",
             "Welp",
-            "wireframe"
+            "wireframe",
+            "Xmark"
         ]
     }
 }

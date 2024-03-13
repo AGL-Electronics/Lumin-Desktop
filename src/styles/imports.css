@@ -10,7 +10,9 @@
 @import 'index.css';
 @import 'scrollbar.css';
 @import 'buttons.css';
-@import 'burger.css';
+@import 'titlebar.css';
+@import 'components/burger.css';
+@import 'components/header-wrapper.css';
 @import 'components/sidebar.css';
 
 /* Custom tailwind class overrides */

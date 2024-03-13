@@ -1,4 +1,12 @@
-import type { ENotificationType, ENotificationAction } from '@static/enums'
+import type {
+    ENotificationType,
+    ENotificationAction,
+    DEVICE_STATUS,
+    MdnsStatus,
+    RESTType,
+    RESTStatus,
+    DEVICE_TYPE,
+} from '@static/enums'
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
 
@@ -6,7 +14,34 @@ export interface MainApp {
     loggedIn: boolean
 }
 
-//*  App Store Interfaces  */
+//********************************* Device *************************************/
+
+export interface Device {
+    id: string
+    name: string
+    status: DEVICE_STATUS
+    type: DEVICE_TYPE
+    address: string
+    activeDeviceSection: string
+    ws: object
+}
+
+export type DeviceSettings = {
+    device: Device
+}
+
+//********************************* Components *************************************/
+
+export interface Internal {
+    errorMsg?: string
+    error?: boolean
+}
+
+export interface Inputs {
+    input: (props?: Internal) => JSXElement
+}
+
+//********************************* Stores *************************************/
 
 export interface AppStore {
     debugMode: DebugMode
@@ -31,6 +66,21 @@ export interface UIStore {
     showNotifications?: boolean
 }
 
+export interface AppStoreAPI {
+    restAPI: IRest
+    ghAPI: IGHRest
+}
+
+export interface AppStoreDevice {
+    devices: Device[]
+    selectedDevice: Device
+}
+
+export interface AppStoreMdns {
+    mdnsStatus: MdnsStatus
+    mdnsData: MdnsResponse
+}
+
 //********************************* Config *************************************/
 
 /**
@@ -52,8 +102,8 @@ export type DebugMode = 'off' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
  * @property {boolean} enableNotifications
  * @property {ENotificationAction} globalNotificationsType
  * @property {boolean} enableMDNS
- * @property {boolean} scanForCamerasOnStartup
- * @property {CameraSettings} cameraSettings
+ * @property {boolean} scanForDevicesOnStartup
+ * @property {DeviceSettings} DeviceSettings
  * @property {AlgorithmSettings} algorithmSettings
  * @property {FilterParams} filterParams
  * @property {OSCSettings} oscSettings
@@ -63,6 +113,8 @@ export type PersistentSettings = {
     enableNotificationsSounds?: boolean
     enableNotifications?: boolean
     globalNotificationsType?: ENotificationAction
+    scanForDevicesOnStartup?: boolean
+    deviceSettings?: DeviceSettings
     enableMDNS?: boolean
     debugMode?: DebugMode
 }
@@ -82,16 +134,6 @@ export type BackendConfig = {
 export interface GeneralError {
     readonly _tag: 'Error'
     readonly error: string | number | unknown
-}
-
-//* Component Interfaces
-export interface Internal {
-    errorMsg?: string
-    error?: boolean
-}
-
-export interface Inputs {
-    input: (props?: Internal) => JSXElement
 }
 
 //********************************* UI *************************************/
@@ -151,4 +193,48 @@ export interface UITab {
     visible: boolean
     label?: string
     event?: TabEvent
+}
+
+//********************************* Network *************************************/
+
+export interface IEndpoint {
+    url: string
+    type: RESTType
+}
+
+export interface IRest {
+    status: RESTStatus
+    device: string
+    response: object
+}
+
+export interface IGHAsset {
+    name: string
+    browser_download_url: string
+}
+
+export interface IGHRest {
+    status: RESTStatus
+    assets: IGHAsset[]
+    version: string
+}
+
+export interface IGHRelease {
+    data: object
+    headers: object
+    rawHeaders: object
+    ok: boolean
+    status: number
+    url: string
+}
+
+export interface IRestProps {
+    endpointName: string
+    deviceName: string
+    args?: string
+}
+
+export interface MdnsResponse {
+    ips: string[]
+    names: string[]
 }

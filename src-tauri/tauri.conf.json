@@ -171,7 +171,7 @@
                 "resizable": true,
                 "center": true,
                 "title": "Lumin",
-                "visible": false,
+                "visible": true,
                 "decorations": false,
                 "transparent": true
             }

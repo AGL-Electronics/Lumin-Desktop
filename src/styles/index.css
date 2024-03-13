@@ -95,20 +95,73 @@
     } */
 }
 
+/* This style is REQUIRED due to how kobalte handles focus-visible state */
+* {
+    @apply outline-none [&[data-focus-visible]]:outline-white;
+}
+
 @layer base {
-   /*  * {
+    /*  * {
         @apply border-border;
     } */
-    body {
-        /* @apply bg-background text-foreground; */
-        font-feature-settings:
-            'rlig' 1,
-            'calt' 1;
-    }
 }
 
 @media (max-width: 640px) {
     .container {
         @apply px-4;
     }
+}
+
+body {
+    /* @apply bg-background text-foreground; */
+    font-feature-settings:
+        'rlig' 1,
+        'calt' 1;
+    margin: 0;
+    font-family: Ubuntu, 'times new roman', times, roman, serif;
+    cursor: default;
+    background-color: transparent !important;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 14px;
+}
+
+:root {
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background-color: transparent !important;
+}
+
+/* :root::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    background-image: var(--user-image);
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: var(--image-opacity);
+    transition: background-image 300ms ease;
+} */
+
+#root {
+    text-align: center;
+    background-color: transparent !important;
+}
+
+.main-div {
+    height: 100vh;
+    overflow: hidden;
+    border-radius: 0.4rem;
+    /* Clothoid Gradient */
+    background: linear-gradient(247.32deg, #282830 0%, #181c28 100%);
 }

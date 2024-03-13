@@ -5,6 +5,8 @@ import { createContext, useContext, createMemo, type ParentComponent, Accessor }
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener } from 'solidjs-use'
 import { attachConsole, debug } from 'tauri-plugin-log-api'
+import { AppAPIProvider } from './api'
+import { AppDeviceProvider } from './device'
 import type { MainApp } from '@static/types'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ExitCodes } from '@static/enums'
@@ -102,9 +104,8 @@ export const AppContextMainProvider: ParentComponent = (props) => {
 
     //#endregion
 
-    const GlobalState = createMemo(() => state)
-
-    const loggedIn = createMemo(() => GlobalState().loggedIn)
+    const globalState = createMemo(() => state)
+    const loggedIn = createMemo(() => globalState().loggedIn)
 
     return (
         <AppContextMain.Provider
@@ -116,7 +117,11 @@ export const AppContextMainProvider: ParentComponent = (props) => {
                 setLoggedIn,
             }}>
             <AppNotificationProvider>
-                <AppProvider>{props.children}</AppProvider>
+                <AppProvider>
+                    <AppDeviceProvider>
+                        <AppAPIProvider>{props.children}</AppAPIProvider>
+                    </AppDeviceProvider>
+                </AppProvider>
             </AppNotificationProvider>
         </AppContextMain.Provider>
     )
