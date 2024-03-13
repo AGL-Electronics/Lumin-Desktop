@@ -1,23 +1,33 @@
-import type { Component } from 'solid-js'
+import { createSignal, type Component } from 'solid-js'
+import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
-import './index.css'
+import { POPOVER_ID } from '@static/enums'
 
-const CreateCamera: Component<{
+const CreateDevice: Component<{
     onPointerDown: (e: PointerEvent) => void
+    type: POPOVER_ID
 }> = (props) => {
+    const [isHovered, setIsHovered] = createSignal(false)
     return (
-        <div
-            class=" m-auto justify-center items-center pr-3 pl-3 py-3 h-full min-h-[222px] pb-3 rounded-xl bg-[#333742] flex border-2 border-[#333742] hover:border-[#817DF7]  hover:cursor-pointer"
+        <Flex
+            justifyContent="center"
+            alignItems="center"
+            class="m-auto pr-3 pl-3 py-3 h-full pb-3 rounded-xl bg-[#333742] border-2 border-[#333742] hover:border-[#817DF7] cursor-pointer"
+            classList={{
+                'min-h-[222px]': props.type === POPOVER_ID.GRIP,
+            }}
+            onPointerEnter={() => setIsHovered(true)}
+            onPointerLeave={() => setIsHovered(false)}
             onPointerDown={(e) => props.onPointerDown(e)}>
-            <div class="responsive-create-camera-img mt-[70px] mb-[70px]">
-                <Icons.plus
-                    class="w-12 h-12 text-[#817DF7] hover:text-[#817DF7] m-auto"
-                    fill="#817DF7"
-                    size={24}
-                />
-            </div>
-        </div>
+            <Icons.plus
+                color={isHovered() ? '#817DF7' : '#A9B6BF'}
+                classList={{
+                    'max-h-[60px] aspect-square': props.type === POPOVER_ID.LIST,
+                }}
+                size={60}
+            />
+        </Flex>
     )
 }
 
-export default CreateCamera
+export default CreateDevice

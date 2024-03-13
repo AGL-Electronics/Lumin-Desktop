@@ -4,15 +4,14 @@ import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import DeviceComponent from '@components/Device'
 import CreateDevice from '@components/Device/CreateDevice'
 import CustomPopover from '@components/Header/CustomPopover'
-import CreateListDevice from '@components/List/CreateListDevice'
 import List from '@components/List/List'
 import ListHeader from '@components/List/ListHeader'
 import { Flex } from '@components/ui/flex'
+import { Col, Grid } from '@components/ui/grid'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { POPOVER_ID } from '@static/enums'
 import { Device } from '@static/types'
-import './index.css'
 
 /**
  * Dashboard component:
@@ -82,20 +81,27 @@ const Dashboard: Component<DashboardProps> = (props) => {
                 </Flex>
                 <Switch>
                     <Match when={displayMode() === POPOVER_ID.GRIP}>
-                        <div class="device_grid">
+                        <Grid cols={4} colsSm={2} colsMd={4} colsLg={4} class="gap-4">
                             <For each={props.devices}>
                                 {(device) => (
-                                    <DeviceComponent
-                                        firmwareVersion={props.firmwareVersion}
-                                        {...device}
-                                        onPointerDown={() => props.onClickNavigateDevice(device)}
-                                    />
+                                    <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
+                                        <DeviceComponent
+                                            firmwareVersion={props.firmwareVersion}
+                                            {...device}
+                                            onPointerDown={() =>
+                                                props.onClickNavigateDevice(device)
+                                            }
+                                        />
+                                    </Col>
                                 )}
                             </For>
-                            <CreateDevice
-                                onPointerDown={() => props.onClickNavigateCreateDevice()}
-                            />
-                        </div>
+                            <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
+                                <CreateDevice
+                                    type={POPOVER_ID.GRIP}
+                                    onPointerDown={() => props.onClickNavigateCreateDevice()}
+                                />
+                            </Col>
+                        </Grid>
                     </Match>
                     <Match when={displayMode() === POPOVER_ID.LIST}>
                         <ListHeader />
@@ -107,7 +113,8 @@ const Dashboard: Component<DashboardProps> = (props) => {
                                 />
                             )}
                         </For>
-                        <CreateListDevice
+                        <CreateDevice
+                            type={POPOVER_ID.LIST}
                             onPointerDown={() => props.onClickNavigateCreateDevice()}
                         />
                     </Match>

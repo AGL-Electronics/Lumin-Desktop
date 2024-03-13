@@ -26,12 +26,12 @@ export default function Main() {
                         firmwareVersion={firmwareVersion()}
                         devices={getDevices()}
                         onClickNavigateDevice={(device) => {
-                            navigate('/settings/false', { replace: true })
+                            navigate('/deviceSettings/false', { replace: true })
                             setSelectedDevice(device)
                             setRESTDevice(device.address)
                         }}
                         onClickNavigateCreateDevice={() => {
-                            navigate('/settings/true', { replace: true })
+                            navigate('/deviceSettings/true', { replace: true })
                             resetSelectedDevice()
                         }}
                     />

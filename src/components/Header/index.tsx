@@ -7,7 +7,6 @@ import { Icons } from '@components/ui/icon'
 import './index.css'
 
 interface HeaderProps {
-    name: string
     hideButtons: boolean
     onPointerDown: () => void
 }
