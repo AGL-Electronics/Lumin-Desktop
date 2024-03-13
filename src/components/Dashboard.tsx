@@ -1,4 +1,4 @@
-import { createSignal, For, Switch, Match } from 'solid-js'
+import { createSignal, For, Switch, Match, Show } from 'solid-js'
 import type { Component } from 'solid-js'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import DeviceComponent from '@components/Device'
@@ -10,6 +10,7 @@ import { Flex } from '@components/ui/flex'
 import { Col, Grid } from '@components/ui/grid'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
+import { useAppDeviceContext } from '@src/store/context/device'
 import { POPOVER_ID } from '@static/enums'
 import { Device } from '@static/types'
 
@@ -33,6 +34,8 @@ interface DashboardProps {
 
 const Dashboard: Component<DashboardProps> = (props) => {
     const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.GRIP)
+    const { getDevices } = useAppDeviceContext()
+
     return (
         <div
             class="flex-grow w-full"
@@ -104,15 +107,17 @@ const Dashboard: Component<DashboardProps> = (props) => {
                         </Grid>
                     </Match>
                     <Match when={displayMode() === POPOVER_ID.LIST}>
-                        <ListHeader />
-                        <For each={props.devices}>
-                            {(device) => (
-                                <List
-                                    {...device}
-                                    onPointerDown={() => props.onClickNavigateDevice(device)}
-                                />
-                            )}
-                        </For>
+                        <Show when={getDevices().length > 0}>
+                            <ListHeader />
+                            <For each={props.devices}>
+                                {(device) => (
+                                    <List
+                                        {...device}
+                                        onPointerDown={() => props.onClickNavigateDevice(device)}
+                                    />
+                                )}
+                            </For>
+                        </Show>
                         <CreateDevice
                             type={POPOVER_ID.LIST}
                             onPointerDown={() => props.onClickNavigateCreateDevice()}

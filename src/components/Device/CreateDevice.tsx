@@ -12,7 +12,7 @@ const CreateDevice: Component<{
         <Flex
             justifyContent="center"
             alignItems="center"
-            class="m-auto pr-3 pl-3 py-3 h-full pb-3 rounded-xl bg-[#333742] border-2 border-[#333742] hover:border-[#817DF7] cursor-pointer"
+            class="m-auto pr-3 pl-3 py-3 mt-3 h-full pb-3 rounded-xl bg-[#333742] border-2 border-[#333742] hover:border-[#817DF7] cursor-pointer"
             classList={{
                 'min-h-[222px]': props.type === POPOVER_ID.GRIP,
             }}
