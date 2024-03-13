@@ -5,6 +5,8 @@ import { Label } from '@components/ui/label'
 
 // TODO: Detect if this is a new device, or an existing device, if new device then show a button to create a new device
 
+// TODO: Setup as stepper, with each section as a step - maybe?
+
 interface DeviceSettingsContentProps {
     param: string
 }
@@ -25,15 +27,18 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                     {/* Set LED Type - WLED, RGB, RGBWW/RGBCCT, LedBar */}
                     {/* Set LED bars connected - max 23 */}
                     {/* Set LEDs connection point - molex, screw terminal, screw terminal RGBW, screw terminal RGB, screw terminal RGBWW/RGBCCT */}
+
                     {/* General Device Setup */}
                     {/* Set Name */}
                     {/* Set Bound Printer - from MDNS dropdown list*/}
                     {/* Set Printer Serial number */}
                     {/* Set Printer LAN Code */}
+
                     {/* Network Setup */}
                     {/* Set WIFI SSID */}
                     {/* Set WIFI Password */}
                     {/* Set MQTT password */}
+
                     {/* If existing device - save,if not - create */}
                 </CardContent>
             </Flex>

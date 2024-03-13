@@ -51,9 +51,13 @@
             "kobalte",
             "lofi",
             "lumin",
+            "molex",
             "nord",
             "outin",
             "ratelimit",
+            "RGBCCT",
+            "RGBW",
+            "RGBWW",
             "solidjs",
             "soundfile",
             "specta",
@@ -63,6 +67,7 @@
             "uuidv",
             "Welp",
             "wireframe",
+            "WLED",
             "Xmark"
         ]
     }
