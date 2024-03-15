@@ -14,6 +14,7 @@
 @import 'components/burger.css';
 @import 'components/header-wrapper.css';
 @import 'components/sidebar.css';
+@import 'components/popover.css';
 
 /* Custom tailwind class overrides */
 @tailwind base;

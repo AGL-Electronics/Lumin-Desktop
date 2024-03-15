@@ -2,7 +2,7 @@ import { Popover } from '@kobalte/core'
 import { createSignal, JSXElement, Show } from 'solid-js'
 
 export interface ICustomPopover {
-    icon: JSXElement
+    trigger: JSXElement
     popoverContent?: string
     disablePopover?: boolean
     styles?: string
@@ -11,7 +11,8 @@ export interface ICustomPopover {
 const CustomPopover = (props: ICustomPopover) => {
     const [open, setOpen] = createSignal(false)
 
-    const handlePopOver = () => {
+    const handlePopOver = (e: PointerEvent) => {
+        e.preventDefault()
         if (props.disablePopover) {
             setOpen(false)
         }
@@ -20,12 +21,12 @@ const CustomPopover = (props: ICustomPopover) => {
 
     return (
         <div
-            onMouseEnter={handlePopOver}
-            onMouseLeave={handlePopOver}
+            onPointerEnter={handlePopOver}
+            onPointerLeave={handlePopOver}
             class="group relative inline-flex">
             <Popover.Root open={open()}>
                 <Popover.Trigger class="rounded-[8px] pl-[1.5rem] pr-[1.5rem] ">
-                    {props.icon}
+                    {props.trigger}
                 </Popover.Trigger>
                 <Show when={!props.disablePopover}>
                     <Popover.Portal>

@@ -9,7 +9,7 @@ export const Titlebar: Component<IProps> = (props) => {
     return (
         <div data-tauri-drag-region class="customTitlebar">
             <div
-                class="titlebar-button"
+                class="titlebar-button hover:bg-accent/75"
                 onPointerDown={() => {
                     props.onPointerDownHeader(TITLEBAR_ACTION.MINIMIZE)
                 }}>
@@ -18,7 +18,7 @@ export const Titlebar: Component<IProps> = (props) => {
                 </svg>
             </div>
             <div
-                class="titlebar-button"
+                class="titlebar-button hover:bg-accent/75"
                 onPointerDown={() => {
                     props.onPointerDownHeader(TITLEBAR_ACTION.MAXIMIZE)
                 }}>
@@ -27,7 +27,7 @@ export const Titlebar: Component<IProps> = (props) => {
                 </svg>
             </div>
             <div
-                class="titlebar-button"
+                class="titlebar-button hover:bg-red-500/75"
                 onPointerDown={() => {
                     props.onPointerDownHeader(TITLEBAR_ACTION.CLOSE)
                 }}>

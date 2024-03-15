@@ -81,9 +81,29 @@ pub fn handle_debug<R: tauri::Runtime>(
                     return Err(tauri_plugin_store::Error::Json(err));
                 }
             };
-            let temp = &serde_json_result["debugMode"];
-            debug!("Debug: {:?}", temp);
-            debug_state = serde_json::from_value::<String>(temp.clone()).unwrap();
+            let debug_mode = &serde_json_result["debugMode"];
+            debug!("Debug: {:?}", debug_mode);
+            let debug_state_result = serde_json::from_value::<String>(debug_mode.clone());
+
+            debug_state = match debug_state_result {
+                Ok(debug_state) => debug_state,
+                Err(err) => {
+                    error!("Error configuring debug state: {}", err);
+
+                    // handle the error by creating a default value for the debug state
+                    let default_debug_state = serde_json::json!("info");
+                    let default_debug_state_result =
+                        serde_json::from_value::<String>(default_debug_state);
+
+                    match default_debug_state_result {
+                        Ok(debug_state) => debug_state,
+                        Err(err) => {
+                            error!("Error configuring default debug state: {}", err);
+                            return Err(tauri_plugin_store::Error::Json(err));
+                        }
+                    }
+                }
+            };
         } else {
             debug_state = serde_json::json!({}).to_string();
         }

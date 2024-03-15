@@ -3,9 +3,9 @@ import type { Component } from 'solid-js'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import DeviceComponent from '@components/Device'
 import CreateDevice from '@components/Device/CreateDevice'
-import CustomPopover from '@components/Header/CustomPopover'
 import List from '@components/List/List'
 import ListHeader from '@components/List/ListHeader'
+import Popover from '@components/Popover'
 import { Flex } from '@components/ui/flex'
 import { Col, Grid } from '@components/ui/grid'
 import { Icons } from '@components/ui/icon'
@@ -59,10 +59,10 @@ const Dashboard: Component<DashboardProps> = (props) => {
                                 <div
                                     class="flex p-2"
                                     onPointerDown={() => setDisplayMode(POPOVER_ID.GRIP)}>
-                                    <CustomPopover
+                                    <Popover
                                         styles="h-full"
                                         popoverContent={POPOVER_ID.GRIP}
-                                        icon={<Icons.grip color="#ffffff" size={20} />}
+                                        trigger={<Icons.grip color="#ffffff" size={20} />}
                                         disablePopover={true}
                                     />
                                 </div>
@@ -71,10 +71,10 @@ const Dashboard: Component<DashboardProps> = (props) => {
                                 <div
                                     class="flex p-2"
                                     onPointerDown={() => setDisplayMode(POPOVER_ID.LIST)}>
-                                    <CustomPopover
+                                    <Popover
                                         styles="h-full"
                                         popoverContent={POPOVER_ID.GRIP}
-                                        icon={<Icons.list color="#ffffff" size={20} />}
+                                        trigger={<Icons.list color="#ffffff" size={20} />}
                                         disablePopover={true}
                                     />
                                 </div>

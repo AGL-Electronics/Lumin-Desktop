@@ -1,17 +1,20 @@
 import { Image } from '@kobalte/core'
-import { Show, type Component } from 'solid-js'
-import CustomPopover from './CustomPopover'
+import { useLocation, useNavigate } from '@solidjs/router'
+import { Show, createEffect, createSignal, type Component } from 'solid-js'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
+import Popover from '@components/Popover'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
-import './index.css'
 
-interface HeaderProps {
-    hideButtons: boolean
-    onPointerDown: () => void
-}
+const Header: Component = () => {
+    const [deviceSettingsActive, setDeviceSettingsActive] = createSignal(false)
+    const params = useLocation()
+    const navigate = useNavigate()
 
-const Header: Component<HeaderProps> = (props) => {
+    createEffect(() => {
+        setDeviceSettingsActive(params.pathname.match('deviceSettings') !== null)
+    })
+
     return (
         <header class="w-full pr-4 pl-4 content-center">
             <Flex
@@ -24,30 +27,30 @@ const Header: Component<HeaderProps> = (props) => {
                         title="Go to home page"
                         href="/"
                         class="no-underline"
-                        onPointerDown={() => props.onPointerDown()}>
+                        onPointerDown={() => navigate('/')}>
                         <Image.Root>
                             <Image.Img src="/images/logo.png" alt="logo" width="51px" />
                         </Image.Root>
                     </a>
                 </div>
                 <div class="mx-auto">
-                    <Show when={!props.hideButtons}>
+                    <Show when={!deviceSettingsActive()}>
                         <CustomSlideAnimation
                             firstChild={
                                 <a title="Device Manager" href="/" class="no-underline flex p-2">
-                                    <CustomPopover
+                                    <Popover
                                         styles="h-full"
                                         popoverContent="Device Manager"
-                                        icon={<Icons.led color="#ffffff" size={20} />}
+                                        trigger={<Icons.led color="#ffffff" size={20} />}
                                     />
                                 </a>
                             }
                             secondChild={
                                 <a title="Settings" href="/settings" class="no-underline flex p-2">
-                                    <CustomPopover
+                                    <Popover
                                         styles="h-full"
                                         popoverContent="Settings"
-                                        icon={<Icons.gear color="#ffffff" size={20} />}
+                                        trigger={<Icons.gear color="#ffffff" size={20} />}
                                     />
                                 </a>
                             }

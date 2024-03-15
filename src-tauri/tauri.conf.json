@@ -7,7 +7,7 @@
         "distDir": "../dist"
     },
     "package": {
-        "productName": "Lumin",
+        "productName": "AGLElectronics",
         "version": "0.1.0"
     },
     "tauri": {
@@ -53,7 +53,7 @@
                 "scope": [
                     "http://127.0.0.1:8000/*",
                     "http://localhost:8000/*",
-                    "https://api.github.com/repos/ZanzyTHEbar/Lumin/*"
+                    "https://api.github.com/repos/ZanzyTHEbar/AGLElectronics/*"
                 ]
             },
             "notification": {
@@ -115,7 +115,7 @@
         "bundle": {
             "active": true,
             "category": "Productivity",
-            "copyright": "Almanac",
+            "copyright": "AGLElectronics",
             "deb": {
                 "depends": []
             },
@@ -125,7 +125,7 @@
                 "../public/images/icons/144x144.png",
                 "../public/images/icons/icon.ico"
             ],
-            "identifier": "com.almanac.dev",
+            "identifier": "com.aglelectronics.dev",
             "longDescription": "",
             "resources": [],
             "shortDescription": "",
@@ -170,7 +170,7 @@
                 "width": 800,
                 "resizable": true,
                 "center": true,
-                "title": "Lumin",
+                "title": "AGLElectronics",
                 "visible": true,
                 "decorations": false,
                 "transparent": true

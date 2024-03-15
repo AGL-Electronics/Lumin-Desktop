@@ -4,8 +4,12 @@ import {
     FaSolidListUl,
     FaSolidLightbulb,
     FaSolidPlus,
+    FaSolidArrowLeft,
+    FaSolidArrowRight,
+    FaSolidCircleQuestion,
 } from 'solid-icons/fa'
 import { IoSettingsSharp } from 'solid-icons/io'
+import { OcQuestion2 } from 'solid-icons/oc'
 import { TbDashboard, TbGardenCart, TbSelector } from 'solid-icons/tb'
 import { type ComponentProps, type Component, splitProps } from 'solid-js'
 
@@ -52,10 +56,10 @@ const Icons = {
         </Icon>
     ),
     arrowRight: (props: IconProps) => (
-        <Icon {...props}>
-            <line x1="5" x2="19" y1="12" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-        </Icon>
+        <FaSolidArrowRight class={props.class} size={props.size} color={props.color} />
+    ),
+    arrowLeft: (props: IconProps) => (
+        <FaSolidArrowLeft class={props.class} size={props.size} color={props.color} />
     ),
     arrowUp: (props: IconProps) => (
         <Icon {...props}>
@@ -242,6 +246,9 @@ const Icons = {
     ),
     question: (props: IconProps) => (
         <FaSolidQuestion class={props.class} size={props.size} color={props.color} />
+    ),
+    questionCircle: (props: IconProps) => (
+        <OcQuestion2 class={props.class} size={props.size} color={props.color} />
     ),
     profile: (props: IconProps) => (
         <TbGardenCart class={props.class} size={props.size} color={props.color} />

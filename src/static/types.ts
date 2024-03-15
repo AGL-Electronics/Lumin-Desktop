@@ -10,10 +10,6 @@ import type {
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
 
-export interface MainApp {
-    loggedIn: boolean
-}
-
 //********************************* Device *************************************/
 
 export interface Device {
@@ -41,11 +37,11 @@ export interface Inputs {
     input: (props?: Internal) => JSXElement
 }
 
+// #region Context Stores
+
 //********************************* Stores *************************************/
 
-export interface AppStore {
-    debugMode: DebugMode
-}
+export interface AppStore extends AppSettings {}
 
 export interface AppStoreNotifications {
     notifications?: ToasterStore<Notifications>
@@ -76,10 +72,14 @@ export interface AppStoreDevice {
     selectedDevice: Device
 }
 
-export interface AppStoreMdns {
+export interface AppStoreNetwork {
     mdnsStatus: MdnsStatus
     mdnsData: MdnsResponse
 }
+
+// #endregion
+
+// #region Config
 
 //********************************* Config *************************************/
 
@@ -98,26 +98,14 @@ export type DebugMode = 'off' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
 /**
  * @description This is the export type that is passed to the Tauri Store instance to handle persistent data within the app.
  * @export typedef {Object} PersistentSettings
- * @property {boolean} enableNotificationsSounds
- * @property {boolean} enableNotifications
- * @property {ENotificationAction} globalNotificationsType
- * @property {boolean} enableMDNS
- * @property {boolean} scanForDevicesOnStartup
- * @property {DeviceSettings} DeviceSettings
- * @property {AlgorithmSettings} algorithmSettings
- * @property {FilterParams} filterParams
- * @property {OSCSettings} oscSettings
+ * @property {string} user - The current user of the app
+ * @property {AppSettings} - The app settings
+ * @property {AppStoreNotifications} - The app store notifications
  */
 export type PersistentSettings = {
     user?: string
-    enableNotificationsSounds?: boolean
-    enableNotifications?: boolean
-    globalNotificationsType?: ENotificationAction
-    scanForDevicesOnStartup?: boolean
-    deviceSettings?: DeviceSettings
-    enableMDNS?: boolean
-    debugMode?: DebugMode
-}
+} & AppSettings &
+    AppStoreNotifications
 
 /**
  * @description Backend Config
@@ -127,7 +115,27 @@ export type BackendConfig = {
     debug?: DebugMode
 }
 
+// #endregion
+
+// #region Settings
+
 //********************************* Settings *************************************/
+
+export interface MainApp {
+    loggedIn: boolean
+}
+
+export interface AppSettings {
+    scanForDevicesOnStartup: boolean
+    enableMDNS: boolean
+    debugMode: DebugMode
+}
+
+export interface NotificationSettings {
+    enableNotificationsSounds?: boolean
+    enableNotifications?: boolean
+    globalNotificationsType?: ENotificationAction
+}
 
 //* Utility Interfaces
 
@@ -136,6 +144,9 @@ export interface GeneralError {
     readonly error: string | number | unknown
 }
 
+// #endregion
+
+// #region UI
 //********************************* UI *************************************/
 
 export interface SkeletonHandlerProps {
@@ -195,6 +206,10 @@ export interface UITab {
     event?: TabEvent
 }
 
+// #endregion
+
+// #region Network
+
 //********************************* Network *************************************/
 
 export interface IEndpoint {
@@ -238,3 +253,5 @@ export interface MdnsResponse {
     ips: string[]
     names: string[]
 }
+
+// #endregion

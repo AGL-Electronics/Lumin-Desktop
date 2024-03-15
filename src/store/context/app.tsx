@@ -6,32 +6,30 @@ import {
     type Accessor,
     onMount,
     createEffect,
-    createSignal,
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
-import { attachConsole, debug } from 'tauri-plugin-log-api'
+import { debug } from 'tauri-plugin-log-api'
 import type { AppStore, DebugMode, PersistentSettings } from '@static/types'
-import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ENotificationAction } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 import { AppUIProvider } from '@store/context/ui'
 import { usePersistentStore } from '@store/tauriStore'
-//import { isEmpty } from '@utils/index'
 
 interface AppContext {
-    getDetachConsole: Accessor<Promise<UnlistenFn>>
-    getDebugMode: Accessor<DebugMode>
+    appState: Accessor<AppStore>
     setDebugMode: (mode: DebugMode | undefined) => void
+    setEnableMDNS: (enable: boolean) => void
+    setScanForDeviceOnStartup: (enable: boolean) => void
 }
 
 const AppContext = createContext<AppContext>()
 export const AppProvider: ParentComponent = (props) => {
-    const detachConsole = attachConsole()
-
     //#region Store
     const defaultState: AppStore = {
         debugMode: 'off',
+        enableMDNS: false,
+        scanForDevicesOnStartup: false,
     }
 
     const [state, setState] = createStore<AppStore>(defaultState)
@@ -44,14 +42,26 @@ export const AppProvider: ParentComponent = (props) => {
         )
     }
 
-    const appState = createMemo(() => state)
-    const getDebugMode = createMemo(() => appState().debugMode)
+    const setEnableMDNS = (enable: boolean) => {
+        setState(
+            produce((s) => {
+                s.enableMDNS = enable
+            }),
+        )
+    }
 
-    const getDetachConsole = createMemo(() => detachConsole)
+    const setScanForDeviceOnStartup = (enable: boolean) => {
+        setState(
+            produce((s) => {
+                s.scanForDevicesOnStartup = enable
+            }),
+        )
+    }
+
+    const appState = createMemo(() => state)
     //#endregion
 
     //#region App Boot
-    const [userIsInSettings, setUserIsInSettings] = createSignal(false)
     const { get, set } = usePersistentStore()
 
     const {
@@ -66,41 +76,55 @@ export const AppProvider: ParentComponent = (props) => {
     } = useAppNotificationsContext()
 
     onMount(() => {
-        //* load the app settings from the persistent store and assign to the global state
+        // load the app settings from the persistent store and assign to the global state
         get('settings').then((settings) => {
             if (settings) {
                 debug('loading settings')
+                const activeUserName =
+                    typeof settings.user === 'string' ? settings.user : 'stranger'
+
+                //setConnectedUser(activeUserName)
                 setEnableNotifications(settings.enableNotifications)
                 setEnableNotificationsSounds(settings.enableNotificationsSounds)
                 setGlobalNotificationsType(
                     settings.globalNotificationsType ?? ENotificationAction.APP,
                 )
 
+                setEnableMDNS(settings.enableMDNS)
                 setDebugMode(settings.debugMode)
+                setScanForDeviceOnStartup(settings.scanForDevicesOnStartup)
             }
         })
-        //* Check notification permissions
         checkPermission()
+
+        // TODO: Migrate networking on-boot to network.ts context provider
+        /* doGHRequest()
+        useMDNSScanner('_lumin._tcp', 5).then(() => {
+            // TODO: handle devices found
+        }) */
     })
 
     const createSettingsObject = () => {
         const settings: PersistentSettings = {
+            //user: connectedUserName(),
             enableNotifications: getEnableNotifications(),
             enableNotificationsSounds: getEnableNotificationsSounds(),
             globalNotificationsType: getGlobalNotificationsType(),
-            debugMode: getDebugMode(),
+            enableMDNS: appState().enableMDNS,
+            debugMode: appState().debugMode,
+            scanForDevicesOnStartup: appState().scanForDevicesOnStartup,
         }
         return settings
     }
 
-    const handleSaveSettings = () => {
+    const handleSaveSettings = async () => {
         // check if the settings have changed and save to the store if they have
-        //get('settings').then((storedSettings) => {
-        //    if (!isEqual(storedSettings, createSettingsObject())) {
-        //        debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
-        //        set('settings', createSettingsObject())
-        //    }
-        //})
+        get('settings').then((storedSettings) => {
+            /* if (!isEqual(storedSettings, createSettingsObject())) {
+                debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
+                set('settings', createSettingsObject())
+            } */
+        })
     }
 
     createEffect(() => {
@@ -116,14 +140,16 @@ export const AppProvider: ParentComponent = (props) => {
             resume()
         })
     })
+
     //#endregion
 
     return (
         <AppContext.Provider
             value={{
-                getDetachConsole,
-                getDebugMode,
+                appState,
                 setDebugMode,
+                setEnableMDNS,
+                setScanForDeviceOnStartup,
             }}>
             <AppUIProvider>{props.children}</AppUIProvider>
         </AppContext.Provider>
