@@ -55,13 +55,11 @@ const CustomToast: Component<ToastProps> = (props) => {
                         {props.notif.message}
                     </span>
                     <button
+                        title="Dismiss notification"
                         type="button"
                         class="bg-slate-600 hover:bg-slate-700 focus:bg-slate-900 flex-none w-6 h-6 p-1 text-gray-50 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
                         onClick={dismiss}>
-                        <Icons.close
-                            color="white"
-                            size={10}
-                        />
+                        <Icons.close color="white" size={10} />
                     </button>
                 </Alert>
             </Toast>
