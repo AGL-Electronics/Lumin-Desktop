@@ -1,29 +1,22 @@
-import { For, Show, type Component } from 'solid-js'
+import { For, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
     DeviceSettingsContentProps,
 } from './DeviceSettingUtil'
 import { Input } from '@components/ui/input'
-import { Label } from '@components/ui/label'
-import { ActiveStatus } from '@src/lib/utils'
 import { networkSettings } from '@src/static'
 
-interface NetworkSettingsProps extends DeviceSettingsContentProps {}
-
-const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
-    const handleInputChange = (
+interface NetworkSettingsProps extends DeviceSettingsContentProps {
+    handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
             target: HTMLInputElement
         },
-    ) => {
-        console.log(e.currentTarget.dataset.label, e.currentTarget.value)
-        // grab the data-label attribute from the input field
-        // e.currentTarget.dataset.label
-    }
+    ) => void
+}
 
-    /* General Device Setup */
+const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
     return (
         <DeviceSettingContainer label="Lumin Network Setup" layout="col">
             {/* Network Setup */}
@@ -41,7 +34,7 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                             id={deviceSetting.dataLabel}
                             required={deviceSetting.required}
                             type={deviceSetting.type}
-                            onChange={handleInputChange}
+                            onChange={props.handleInputChange}
                         />
                     </DeviceSettingItemWrapper>
                 )}

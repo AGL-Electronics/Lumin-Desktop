@@ -15,6 +15,7 @@ interface AppDeviceContext {
     getSelectedDeviceType: Accessor<DEVICE_TYPE>
     getSelectedDeviceSection: Accessor<string>
     getSelectedDeviceSocket: Accessor<object>
+    setDevice: (device: Device) => void
     setAddDevice: (Device: Device) => void
     setAddDeviceMDNS: (device: Device, address: string) => void
     setRemoveDevice: (Device: Device) => void
@@ -44,6 +45,15 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setAddDevice = (device: Device) => {
         setState(
             produce((s) => {
+                s.devices.push(device)
+            }),
+        )
+    }
+
+    const setDevice = (device: Device) => {
+        setState(
+            produce((s) => {
+                s.devices = s.devices.filter((c: { id: string }) => c.id !== device.id)
                 s.devices.push(device)
             }),
         )
@@ -132,6 +142,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 getSelectedDeviceType,
                 getSelectedDeviceSection,
                 getSelectedDeviceSocket,
+                setDevice,
                 setAddDevice,
                 setAddDeviceMDNS,
                 setRemoveDevice,

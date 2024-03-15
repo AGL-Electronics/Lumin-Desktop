@@ -1,4 +1,4 @@
-import { For, Show, createSignal, type Component } from 'solid-js'
+import { For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -15,41 +15,23 @@ import {
 } from '@components/ui/select'
 import { ledSettings } from '@src/static'
 
-interface LEDSettingsProps extends DeviceSettingsContentProps {}
-
-const LEDSettings: Component<LEDSettingsProps> = (props) => {
-    const ledSelections = ledSettings.filter((setting) => setting.type === 'select')
-
-    // create a signal store for each ledSelections item
-    const selectionSignals: {
+interface LEDSettingsProps extends DeviceSettingsContentProps {
+    selectionSignals: {
         [key: string]: {
             selectedValue: () => string
             setSelectedValue: (value: string) => void
         }
-    } = {}
-
-    ledSelections.forEach((setting) => {
-        const [selectedValue, setSelectedValue] = createSignal<string>('')
-        selectionSignals[setting.dataLabel] = { selectedValue, setSelectedValue }
-    })
-
-    const handleSelectionChange = (dataLabel: string, value: string) => {
-        if (!selectionSignals[dataLabel]) return
-        selectionSignals[dataLabel].setSelectedValue(value)
     }
-
-    const handleInputChange = (
+    handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
             target: HTMLInputElement
         },
-    ) => {
-        // TODO: handle input change via the context store
-        // grab the data-label attribute from the input field
-        // e.currentTarget.dataset.label
-    }
+    ) => void
+    handleSelectionChange: (dataLabel: string, value: string) => void
+}
 
-    /* LED Device Setup */
+const LEDSettings: Component<LEDSettingsProps> = (props) => {
     return (
         <DeviceSettingContainer label="LED Configuration" layout="col">
             {/* Set LED Type - WLED, RGB, RGBWW/RGBCCT, LedBar */}
@@ -78,15 +60,18 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                             type="number"
                                             min={1}
                                             max={23}
-                                            onChange={handleInputChange}
+                                            onChange={props.handleInputChange}
                                         />
                                     }>
                                     <Select
-                                        value={selectionSignals[
+                                        value={props.selectionSignals[
                                             deviceSetting.dataLabel
                                         ].selectedValue()}
                                         onChange={(value) =>
-                                            handleSelectionChange(deviceSetting.dataLabel, value)
+                                            props.handleSelectionChange(
+                                                deviceSetting.dataLabel,
+                                                value,
+                                            )
                                         }
                                         defaultValue={'dark'}
                                         options={deviceSetting.options || []}

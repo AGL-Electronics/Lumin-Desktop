@@ -126,9 +126,9 @@ const networkSettings: InputDeviceSettings[] = [
         type: 'password',
     },
     {
-        label: 'MQTT Password',
+        label: 'LANCode',
         dataLabel: 'mqtt-password',
-        popoverDescription: 'The password for the MQTT network',
+        popoverDescription: 'The password for the printers MQTT Broker',
         placeholder: 'password',
         required: true,
         type: 'password',

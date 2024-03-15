@@ -11,21 +11,15 @@ import { generalSettings } from '@src/static'
 
 interface GeneralSettingsProps extends DeviceSettingsContentProps {
     enableMDNS: boolean
-}
-
-const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
-    const handleInputChange = (
+    handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
             target: HTMLInputElement
         },
-    ) => {
-        console.log(e.currentTarget.dataset.label, e.currentTarget.value)
-        // grab the data-label attribute from the input field
-        // e.currentTarget.dataset.label
-    }
+    ) => void
+}
 
-    /* General Device Setup */
+const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
     return (
         <DeviceSettingContainer label="General Device Setup" layout="col">
             {/* Set Name */}
@@ -43,7 +37,7 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                             id={deviceSetting.dataLabel}
                             required={deviceSetting.required}
                             type={deviceSetting.type}
-                            onChange={handleInputChange}
+                            onChange={props.handleInputChange}
                         />
                     </DeviceSettingItemWrapper>
                 )}
@@ -63,7 +57,7 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     id="lumin-device-address"
                                     required={true}
                                     type="text"
-                                    onChange={handleInputChange}
+                                    onChange={props.handleInputChange}
                                 />
                             }>
                             {/* TODO: show a drop-down list of detected lumin devices */}
