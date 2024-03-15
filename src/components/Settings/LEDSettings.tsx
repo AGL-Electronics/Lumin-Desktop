@@ -53,6 +53,8 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                     when={deviceSetting.type === 'select'}
                                     fallback={
                                         <Input
+                                            autocomplete="off"
+                                            class="border border-accent"
                                             data-label={deviceSetting.dataLabel}
                                             placeholder={deviceSetting.placeholder}
                                             id={deviceSetting.dataLabel}
@@ -73,7 +75,7 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                                 value,
                                             )
                                         }
-                                        defaultValue={'dark'}
+                                        defaultValue={deviceSetting.options?.[0]}
                                         options={deviceSetting.options || []}
                                         placeholder={deviceSetting.placeholder}
                                         itemComponent={(props) => (

@@ -106,6 +106,14 @@ const generalSettings: InputDeviceSettings[] = [
         required: true,
         type: 'text',
     },
+    {
+        label: 'LANCode',
+        dataLabel: 'mqtt-password',
+        popoverDescription: 'The password for the printers MQTT Broker',
+        placeholder: 'password',
+        required: true,
+        type: 'password',
+    },
 ]
 
 const networkSettings: InputDeviceSettings[] = [
@@ -125,14 +133,7 @@ const networkSettings: InputDeviceSettings[] = [
         required: true,
         type: 'password',
     },
-    {
-        label: 'LANCode',
-        dataLabel: 'mqtt-password',
-        popoverDescription: 'The password for the printers MQTT Broker',
-        placeholder: 'password',
-        required: true,
-        type: 'password',
-    },
+    
 ]
 
 export { themes, enums, types, generalSettings, ledSettings, networkSettings }

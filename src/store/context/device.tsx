@@ -13,10 +13,8 @@ interface AppDeviceContext {
     getSelectedDeviceAddress: Accessor<string>
     getSelectedDeviceStatus: Accessor<DEVICE_STATUS>
     getSelectedDeviceType: Accessor<DEVICE_TYPE>
-    getSelectedDeviceSection: Accessor<string>
     getSelectedDeviceSocket: Accessor<object>
     setDevice: (device: Device) => void
-    setAddDevice: (Device: Device) => void
     setAddDeviceMDNS: (device: Device, address: string) => void
     setRemoveDevice: (Device: Device) => void
     setDeviceStatus: (Device: Device, status: DEVICE_STATUS) => void
@@ -34,27 +32,29 @@ export const AppDeviceProvider: ParentComponent = (props) => {
             name: '',
             status: DEVICE_STATUS.NONE,
             type: DEVICE_TYPE.NONE,
+            led: {
+                ledType: '',
+                ledCount: '',
+                ledConnection: '',
+            },
             address: '',
-            activeDeviceSection: '',
             ws: {},
         },
     }
 
     const [state, setState] = createStore<AppStoreDevice>(defaultState)
 
-    const setAddDevice = (device: Device) => {
-        setState(
-            produce((s) => {
-                s.devices.push(device)
-            }),
-        )
-    }
-
     const setDevice = (device: Device) => {
         setState(
             produce((s) => {
-                s.devices = s.devices.filter((c: { id: string }) => c.id !== device.id)
-                s.devices.push(device)
+                const index = s.devices.findIndex(
+                    (c: { address: string }) => c.address === device.address,
+                )
+                if (index !== -1) {
+                    s.devices[index] = device
+                } else {
+                    s.devices.push(device)
+                }
             }),
         )
     }
@@ -125,9 +125,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const getSelectedDeviceAddress = createMemo(() => DeviceState().selectedDevice.address)
     const getSelectedDeviceStatus = createMemo(() => DeviceState().selectedDevice.status)
     const getSelectedDeviceType = createMemo(() => DeviceState().selectedDevice.type)
-    const getSelectedDeviceSection = createMemo(
-        () => DeviceState().selectedDevice.activeDeviceSection,
-    )
+
     const getSelectedDeviceSocket = createMemo(() => DeviceState().selectedDevice.ws)
 
     return (
@@ -140,10 +138,8 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 getSelectedDeviceAddress,
                 getSelectedDeviceStatus,
                 getSelectedDeviceType,
-                getSelectedDeviceSection,
                 getSelectedDeviceSocket,
                 setDevice,
-                setAddDevice,
                 setAddDeviceMDNS,
                 setRemoveDevice,
                 setDeviceStatus,

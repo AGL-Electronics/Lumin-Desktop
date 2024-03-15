@@ -12,13 +12,19 @@ import type { ToasterStore } from 'terracotta'
 
 //********************************* Device *************************************/
 
+export interface LEDDevice {
+    ledType: string
+    ledCount: string
+    ledConnection: string
+}
+
 export interface Device {
     id: string
     name: string
     status: DEVICE_STATUS
     type: DEVICE_TYPE
     address: string
-    activeDeviceSection: string
+    led: LEDDevice
     ws: object
 }
 

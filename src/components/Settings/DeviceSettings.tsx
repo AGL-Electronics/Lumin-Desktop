@@ -1,5 +1,7 @@
 import { useNavigate } from '@solidjs/router'
 import { createEffect, createSignal, type Component } from 'solid-js'
+// eslint-disable-next-line import/named
+import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
 import GeneralSettings from './GeneralSettings'
 import LEDSettings from './LEDSettings'
@@ -10,15 +12,16 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { ledSettings } from '@src/static'
-import { Device } from '@src/static/types'
-import { useAppDeviceContext } from '@src/store/context/device'
+import { DEVICE_STATUS, DEVICE_TYPE } from '@src/static/enums'
+import { Device } from '@static/types'
 import { useAppContext } from '@store/context/app'
+import { useAppDeviceContext } from '@store/context/device'
 
 // TODO: Setup as stepper, with each section as a step - maybe?
 
 const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
     const { appState } = useAppContext()
-    const { setAddDevice, setDevice } = useAppDeviceContext()
+    const { setDevice, getSelectedDevice } = useAppDeviceContext()
     const navigate = useNavigate()
 
     const [newDevice, setNewDevice] = createSignal<Device | null>(null)
@@ -30,6 +33,13 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         [key: string]: {
             selectedValue: () => string
             setSelectedValue: (value: string) => void
+        }
+    } = {}
+
+    const inputSignals: {
+        [key: string]: {
+            inputValue: () => string
+            setInputValue: (value: string) => void
         }
     } = {}
 
@@ -55,21 +65,52 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         },
     ) => {
         console.debug(e.currentTarget.dataset.label, e.currentTarget.value)
+
+        const dataLabel = e.currentTarget.dataset.label as string
+        const value = e.currentTarget.value
+
+        if (!inputSignals[dataLabel]) {
+            const [inputValue, setInputValue] = createSignal<string>(value)
+            inputSignals[dataLabel] = { inputValue, setInputValue }
+        } else {
+            inputSignals[dataLabel].setInputValue(value)
+        }
     }
 
     createEffect(() => {
-        /* const { name, value, type, checked } = e.currentTarget
-        const newValue = type === 'checkbox' ? checked : value
-        props.createNewDevice
-            ? setAddDevice({ ...props.newDevice, [name]: newValue })
-            : setDevice({ ...props.device, [name]: newValue })
-
         // grab the values from the selectionSignals and set them to the newDevice
+
+        // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
+        if (!props.createNewDevice) {
+            const selectedDevice = getSelectedDevice()
+            if (!selectedDevice) return
+
+            const device = {
+                ledType: selectionSignals['led-type'].selectedValue(),
+                ledCount: selectionSignals['led-bars-connected'].selectedValue(),
+                ledConnection: selectionSignals['led-connection-point'].selectedValue(),
+            }
+
+            setDevice({ ...selectedDevice, ...device })
+            return
+        }
+
         const device: Device = {
-            ledType: selectionSignals.ledType.selectedValue(),
-            ledCount: selectionSignals.ledCount.selectedValue(),
-            ledConnection: selectionSignals.ledConnection.selectedValue(),
-        } */
+            id: uuidv4(),
+            name: inputSignals['device-label'].inputValue(),
+            status: DEVICE_STATUS.NONE,
+            type: DEVICE_TYPE.NONE,
+            address: inputSignals['device-label'].inputValue(),
+            led: {
+                ledCount: selectionSignals.ledCount.selectedValue(),
+                ledType: selectionSignals.ledType.selectedValue(),
+
+                ledConnection: selectionSignals.ledConnection.selectedValue(),
+            },
+            ws: {},
+        }
+
+        setDevice(device)
     })
 
     return (
@@ -105,11 +146,11 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                             <GeneralSettings
                                 createNewDevice={props.createNewDevice}
                                 deviceStatus={props.deviceStatus}
-                                enableMDNS={appState().enableMDNS}
                                 handleInputChange={handleInputChange}
                             />
                             <NetworkSettings
                                 createNewDevice={props.createNewDevice}
+                                enableMDNS={appState().enableMDNS}
                                 deviceStatus={props.deviceStatus}
                                 handleInputChange={handleInputChange}
                             />

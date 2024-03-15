@@ -1,27 +1,32 @@
-import { For, Show, type Component } from 'solid-js'
+import { For, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
     DeviceSettingsContentProps,
 } from './DeviceSettingUtil'
 import { Input } from '@components/ui/input'
-import { Label } from '@components/ui/label'
-import { ActiveStatus } from '@src/lib/utils'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@components/ui/select'
 import { generalSettings } from '@src/static'
 
 interface GeneralSettingsProps extends DeviceSettingsContentProps {
-    enableMDNS: boolean
     handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
             target: HTMLInputElement
         },
     ) => void
+    handleSelectionChange: (dataLabel: string, value: string) => void
 }
 
 const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
     return (
-        <DeviceSettingContainer label="General Device Setup" layout="col">
+        <DeviceSettingContainer label="General Setup" layout="col">
             {/* Set Name */}
             {/* Set Bound Printer - from MDNS dropdown list*/}
             {/* Set Printer Serial number */}
@@ -32,6 +37,8 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                         label={deviceSetting.label}
                         popoverDescription={deviceSetting.popoverDescription}>
                         <Input
+                            class="border border-accent"
+                            autocomplete="off"
                             data-label={deviceSetting.dataLabel}
                             placeholder={deviceSetting.placeholder}
                             id={deviceSetting.dataLabel}
@@ -42,37 +49,22 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                     </DeviceSettingItemWrapper>
                 )}
             </For>
-            <Show
-                when={!props.createNewDevice}
-                fallback={
-                    <DeviceSettingItemWrapper
-                        label="Lumin Device Address"
-                        popoverDescription="The IP address or MDNS name of the Lumin device">
-                        <Show
-                            when={props.enableMDNS}
-                            fallback={
-                                <Input
-                                    data-label="lumin-device-address"
-                                    placeholder="192.168.0.245"
-                                    id="lumin-device-address"
-                                    required={true}
-                                    type="text"
-                                    onChange={props.handleInputChange}
-                                />
-                            }>
-                            {/* TODO: show a drop-down list of detected lumin devices */}
-                            <></>
-                        </Show>
-                    </DeviceSettingItemWrapper>
-                }>
-                <DeviceSettingItemWrapper
-                    label="Lumin Device Address"
-                    popoverDescription="The status of your Lumin Device">
-                    <Label class={`text-[${ActiveStatus(props.deviceStatus)}]`}>
-                        {props.deviceStatus}
-                    </Label>
-                </DeviceSettingItemWrapper>
-            </Show>
+            {/* <Select
+                value={props.selectionSignals[deviceSetting.dataLabel].selectedValue()}
+                onChange={(value) => props.handleSelectionChange(deviceSetting.dataLabel, value)}
+                defaultValue={'dark'}
+                options={deviceSetting.options || []}
+                placeholder={deviceSetting.placeholder}
+                itemComponent={(props) => (
+                    <SelectItem class="" item={props.item}>
+                        {props.item.rawValue}
+                    </SelectItem>
+                )}>
+                <SelectTrigger aria-label={deviceSetting.ariaLabel} class="w-[150px]">
+                    <SelectValue<string>>{(state) => state.selectedOption()}</SelectValue>
+                </SelectTrigger>
+                <SelectContent class="bg-base-300/75 hover:bg-base-200 overflow-y-scroll h-[170px]" />
+            </Select> */}
         </DeviceSettingContainer>
     )
 }

@@ -14,7 +14,7 @@ const SelectTrigger: Component<SelectPrimitive.SelectTriggerProps> = (props) => 
     return (
         <SelectPrimitive.Trigger
             class={cn(
-                'border-input ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex grow w-full h-10 items-center justify-between rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                'placeholder:text-muted-foreground flex grow w-full h-10 items-center justify-between rounded-md border border-accent px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50',
                 props.class,
             )}
             {...rest}>
@@ -32,7 +32,7 @@ const SelectContent: Component<SelectPrimitive.SelectContentProps> = (props) => 
         <SelectPrimitive.Portal>
             <SelectPrimitive.Content
                 class={cn(
-                    'text-pretty animate-in fade-in-80 relative z-10 min-w-[8rem] overflow-hidden rounded-md border-input shadow-lg',
+                    'text-pretty animate-in fade-in-80 relative z-10 min-w-[8rem] overflow-hidden rounded-md shadow-lg',
                     props.class,
                 )}
                 {...rest}>
