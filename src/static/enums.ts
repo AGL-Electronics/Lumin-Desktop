@@ -16,8 +16,6 @@ export enum DEVICE_STATUS {
 export enum DEVICE_TYPE {
     WIRELESS = 'WIRELESS',
     WIRED = 'ETHERNET',
-    USB = 'USB',
-    SERIAL = 'SERIAL',
     NONE = 'NONE',
 }
 

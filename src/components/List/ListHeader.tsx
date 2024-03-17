@@ -7,6 +7,11 @@ const ListHeader = () => {
                 </p>
             </div>
             <div>
+                <p class="text-ellipsis overflow-hidden whitespace-nowrap text-left text-base">
+                    Lumin Label
+                </p>
+            </div>
+            <div>
                 <p class="text-ellipsis overflow-hidden whitespace-nowrap max-md:text-right text-left m-auto text-base">
                     Lumin Address
                 </p>

@@ -12,14 +12,16 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { selectionSignals, inputSignals, dataLabels } from '@src/static'
-import { DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
-import { Device } from '@static/types'
+import { useAppNotificationsContext } from '@src/store/context/notifications'
+import { DEVICE_STATUS, ENotificationType } from '@static/enums'
+import { Device, Notifications } from '@static/types'
 import { useAppContext } from '@store/context/app'
 import { useAppDeviceContext } from '@store/context/device'
 
 const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
     const { appState } = useAppContext()
-    const { setDevice, getSelectedDevice } = useAppDeviceContext()
+    const { setDevice, getSelectedDevice, setRemoveDevice } = useAppDeviceContext()
+    const { addNotification } = useAppNotificationsContext()
     const navigate = useNavigate()
 
     const handleSelectionChange = (dataLabel: string, value: string) => {
@@ -49,7 +51,6 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
     const handleSubmit = (e: PointerEvent) => {
         e.preventDefault()
-        // grab the values from the selectionSignals and inputSignals and set them to the newDevice
 
         // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
         if (!props.createNewDevice) {
@@ -69,8 +70,9 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         const device: Device = {
             id: uuidv4(),
             name: inputSignals[dataLabels.deviceLabel]?.value(),
-            status: DEVICE_STATUS.NONE,
-            type: DEVICE_TYPE.NONE,
+            status: DEVICE_STATUS.LOADING,
+            hasCamera: false,
+            type: selectionSignals[dataLabels.deviceType]?.value(),
             address: inputSignals[dataLabels.luminDeviceAddress]?.value(),
             led: {
                 ledCount: inputSignals[dataLabels.ledBarsConnected]?.value(),
@@ -83,6 +85,43 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         console.debug('Device:', device)
 
         setDevice(device)
+
+        navigate('/')
+
+        let notification: Notifications
+
+        if (props.createNewDevice) {
+            notification = {
+                title: 'Device Created',
+                message: `${device.name} has been created.`,
+                type: ENotificationType.SUCCESS,
+            }
+        } else {
+            notification = {
+                title: 'Device Updated',
+                message: `${device.name} has been updated.`,
+                type: ENotificationType.SUCCESS,
+            }
+        }
+
+        addNotification(notification)
+    }
+
+    const handleDelete = (e: PointerEvent) => {
+        e.preventDefault()
+        const selectedDevice = getSelectedDevice()
+        if (!selectedDevice) return
+        setRemoveDevice(selectedDevice)
+
+        navigate('/')
+
+        addNotification({
+            title: 'Device Deleted',
+            message: `${selectedDevice.name} has been deleted.`,
+            type: ENotificationType.SUCCESS,
+        })
+
+        console.debug('Delete', selectedDevice.id, selectedDevice.name)
     }
 
     return (
@@ -110,7 +149,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                 </CardHeader>
                 <CardContent class="w-full">
                     <form
-                        class="flex flex-col w-full"
+                        class="flex flex-col w-full pb-4 pr-2"
                         onSubmit={(e) => {
                             e.preventDefault()
                         }}>
@@ -118,13 +157,11 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                             <div class="w-full">
                                 <GeneralSettings
                                     createNewDevice={props.createNewDevice}
-                                    selectionSignals={selectionSignals}
                                     deviceStatus={props.deviceStatus}
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
                                 />
                                 <NetworkSettings
-                                    selectionSignals={selectionSignals}
                                     createNewDevice={props.createNewDevice}
                                     enableMDNS={appState().enableMDNS}
                                     deviceStatus={props.deviceStatus}
@@ -144,6 +181,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                             cancelLabel="Cancel"
                             onSubmit={handleSubmit}
                             onCancel={handleBackButton}
+                            onDelete={props.createNewDevice ? undefined : handleDelete}
                         />
                     </form>
                 </CardContent>

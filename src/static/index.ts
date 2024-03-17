@@ -93,7 +93,7 @@ const ledSettings: DeviceSettingsObj[] = [
         dataLabel: 'led-type',
         popoverDescription: 'The type of LED device',
         ariaLabel: 'Select LED Type',
-        placeholder: 'WLED',
+        placeholder: 'Select...',
         options: ['WLED', 'RGB', 'RGBWW/RGBCCT', 'LedBar'],
         required: true,
         type: 'select',
@@ -109,7 +109,7 @@ const ledSettings: DeviceSettingsObj[] = [
     {
         label: 'LED Connection Point',
         dataLabel: 'led-connection-point',
-        placeholder: 'Molex',
+        placeholder: 'Select...',
         popoverDescription: 'The type of connector for the LED device',
         ariaLabel: 'Select LED Connection Point',
         options: [

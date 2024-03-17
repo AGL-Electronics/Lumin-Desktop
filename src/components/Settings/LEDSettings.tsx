@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
-import { SelectionSignals, ledSettings } from '@src/static'
+import { DeviceSettingsObj, SelectionSignals, dataLabels, ledSettings } from '@src/static'
 
 interface LEDSettingsProps extends DeviceSettingsContentProps {
     selectionSignals: SelectionSignals
@@ -27,6 +27,33 @@ interface LEDSettingsProps extends DeviceSettingsContentProps {
 }
 
 const LEDSettings: Component<LEDSettingsProps> = (props) => {
+    const handleLEDSettings = (): DeviceSettingsObj[] => {
+        // if led-type is LedBar, remove the led-bars-connected from the list of setting.
+        // if led-type is not LedBar, remove the Molex option from the led-connection-point from the list of settings options.
+
+        const ledType = props.selectionSignals[dataLabels.ledType]?.value()
+
+        const ledSettingsCopy = ledSettings.map((setting) => ({
+            ...setting,
+            options: setting.options ? [...setting.options] : [],
+        }))
+
+        if (ledType === 'LedBar') {
+            return ledSettingsCopy
+        }
+
+        return ledSettingsCopy.filter((setting) => {
+            if (setting.dataLabel === dataLabels.ledBarsConnected) {
+                return false
+            }
+
+            if (setting.dataLabel === dataLabels.ledConnectionPoint) {
+                setting.options = setting.options?.filter((option) => option !== 'Molex')
+            }
+            return true
+        })
+    }
+
     return (
         <DeviceSettingContainer label="LED Configuration" layout="col">
             {/* Set LED Type - WLED, RGB, RGBWW/RGBCCT, LedBar */}
@@ -38,7 +65,7 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                 flexDirection="row"
                 justifyContent="start"
                 alignItems="start">
-                <For each={ledSettings}>
+                <For each={handleLEDSettings()}>
                     {(deviceSetting) => (
                         <DeviceSettingItemWrapper
                             label={deviceSetting.label}

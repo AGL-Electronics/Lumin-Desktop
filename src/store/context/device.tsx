@@ -13,7 +13,7 @@ interface AppDeviceContext {
     getSelectedDeviceAddress: Accessor<string>
     getSelectedDeviceStatus: Accessor<DEVICE_STATUS>
     getSelectedDeviceType: Accessor<DEVICE_TYPE>
-    getSelectedDeviceSocket: Accessor<object>
+    getSelectedDeviceSocket: Accessor<object | undefined>
     setDevice: (device: Device) => void
     setAddDeviceMDNS: (device: Device, address: string) => void
     setRemoveDevice: (Device: Device) => void
@@ -38,7 +38,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 ledConnection: '',
             },
             address: '',
-            ws: {},
+            hasCamera: false,
         },
     }
 

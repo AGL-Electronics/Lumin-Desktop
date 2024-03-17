@@ -7,11 +7,10 @@ import {
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import { ActiveStatus } from '@src/lib/utils'
-import { SelectionSignals, dataLabels, networkSettings, DeviceSettingsObj } from '@src/static'
+import { dataLabels, networkSettings, DeviceSettingsObj, selectionSignals } from '@src/static'
 import { DEVICE_TYPE } from '@src/static/enums'
 
 interface NetworkSettingsProps extends DeviceSettingsContentProps {
-    selectionSignals: SelectionSignals
     enableMDNS: boolean
     handleInputChange: (
         e: Event & {
@@ -25,11 +24,11 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
     /* TODO: implement showing wifi settings only when device type is set to wireless */
 
     const handleDeviceType = (): DeviceSettingsObj[] => {
-        return props.selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
+        return selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
             ? networkSettings
             : networkSettings.filter(
-                (setting) => setting.label !== 'WIFI SSID' && setting.label !== 'WIFI Password',
-            )
+                  (setting) => setting.label !== 'WIFI SSID' && setting.label !== 'WIFI Password',
+              )
     }
 
     return (

@@ -25,7 +25,8 @@ export interface Device {
     type: DEVICE_TYPE
     address: string
     led: LEDDevice
-    ws: object
+    hasCamera: boolean
+    ws?: object
 }
 
 export type DeviceSetting = {
