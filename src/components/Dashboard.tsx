@@ -10,8 +10,7 @@ import { Flex } from '@components/ui/flex'
 import { Col, Grid } from '@components/ui/grid'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
-import { useAppDeviceContext } from '@src/store/context/device'
-import { POPOVER_ID } from '@static/enums'
+import { ANIMATION_MODE, POPOVER_ID } from '@static/enums'
 import { Device } from '@static/types'
 
 /**
@@ -33,8 +32,7 @@ interface DashboardProps {
 }
 
 const Dashboard: Component<DashboardProps> = (props) => {
-    const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.GRIP)
-    const { getDevices } = useAppDeviceContext()
+    const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.LIST)
 
     return (
         <div
@@ -55,6 +53,8 @@ const Dashboard: Component<DashboardProps> = (props) => {
                     </Flex>
                     <div class="mx-auto">
                         <CustomSlideAnimation
+                            defaultAnimationMode={ANIMATION_MODE.LIST}
+                            defaultDisplayMode={POPOVER_ID.LIST}
                             firstChild={
                                 <div
                                     class="flex p-2"
@@ -88,7 +88,7 @@ const Dashboard: Component<DashboardProps> = (props) => {
                             <For each={props.devices}>
                                 {(device) => (
                                     <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
-                                        <div class='pt-3'>
+                                        <div class="pt-3">
                                             <DeviceComponent
                                                 firmwareVersion={props.firmwareVersion}
                                                 {...device}
@@ -109,7 +109,7 @@ const Dashboard: Component<DashboardProps> = (props) => {
                         </Grid>
                     </Match>
                     <Match when={displayMode() === POPOVER_ID.LIST}>
-                        <Show when={getDevices().length > 0}>
+                        <Show when={props.devices.length > 0}>
                             <ListHeader />
                             <For each={props.devices}>
                                 {(device) => (

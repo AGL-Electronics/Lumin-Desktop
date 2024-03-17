@@ -5,11 +5,13 @@ import { ANIMATION_MODE, POPOVER_ID } from '@src/static/enums'
 export interface IProps {
     firstChild: JSX.Element
     secondChild: JSX.Element
+    defaultAnimationMode: ANIMATION_MODE
+    defaultDisplayMode: POPOVER_ID
 }
 
 const CustomSlideAnimation = (props: IProps) => {
-    const [hoverMode, setHoverMode] = createSignal(ANIMATION_MODE.GRIP)
-    const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.GRIP)
+    const [hoverMode, setHoverMode] = createSignal(props.defaultAnimationMode)
+    const [displayMode, setDisplayMode] = createSignal(props.defaultDisplayMode)
 
     return (
         <Flex

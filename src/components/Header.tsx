@@ -5,6 +5,7 @@ import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import Popover from '@components/Popover'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
+import { ANIMATION_MODE, POPOVER_ID } from '@src/static/enums'
 
 const Header: Component = () => {
     const [deviceSettingsActive, setDeviceSettingsActive] = createSignal(false)
@@ -36,6 +37,8 @@ const Header: Component = () => {
                 <div class="mx-auto">
                     <Show when={!deviceSettingsActive()}>
                         <CustomSlideAnimation
+                            defaultAnimationMode={ANIMATION_MODE.GRIP}
+                            defaultDisplayMode={POPOVER_ID.GRIP}
                             firstChild={
                                 <a title="Device Manager" href="/" class="no-underline flex p-2">
                                     <Popover
