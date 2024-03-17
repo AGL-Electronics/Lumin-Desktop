@@ -74,7 +74,6 @@ export const AppContextMainProvider: ParentComponent = (props) => {
 
         //TODO: Start mdns and websocket clients only after the backend is ready
         // TODO: call REST api to start the backend
-        console.log('[App Boot]: Starting Python Backend')
     }
 
     const handleTitlebar = (main = false) => {

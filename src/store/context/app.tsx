@@ -10,7 +10,7 @@ import {
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
 import { debug } from 'tauri-plugin-log-api'
-import type { AppStore, DebugMode, PersistentSettings } from '@static/types'
+import type { AppStore, DebugMode, Device, PersistentSettings } from '@static/types'
 import { ENotificationAction } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 import { AppUIProvider } from '@store/context/ui'
@@ -21,6 +21,7 @@ interface AppContext {
     setDebugMode: (mode: DebugMode | undefined) => void
     setEnableMDNS: (enable: boolean) => void
     setScanForDeviceOnStartup: (enable: boolean) => void
+    setDevices: (devices: Device[]) => void
 }
 
 const AppContext = createContext<AppContext>()
@@ -30,6 +31,7 @@ export const AppProvider: ParentComponent = (props) => {
         debugMode: 'off',
         enableMDNS: false,
         scanForDevicesOnStartup: false,
+        devices: [],
     }
 
     const [state, setState] = createStore<AppStore>(defaultState)
@@ -38,6 +40,14 @@ export const AppProvider: ParentComponent = (props) => {
         setState(
             produce((s) => {
                 s.debugMode = mode || 'info'
+            }),
+        )
+    }
+
+    const setDevices = (devices: Device[]) => {
+        setState(
+            produce((s) => {
+                s.devices = devices
             }),
         )
     }
@@ -96,12 +106,6 @@ export const AppProvider: ParentComponent = (props) => {
             }
         })
         checkPermission()
-
-        // TODO: Migrate networking on-boot to network.ts context provider
-        /* doGHRequest()
-        useMDNSScanner('_lumin._tcp', 5).then(() => {
-            // TODO: handle devices found
-        }) */
     })
 
     const createSettingsObject = () => {
@@ -113,6 +117,7 @@ export const AppProvider: ParentComponent = (props) => {
             enableMDNS: appState().enableMDNS,
             debugMode: appState().debugMode,
             scanForDevicesOnStartup: appState().scanForDevicesOnStartup,
+            devices: appState().devices,
         }
         return settings
     }
@@ -149,6 +154,7 @@ export const AppProvider: ParentComponent = (props) => {
                 appState,
                 setDebugMode,
                 setEnableMDNS,
+                setDevices,
                 setScanForDeviceOnStartup,
             }}>
             <AppUIProvider>{props.children}</AppUIProvider>

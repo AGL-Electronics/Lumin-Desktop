@@ -29,10 +29,6 @@ export interface Device {
     ws?: object
 }
 
-export type DeviceSetting = {
-    device: Device
-}
-
 //********************************* Components *************************************/
 
 export interface Internal {
@@ -48,7 +44,9 @@ export interface Inputs {
 
 //********************************* Stores *************************************/
 
-export interface AppStore extends AppSettings {}
+export interface AppStore extends AppSettings {
+    devices: Device[]
+}
 
 export interface AppStoreNotifications {
     notifications?: ToasterStore<Notifications>
@@ -111,6 +109,7 @@ export type DebugMode = 'off' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
  */
 export type PersistentSettings = {
     user?: string
+    devices: Device[]
 } & AppSettings &
     AppStoreNotifications
 
