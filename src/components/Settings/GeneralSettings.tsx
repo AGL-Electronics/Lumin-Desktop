@@ -1,4 +1,4 @@
-import { For, type Component } from 'solid-js'
+import { For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -12,16 +12,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
-import { generalSettings } from '@src/static'
+import { SelectionSignals, dataLabels, generalSettings } from '@src/static'
+import { DEVICE_TYPE } from '@src/static/enums'
 
 interface GeneralSettingsProps extends DeviceSettingsContentProps {
+    selectionSignals: SelectionSignals
+    handleSelectionChange: (dataLabel: string, value: string) => void
     handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
             target: HTMLInputElement
         },
     ) => void
-    handleSelectionChange: (dataLabel: string, value: string) => void
 }
 
 const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
@@ -36,35 +38,46 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                     <DeviceSettingItemWrapper
                         label={deviceSetting.label}
                         popoverDescription={deviceSetting.popoverDescription}>
-                        <Input
-                            class="border border-accent"
-                            autocomplete="off"
-                            data-label={deviceSetting.dataLabel}
-                            placeholder={deviceSetting.placeholder}
-                            id={deviceSetting.dataLabel}
-                            required={deviceSetting.required}
-                            type={deviceSetting.type}
-                            onChange={props.handleInputChange}
-                        />
+                        <Show
+                            when={deviceSetting.type === 'input'}
+                            fallback={
+                                <Select
+                                    value={props.selectionSignals[dataLabels.deviceType]?.value()}
+                                    onChange={(value) =>
+                                        props.handleSelectionChange(dataLabels.deviceType, value)
+                                    }
+                                    defaultValue={DEVICE_TYPE.WIRED}
+                                    options={deviceSetting.options!}
+                                    placeholder={deviceSetting.placeholder}
+                                    itemComponent={(props) => (
+                                        <SelectItem class="" item={props.item}>
+                                            {props.item.rawValue}
+                                        </SelectItem>
+                                    )}>
+                                    <SelectTrigger
+                                        aria-label={deviceSetting.ariaLabel}
+                                        class="w-[150px]">
+                                        <SelectValue<string>>
+                                            {(state) => state.selectedOption()}
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent class="bg-base-300/75 hover:bg-base-200 overflow-y-scroll h-[170px]" />
+                                </Select>
+                            }>
+                            <Input
+                                class="border border-accent"
+                                autocomplete="off"
+                                data-label={deviceSetting.dataLabel}
+                                placeholder={deviceSetting.placeholder}
+                                id={deviceSetting.dataLabel}
+                                required={deviceSetting.required}
+                                type={deviceSetting.inputType}
+                                onChange={props.handleInputChange}
+                            />
+                        </Show>
                     </DeviceSettingItemWrapper>
                 )}
             </For>
-            {/* <Select
-                value={props.selectionSignals[deviceSetting.dataLabel].selectedValue()}
-                onChange={(value) => props.handleSelectionChange(deviceSetting.dataLabel, value)}
-                defaultValue={'dark'}
-                options={deviceSetting.options || []}
-                placeholder={deviceSetting.placeholder}
-                itemComponent={(props) => (
-                    <SelectItem class="" item={props.item}>
-                        {props.item.rawValue}
-                    </SelectItem>
-                )}>
-                <SelectTrigger aria-label={deviceSetting.ariaLabel} class="w-[150px]">
-                    <SelectValue<string>>{(state) => state.selectedOption()}</SelectValue>
-                </SelectTrigger>
-                <SelectContent class="bg-base-300/75 hover:bg-base-200 overflow-y-scroll h-[170px]" />
-            </Select> */}
         </DeviceSettingContainer>
     )
 }

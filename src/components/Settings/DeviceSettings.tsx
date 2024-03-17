@@ -1,5 +1,5 @@
 import { useNavigate } from '@solidjs/router'
-import { createEffect, createSignal, type Component } from 'solid-js'
+import { type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
@@ -11,51 +11,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
-import { ledSettings } from '@src/static'
-import { DEVICE_STATUS, DEVICE_TYPE } from '@src/static/enums'
+import { selectionSignals, inputSignals, dataLabels } from '@src/static'
+import { DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
 import { Device } from '@static/types'
 import { useAppContext } from '@store/context/app'
 import { useAppDeviceContext } from '@store/context/device'
-
-// TODO: Setup as stepper, with each section as a step - maybe?
 
 const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
     const { appState } = useAppContext()
     const { setDevice, getSelectedDevice } = useAppDeviceContext()
     const navigate = useNavigate()
 
-    const [newDevice, setNewDevice] = createSignal<Device | null>(null)
-
-    const ledSelections = ledSettings.filter((setting) => setting.type === 'select')
-
-    // create a signal store for each ledSelections item
-    const selectionSignals: {
-        [key: string]: {
-            selectedValue: () => string
-            setSelectedValue: (value: string) => void
-        }
-    } = {}
-
-    const inputSignals: {
-        [key: string]: {
-            inputValue: () => string
-            setInputValue: (value: string) => void
-        }
-    } = {}
-
-    ledSelections.forEach((setting) => {
-        const [selectedValue, setSelectedValue] = createSignal<string>('')
-        selectionSignals[setting.dataLabel] = { selectedValue, setSelectedValue }
-    })
-
     const handleSelectionChange = (dataLabel: string, value: string) => {
         if (!selectionSignals[dataLabel]) return
-        selectionSignals[dataLabel].setSelectedValue(value)
-    }
-
-    const handleBackButton = (e: PointerEvent) => {
-        e.preventDefault()
-        navigate('/')
+        selectionSignals[dataLabel].setValue(value)
     }
 
     const handleInputChange = (
@@ -67,51 +36,54 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         console.debug(e.currentTarget.dataset.label, e.currentTarget.value)
 
         const dataLabel = e.currentTarget.dataset.label as string
-        const value = e.currentTarget.value
+        if (!inputSignals[dataLabel]) return
 
-        if (!inputSignals[dataLabel]) {
-            const [inputValue, setInputValue] = createSignal<string>(value)
-            inputSignals[dataLabel] = { inputValue, setInputValue }
-        } else {
-            inputSignals[dataLabel].setInputValue(value)
-        }
+        const value = e.currentTarget.value
+        inputSignals[dataLabel].setValue(value)
     }
 
-    createEffect(() => {
-        // grab the values from the selectionSignals and set them to the newDevice
+    const handleBackButton = (e: PointerEvent) => {
+        e.preventDefault()
+        navigate('/')
+    }
+
+    const handleSubmit = (e: PointerEvent) => {
+        e.preventDefault()
+        // grab the values from the selectionSignals and inputSignals and set them to the newDevice
 
         // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
         if (!props.createNewDevice) {
             const selectedDevice = getSelectedDevice()
             if (!selectedDevice) return
 
-            const device = {
+            /* const device = {
                 ledType: selectionSignals['led-type'].selectedValue(),
                 ledCount: selectionSignals['led-bars-connected'].selectedValue(),
                 ledConnection: selectionSignals['led-connection-point'].selectedValue(),
             }
 
-            setDevice({ ...selectedDevice, ...device })
+            setDevice({ ...selectedDevice, ...device }) */
             return
         }
 
         const device: Device = {
             id: uuidv4(),
-            name: inputSignals['device-label'].inputValue(),
+            name: inputSignals[dataLabels.deviceLabel]?.value(),
             status: DEVICE_STATUS.NONE,
             type: DEVICE_TYPE.NONE,
-            address: inputSignals['device-label'].inputValue(),
+            address: inputSignals[dataLabels.luminDeviceAddress]?.value(),
             led: {
-                ledCount: selectionSignals.ledCount.selectedValue(),
-                ledType: selectionSignals.ledType.selectedValue(),
-
-                ledConnection: selectionSignals.ledConnection.selectedValue(),
+                ledCount: inputSignals[dataLabels.ledBarsConnected]?.value(),
+                ledType: selectionSignals[dataLabels.ledType]?.value(),
+                ledConnection: selectionSignals[dataLabels.ledConnectionPoint]?.value(),
             },
             ws: {},
         }
 
+        console.debug('Device:', device)
+
         setDevice(device)
-    })
+    }
 
     return (
         <Card class="h-full w-full">
@@ -120,16 +92,12 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                     flexDirection="row"
                     justifyContent="start"
                     alignItems="center"
-                    class="p-2 cursor-pointer"
+                    class="p-2 cursor-pointer text-white"
                     onPointerDown={handleBackButton}>
-                    <Icons.arrowLeft class="mr-3 text-white" size={20} />
-                    <div class="text-white">
-                        <Label
-                            size="lg"
-                            class="text-left text-lg text-upper uppercase max-lg:text-sm ">
-                            go back to home
-                        </Label>
-                    </div>
+                    <Icons.arrowLeft class="mr-3" size={20} />
+                    <Label size="lg" class="text-left text-lg text-upper uppercase max-lg:text-sm ">
+                        go back to home
+                    </Label>
                 </Flex>
                 <CardHeader>
                     <Flex flexDirection="col" justifyContent="between" alignItems="center">
@@ -141,34 +109,43 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                     </Flex>
                 </CardHeader>
                 <CardContent class="w-full">
-                    <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
-                        <div class="w-full">
-                            <GeneralSettings
-                                createNewDevice={props.createNewDevice}
-                                deviceStatus={props.deviceStatus}
-                                handleInputChange={handleInputChange}
-                            />
-                            <NetworkSettings
-                                createNewDevice={props.createNewDevice}
-                                enableMDNS={appState().enableMDNS}
-                                deviceStatus={props.deviceStatus}
-                                handleInputChange={handleInputChange}
-                            />
-                            <LEDSettings
-                                createNewDevice={props.createNewDevice}
-                                deviceStatus={props.deviceStatus}
-                                selectionSignals={selectionSignals}
-                                handleInputChange={handleInputChange}
-                                handleSelectionChange={handleSelectionChange}
-                            />
+                    <form
+                        class="flex flex-col w-full"
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                        }}>
+                        <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
+                            <div class="w-full">
+                                <GeneralSettings
+                                    createNewDevice={props.createNewDevice}
+                                    selectionSignals={selectionSignals}
+                                    deviceStatus={props.deviceStatus}
+                                    handleInputChange={handleInputChange}
+                                    handleSelectionChange={handleSelectionChange}
+                                />
+                                <NetworkSettings
+                                    selectionSignals={selectionSignals}
+                                    createNewDevice={props.createNewDevice}
+                                    enableMDNS={appState().enableMDNS}
+                                    deviceStatus={props.deviceStatus}
+                                    handleInputChange={handleInputChange}
+                                />
+                                <LEDSettings
+                                    createNewDevice={props.createNewDevice}
+                                    deviceStatus={props.deviceStatus}
+                                    selectionSignals={selectionSignals}
+                                    handleInputChange={handleInputChange}
+                                    handleSelectionChange={handleSelectionChange}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <FormActions
-                        submitLabel={props.createNewDevice ? 'Create Device' : 'Save'}
-                        cancelLabel="Cancel"
-                        onSubmit={() => console.log('submit')}
-                        onCancel={handleBackButton}
-                    />
+                        <FormActions
+                            submitLabel={props.createNewDevice ? 'Create Device' : 'Save'}
+                            cancelLabel="Cancel"
+                            onSubmit={handleSubmit}
+                            onCancel={handleBackButton}
+                        />
+                    </form>
                 </CardContent>
             </Flex>
         </Card>

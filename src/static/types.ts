@@ -28,7 +28,7 @@ export interface Device {
     ws: object
 }
 
-export type DeviceSettings = {
+export type DeviceSetting = {
     device: Device
 }
 
@@ -57,7 +57,7 @@ export interface AppStoreNotifications {
 }
 
 export interface UIStore {
-    showSidebar: boolean
+    showDeviceView: boolean
     tabs: UITab[]
     selectedTab: UITab | null
     loggedIn: boolean

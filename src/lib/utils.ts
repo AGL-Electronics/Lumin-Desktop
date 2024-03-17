@@ -59,6 +59,11 @@ export const capitalizeFirstLetter = (letter: string) => {
     return letter.charAt(0).toUpperCase() + letter.slice(1)
 }
 
+// Helper function to convert string to camelCase
+export const toCamelCase = (str: string) => {
+    return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (match, chr) => chr.toUpperCase())
+}
+
 export const isEmpty = <T>(obj: object | Array<T>) => {
     if (!Array.isArray(obj)) {
         // ⇒ do not attempt to process array

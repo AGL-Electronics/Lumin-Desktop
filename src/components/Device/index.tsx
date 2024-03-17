@@ -14,8 +14,11 @@ export interface DeviceComponentProps extends Device {
 
 const DeviceComponent: Component<DeviceComponentProps> = (props) => {
     return (
-        <div
-            class="flex justify-between items-center flex-col max-w-[454px] w-full h-full m-auto pr-3 pl-3 py-3 min-h-[222px] pb-3 rounded-xl bg-[#333742] border-2 border-[#333742] hover:border-[#817DF7] hover:cursor-pointer"
+        <Flex
+            flexDirection="col"
+            justifyContent="between"
+            alignItems="center"
+            class="max-w-[454px] w-full h-full m-auto pr-3 pl-3 py-3 min-h-[222px] pb-3 rounded-xl bg-[#333742] border-2 border-[#333742] hover:border-[#817DF7] hover:cursor-pointer"
             onPointerDown={(e) => props.onPointerDown(e)}>
             <div class="flex flex-row items-center md:flex-col w-full h-full">
                 <div class="flex items-center mr-2.5 max-w-[208px] md:max-w-full md:mr-0 h-full w-full ">
@@ -54,7 +57,7 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                     </Flex>
                 </Flex>
             </div>
-        </div>
+        </Flex>
     )
 }
 

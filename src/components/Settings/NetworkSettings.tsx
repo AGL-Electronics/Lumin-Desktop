@@ -7,9 +7,11 @@ import {
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import { ActiveStatus } from '@src/lib/utils'
-import { networkSettings } from '@src/static'
+import { SelectionSignals, dataLabels, networkSettings, DeviceSettingsObj } from '@src/static'
+import { DEVICE_TYPE } from '@src/static/enums'
 
 interface NetworkSettingsProps extends DeviceSettingsContentProps {
+    selectionSignals: SelectionSignals
     enableMDNS: boolean
     handleInputChange: (
         e: Event & {
@@ -20,6 +22,16 @@ interface NetworkSettingsProps extends DeviceSettingsContentProps {
 }
 
 const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
+    /* TODO: implement showing wifi settings only when device type is set to wireless */
+
+    const handleDeviceType = (): DeviceSettingsObj[] => {
+        return props.selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
+            ? networkSettings
+            : networkSettings.filter(
+                (setting) => setting.label !== 'WIFI SSID' && setting.label !== 'WIFI Password',
+            )
+    }
+
     return (
         <DeviceSettingContainer label="Lumin Network Setup" layout="col">
             {/* Network Setup */}
@@ -59,7 +71,7 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                     </Label>
                 </DeviceSettingItemWrapper>
             </Show>
-            <For each={networkSettings}>
+            <For each={handleDeviceType()}>
                 {(deviceSetting) => (
                     <DeviceSettingItemWrapper
                         label={deviceSetting.label}
@@ -71,7 +83,7 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                             placeholder={deviceSetting.placeholder}
                             id={deviceSetting.dataLabel}
                             required={deviceSetting.required}
-                            type={deviceSetting.type}
+                            type={deviceSetting.inputType}
                             onChange={props.handleInputChange}
                         />
                     </DeviceSettingItemWrapper>

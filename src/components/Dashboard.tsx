@@ -88,13 +88,15 @@ const Dashboard: Component<DashboardProps> = (props) => {
                             <For each={props.devices}>
                                 {(device) => (
                                     <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
-                                        <DeviceComponent
-                                            firmwareVersion={props.firmwareVersion}
-                                            {...device}
-                                            onPointerDown={() =>
-                                                props.onClickNavigateDevice(device)
-                                            }
-                                        />
+                                        <div class='pt-3'>
+                                            <DeviceComponent
+                                                firmwareVersion={props.firmwareVersion}
+                                                {...device}
+                                                onPointerDown={() =>
+                                                    props.onClickNavigateDevice(device)
+                                                }
+                                            />
+                                        </div>
                                     </Col>
                                 )}
                             </For>

@@ -6,7 +6,6 @@ import {
     FaSolidPlus,
     FaSolidArrowLeft,
     FaSolidArrowRight,
-    FaSolidCircleQuestion,
 } from 'solid-icons/fa'
 import { IoSettingsSharp } from 'solid-icons/io'
 import { OcQuestion2 } from 'solid-icons/oc'

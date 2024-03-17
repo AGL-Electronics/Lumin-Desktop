@@ -13,15 +13,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
-import { ledSettings } from '@src/static'
+import { SelectionSignals, ledSettings } from '@src/static'
 
 interface LEDSettingsProps extends DeviceSettingsContentProps {
-    selectionSignals: {
-        [key: string]: {
-            selectedValue: () => string
-            setSelectedValue: (value: string) => void
-        }
-    }
+    selectionSignals: SelectionSignals
     handleInputChange: (
         e: Event & {
             currentTarget: HTMLInputElement
@@ -66,9 +61,11 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                         />
                                     }>
                                     <Select
-                                        value={props.selectionSignals[
-                                            deviceSetting.dataLabel
-                                        ].selectedValue()}
+                                        value={
+                                            props.selectionSignals[
+                                                deviceSetting.dataLabel
+                                            ]!.value()!
+                                        }
                                         onChange={(value) =>
                                             props.handleSelectionChange(
                                                 deviceSetting.dataLabel,

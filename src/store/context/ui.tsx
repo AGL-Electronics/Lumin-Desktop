@@ -21,18 +21,18 @@ interface AppUIContext {
     tabs: Accessor<UITab[]>
     defaultTab: Accessor<UITab>
     selectedTab: Accessor<UITab | null>
-    showSidebar: Accessor<boolean>
+    showDeviceView: Accessor<boolean>
     showNotifications: Accessor<boolean | undefined>
     handleTab: (new_tab: UITab | UITab[], event: TabEvent) => void
     setOpenModal: (status: { openModal: boolean; editingMode: boolean }) => void
-    setShowSidebar: (showSidebar: boolean) => void
+    setShowDeviceView: (showDeviceView: boolean) => void
 }
 
 const AppUIContext = createContext<AppUIContext>()
 export const AppUIProvider: ParentComponent = (props) => {
     const defaultState: UIStore = {
-        showSidebar: true,
         selectedTab: null,
+        showDeviceView: false,
         tabs: [],
         modalStatus: {
             openModal: false,
@@ -52,10 +52,10 @@ export const AppUIProvider: ParentComponent = (props) => {
         )
     }
 
-    const setShowSidebar = (showSidebar: boolean) => {
+    const setShowDeviceView = (showDeviceView: boolean) => {
         setState(
             produce((s) => {
-                s.showSidebar = showSidebar
+                s.showDeviceView = showDeviceView
             }),
         )
     }
@@ -123,7 +123,7 @@ export const AppUIProvider: ParentComponent = (props) => {
     const openModalStatus = createMemo(() => uiState().modalStatus)
     const tabs = createMemo(() => uiState().tabs)
     const showNotifications = createMemo(() => uiState().showNotifications)
-    const showSidebar = createMemo(() => uiState().showSidebar)
+    const showDeviceView = createMemo(() => uiState().showDeviceView)
     const selectedTab = createMemo(() => uiState().selectedTab)
     const defaultTab = createMemo(() => tabs().find((tab) => tab.id === 'part_history')!)
 
@@ -134,11 +134,11 @@ export const AppUIProvider: ParentComponent = (props) => {
                 tabs,
                 defaultTab,
                 selectedTab,
-                showSidebar,
+                showDeviceView,
                 showNotifications,
                 handleTab,
                 setOpenModal,
-                setShowSidebar,
+                setShowDeviceView,
             }}>
             {props.children}
         </AppUIContext.Provider>
