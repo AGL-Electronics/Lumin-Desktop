@@ -64,7 +64,7 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                     </Flex>
                     <Flex justifyContent="between" flexDirection="row" class="text-base 2xl:pb-3">
                         <Label class="text-[#A9B6BF] pr-2">Status</Label>
-                        <div class="max-md:hidden text-left flex justify-end content-center items-center ">
+                        <div class="max-md:hidden text-left flex justify-end content-center items-center">
                             <div
                                 class={`ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px] bg-[${status()}]`}
                             />

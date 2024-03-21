@@ -37,7 +37,7 @@ const App: ParentComponent = (props) => {
             <div id="header-wrapper" class="header-wrapper overflow-hidden">
                 <Header />
             </div>
-            <main class="w-full overflow-y-auto">
+            <main class="w-full overflow-y-scroll">
                 <Transition
                     mode="outin"
                     onBeforeEnter={(el) => {

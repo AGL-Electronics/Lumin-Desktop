@@ -15,32 +15,7 @@ body {
         'rlig' 1,
         'calt' 1;
     margin: 0;
-    font-family:
-        Roboto,
-        Impact,
-        IMPACT,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        Oxygen,
-        Ubuntu,
-        Cantarell,
-        'Open Sans',
-        'Helvetica Neue',
-        sans-serif,
-        Haettenschweiler,
-        'Arial Narrow Bold',
-        sans-serif,
-        Inter,
-        Avenir,
-        Helvetica,
-        Arial,
-        sans-serif,
-        'times new roman',
-        times,
-        roman,
-        serif;
+    font-family: Arial, Helvetica, 'Inter', sans-serif, serif, Georgia, 'Roboto Slab';
     cursor: default;
     background-color: transparent !important;
     width: 100%;
@@ -50,32 +25,7 @@ body {
 }
 
 :root {
-    font-family:
-        Roboto,
-        Impact,
-        IMPACT,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        Oxygen,
-        Ubuntu,
-        Cantarell,
-        'Open Sans',
-        'Helvetica Neue',
-        sans-serif,
-        Haettenschweiler,
-        'Arial Narrow Bold',
-        sans-serif,
-        Inter,
-        Avenir,
-        Helvetica,
-        Arial,
-        sans-serif,
-        'times new roman',
-        times,
-        roman,
-        serif;
+    font-family: Arial, Helvetica, 'Inter', sans-serif, serif, Georgia, 'Roboto Slab';
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
@@ -107,7 +57,7 @@ body {
 
 .main-div {
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
     border-radius: 0.4rem;
     /* Clothoid Gradient */
     background: linear-gradient(247.32deg, #282830 0%, #181c28 100%);

@@ -6,9 +6,6 @@
     ],
     "settings": {
         "files.autoSave": "afterDelay",
-        "rust-analyzer.checkOnSave.enable": true,
-        "rust-analyzer.checkOnSave.command": "clippy",
-        "rust-analyzer.checkOnSave.allTargets": true,
         "rust-analyzer.files.excludeDirs": [
             "**/target",
             "**/node_modules",
@@ -39,7 +36,6 @@
         "[typescript]": {
             "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
-        "liveServer.settings.multiRootWorkspaceName": "Example",
         "cSpell.words": [
             "AGLELECTRONICS",
             "APPCONFIG",

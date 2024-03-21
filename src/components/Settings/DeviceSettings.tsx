@@ -125,8 +125,12 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
     }
 
     return (
-        <Card class="h-full w-full">
-            <Flex class="w-full" flexDirection="col" justifyContent="around" alignItems="center">
+        <Card class="h-full w-full overflow-y-scroll">
+            <Flex
+                class="w-full overflow-y-scroll"
+                flexDirection="col"
+                justifyContent="around"
+                alignItems="center">
                 <Flex
                     flexDirection="row"
                     justifyContent="start"
@@ -147,9 +151,9 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                         </CardTitle>
                     </Flex>
                 </CardHeader>
-                <CardContent class="w-full">
+                <CardContent class="w-full overflow-y-scroll">
                     <form
-                        class="flex flex-col w-full pb-4 pr-2"
+                        class="flex flex-col w-full pb-4 pr-2 overflow-y-scroll"
                         onSubmit={(e) => {
                             e.preventDefault()
                         }}>
