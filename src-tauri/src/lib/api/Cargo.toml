@@ -1,16 +1,16 @@
 [package]
-name = "utils"
+name = "tauri-plugin-request-client"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = { workspace = true }
-dialoguer = { workspace = true }
+utils = { path = "../util" }
+thiserror = "1"
 serde = { workspace = true }
 specta = { workspace = true }
 tauri = { workspace = true }
 tauri-specta = { workspace = true }
+log = { workspace = true }
 reqwest = { workspace = true }
-thiserror = { workspace = true }

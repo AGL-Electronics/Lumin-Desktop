@@ -5,7 +5,6 @@ import { Card, CardContent } from '@components/ui/card'
 import PageWrapper from '@pages/PageWrapper'
 import { useAppAPIContext } from '@store/context/api'
 import { useAppDeviceContext } from '@store/context/device'
-import { useAppUIContext } from '@store/context/ui'
 
 export default function Main() {
     const { getFirmwareVersion, setRESTDevice } = useAppAPIContext()

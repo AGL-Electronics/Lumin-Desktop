@@ -5,12 +5,15 @@ import { capitalizeFirstLetter } from '@src/lib/utils'
 const Main = lazy(() => import('@pages/Home'))
 const AppSettings = lazy(() => import('@pages/Settings'))
 const DeviceSettings = lazy(() => import('@pages/DeviceSettings'))
+const FlashFirmware = lazy(() => import('@containers/FlashFirmware'))
 const page404 = lazy(() => import('@pages/page404'))
 
 export const routes: RouteDefinition[] = [
     { path: '/', component: Main },
     { path: '/settings', component: AppSettings },
+    //{ path: '/network', component: NetworkConfigurator },
     { path: '/deviceSettings/:flag', component: DeviceSettings },
+    { path: '/flashFirmware', component: FlashFirmware },
     { path: '*404', component: page404 },
 ]
 

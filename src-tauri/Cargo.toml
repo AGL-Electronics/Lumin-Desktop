@@ -14,6 +14,9 @@ rust-version = "1.69"
 [dependencies.tauri-plugin-splashscreen]
 path = "src/lib/splashscreen"
 
+[dependencies.tauri-plugin-request-client]
+path = "src/lib/api"
+
 [dependencies.tauri-plugin-window-state]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "dev"
@@ -64,12 +67,14 @@ reqwest = { workspace = true }
 tiny_http = { workspace = true }
 anyhow = { workspace = true }
 url = { workspace = true }
+thiserror = { workspace = true }
 
 [workspace.dependencies]
 anyhow = "1.0.75"
 url = "2.5.0"
 dialoguer = "0.11.0"
 log = "0.4.20"
+thiserror = "1.0.29"
 tiny_http = "0.12.0"
 reqwest = { version = "0.11", features = ["rustls-tls", "json", "stream"] }
 serde = { version = "1.0.189", features = ["derive"] }
@@ -114,7 +119,7 @@ tauri = { version = "1.5", features = [
 
 
 [workspace]
-members = ["src/lib/util", "src/lib/splashscreen"]
+members = ["src/lib/util", "src/lib/splashscreen", "src/lib/api"]
 
 [features]
 default = ["custom-protocol"]

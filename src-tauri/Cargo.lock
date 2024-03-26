@@ -2058,12 +2058,14 @@ dependencies = [
  "tauri-plugin-autostart",
  "tauri-plugin-log",
  "tauri-plugin-oauth",
+ "tauri-plugin-request-client",
  "tauri-plugin-single-instance",
  "tauri-plugin-splashscreen",
  "tauri-plugin-store",
  "tauri-plugin-upload",
  "tauri-plugin-window-state",
  "tauri-specta",
+ "thiserror",
  "tiny_http",
  "tokio",
  "url",
@@ -3946,6 +3948,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-request-client"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "reqwest",
+ "serde",
+ "specta",
+ "tauri",
+ "tauri-specta",
+ "thiserror",
+ "utils",
+]
+
+[[package]]
 name = "tauri-plugin-single-instance"
 version = "0.0.0"
 source = "git+https://github.com/tauri-apps/tauri-plugin-single-instance/?branch=dev#632c48307ceb129f8aea3ca894fa631785dfc47f"
@@ -4551,6 +4567,7 @@ dependencies = [
  "specta",
  "tauri",
  "tauri-specta",
+ "thiserror",
 ]
 
 [[package]]

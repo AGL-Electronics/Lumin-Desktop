@@ -4,37 +4,53 @@ import { appConfigDir, join } from '@tauri-apps/api/path'
 import { invoke, convertFileSrc } from '@tauri-apps/api/tauri'
 import { createContext, useContext, createMemo, Accessor, type ParentComponent } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
-import { debug, error, warn } from 'tauri-plugin-log-api'
+import { debug, error, trace, warn } from 'tauri-plugin-log-api'
 import { download, upload } from 'tauri-plugin-upload-api'
 import { useAppDeviceContext } from './device'
 import { useAppNotificationsContext } from './notifications'
-import { ENotificationType, RESTStatus, RESTType } from '@static/enums'
-import { AppStoreAPI, IEndpoint, IGHAsset, IGHRelease } from '@static/types'
+import { ENotificationType, RESTStatus, RESTType, ESPEndpoints } from '@static/enums'
+import { AppStoreAPI, IEndpoint, IEndpointKey, IGHAsset, IGHRelease } from '@static/types'
+import { makeRequest } from 'tauri-plugin-request-client'
 
 interface AppAPIContext {
-    /********************************* gh rest *************************************/
+    //********************************* gh rest *************************************/
     getGHRestStatus: Accessor<RESTStatus>
     getFirmwareAssets: Accessor<IGHAsset[]>
     getFirmwareVersion: Accessor<string>
     getGHEndpoint: Accessor<string>
+    getFirmwareType: Accessor<string>
     setGHRestStatus: (status: RESTStatus) => void
     setFirmwareAssets: (assets: IGHAsset) => void
     setFirmwareVersion: (version: string) => void
-    /********************************* rest *************************************/
+    setFirmwareType: (type: string) => void
+    setLoader: (loader: boolean) => void
+    activeBoard: Accessor<string>
+    //********************************* rest *************************************/
     getRESTStatus: Accessor<RESTStatus>
     getRESTDevice: Accessor<string>
     getRESTResponse: Accessor<object>
+    loader: Accessor<boolean>
+    ssid: Accessor<string>
+    apModeStatus: Accessor<boolean>
+    password: Accessor<string>
     setRESTStatus: (status: RESTStatus) => void
     setRESTDevice: (device: string) => void
     setRESTResponse: (response: object) => void
-    /********************************* endpoints *************************************/
-    getEndpoints: Accessor<Map<string, IEndpoint>>
-    getEndpoint: (key: string) => IEndpoint | undefined
-    /********************************* hooks *************************************/
+    //********************************* endpoints *************************************/
+    getEndpoints: Accessor<Map<IEndpointKey, IEndpoint>>
+    getEndpoint: (key: IEndpointKey) => IEndpoint | undefined
+    //********************************* hooks *************************************/
     downloadAsset: (firmware: string) => Promise<void>
     doGHRequest: () => Promise<void>
-    useRequestHook: (endpointName: string, deviceName: string, args: string) => Promise<void>
+    useRequestHook: (
+        endpointName: IEndpointKey,
+        deviceName?: string,
+        args?: string,
+    ) => Promise<boolean>
     useOTA: (firmwareName: string, device: string) => Promise<void>
+    setActiveBoard: (board: string) => void
+    setNetwork: (ssid: string, password: string) => void
+    setAPModeStatus: (status: boolean) => void
 }
 
 const AppAPIContext = createContext<AppAPIContext>()
@@ -42,22 +58,27 @@ export const AppAPIProvider: ParentComponent = (props) => {
     const { addNotification } = useAppNotificationsContext()
     const { getDevices } = useAppDeviceContext()
 
+    // TODO: change to firmware release repo
     const ghEndpoint = 'https://api.github.com/repos/EyeTrackVR/OpenIris/releases/latest'
-    const endpointsMap: Map<string, IEndpoint> = new Map<string, IEndpoint>([
-        ['ping', { url: ':81/control/command/ping', type: RESTType.GET }],
-        ['save', { url: ':81/control/command/save', type: RESTType.GET }],
-        ['resetConfig', { url: ':81/control/command/resetConfig', type: RESTType.GET }],
-        ['rebootDevice', { url: ':81/control/command/rebootDevice', type: RESTType.GET }],
-        ['restartDevice', { url: ':81/control/command/restartDevice', type: RESTType.GET }],
-        ['getStoredConfig', { url: ':81/control/command/getStoredConfig', type: RESTType.GET }],
-        ['setTxPower', { url: ':81/control/command/setTxPower', type: RESTType.POST }],
-        ['setDevice', { url: ':81/control/command/setDevice', type: RESTType.POST }],
-        ['wifi', { url: ':81/control/command/wifi', type: RESTType.POST }],
-        ['wifiStrength', { url: ':81/control/command/wifiStrength', type: RESTType.POST }],
-        ['ota', { url: ':81/update', type: RESTType.POST }],
+
+    // TODO: Use backend api schema to generate endpoints map and use that instead of hardcoding the endpoints
+    const endpointsMap: Map<IEndpointKey, IEndpoint> = new Map<IEndpointKey, IEndpoint>([
+        //* ESP Specific Endpoints */
+        ['ota', { url: `:81${ESPEndpoints.OTA}`, type: RESTType.POST }],
+        ['ping', { url: `:81${ESPEndpoints.PING}`, type: RESTType.GET }],
+        ['save', { url: `:81${ESPEndpoints.SAVE}`, type: RESTType.GET }],
+        ['wifi', { url: `:81${ESPEndpoints.WIFI}`, type: RESTType.POST }],
+        ['setDevice', { url: `:81${ESPEndpoints.SET_DEVICE}`, type: RESTType.POST }],
+        ['setTxPower', { url: `:81${ESPEndpoints.SET_TX_POWER}`, type: RESTType.POST }],
+        ['resetConfig', { url: `:81${ESPEndpoints.RESET_CONFIG}`, type: RESTType.GET }],
+        ['rebootDevice', { url: `:81${ESPEndpoints.REBOOT_DEVICE}`, type: RESTType.GET }],
+        ['wifiStrength', { url: `:81${ESPEndpoints.WIFI_STRENGTH}`, type: RESTType.POST }],
+        ['restartCamera', { url: `:81${ESPEndpoints.RESTART_CAMERA}`, type: RESTType.GET }],
+        ['getStoredConfig', { url: `:81${ESPEndpoints.GET_STORED_CONFIG}`, type: RESTType.GET }],
     ])
 
     const defaultState: AppStoreAPI = {
+        activeBoard: '',
         restAPI: {
             status: RESTStatus.COMPLETE,
             device: '',
@@ -68,6 +89,11 @@ export const AppAPIProvider: ParentComponent = (props) => {
             assets: [],
             version: '',
         },
+        ssid: '',
+        password: '',
+        firmwareType: '',
+        loader: false,
+        apModeStatus: false,
     }
 
     const [state, setState] = createStore<AppStoreAPI>(defaultState)
@@ -75,6 +101,13 @@ export const AppAPIProvider: ParentComponent = (props) => {
 
     /********************************* gh rest *************************************/
     //#region gh rest
+    const setLoader = (loader: boolean) => {
+        setState(
+            produce((s) => {
+                s.loader = loader
+            }),
+        )
+    }
     const setGHRestStatus = (status: RESTStatus) => {
         setState(
             produce((s) => {
@@ -96,10 +129,45 @@ export const AppAPIProvider: ParentComponent = (props) => {
             }),
         )
     }
+
+    const setFirmwareType = (type: string) => {
+        setState(
+            produce((s) => {
+                s.firmwareType = type
+            }),
+        )
+    }
+    const setActiveBoard = (activeBoard: string) => {
+        setState(
+            produce((s) => {
+                s.activeBoard = activeBoard
+            }),
+        )
+    }
+    const setNetwork = (ssid: string, password: string) => {
+        setState(
+            produce((s) => {
+                s.ssid = ssid
+                s.password = password
+            }),
+        )
+    }
+
+    const setAPModeStatus = (status: boolean) => {
+        setState(
+            produce((s) => {
+                s.apModeStatus = status
+            }),
+        )
+    }
+
     const getGHRestStatus = createMemo(() => apiState().ghAPI.status)
     const getFirmwareAssets = createMemo(() => apiState().ghAPI.assets)
     const getFirmwareVersion = createMemo(() => apiState().ghAPI.version)
+    const getFirmwareType = createMemo(() => apiState().firmwareType)
     const getGHEndpoint = createMemo(() => ghEndpoint)
+    const loader = createMemo(() => apiState().loader)
+    const apModeStatus = createMemo(() => apiState().apModeStatus)
     //#endregion
     /********************************* rest *************************************/
     //#region rest
@@ -124,11 +192,14 @@ export const AppAPIProvider: ParentComponent = (props) => {
             }),
         )
     }
+    const activeBoard = createMemo(() => apiState().activeBoard)
     const getRESTStatus = createMemo(() => apiState().restAPI.status)
     const getRESTDevice = createMemo(() => apiState().restAPI.device)
     const getRESTResponse = createMemo(() => apiState().restAPI.response)
+    const ssid = createMemo(() => apiState().ssid)
+    const password = createMemo(() => apiState().password)
     const getEndpoints = createMemo(() => endpointsMap)
-    const getEndpoint = (key: string) => endpointsMap.get(key)
+    const getEndpoint = (key: IEndpointKey) => endpointsMap.get(key)
     //#endregion
 
     //#region hooks
@@ -328,48 +399,37 @@ export const AppAPIProvider: ParentComponent = (props) => {
                     responseType: ResponseType.JSON,
                 })
 
-                /* const response = await fetch<IGHRelease>(getGHEndpoint(), {
-                    method: 'GET',
-                    timeout: 30,
-                    headers: {
-                        'User-Agent': 'Other',
-                    },
-                    responseType: ResponseType.JSON,
-                }) */
-
-                debug(JSON.stringify(response))
+                trace(`[Github Response]: ${JSON.stringify(response)}`)
 
                 if (!response.ok) {
                     debug('[Github Release Error]: Cannot Access Github API Endpoint')
                     return
                 }
-                debug('[OpenIris Version]: ', response.data['name'])
+                debug(`[OpenIris Version]: ${response.data['name']}`)
 
                 try {
                     const config = await readTextFile('config.json', {
                         dir: BaseDirectory.AppConfig,
                     })
                     const config_json = JSON.parse(config)
-                    debug(JSON.stringify(config_json))
-                    if (response instanceof Object && response.ok) {
-                        if (config !== '') {
-                            if (response.data['name'] !== config_json.version) {
-                                // update config
-                                setGHData(response.data, true)
-                                debug(
-                                    '[Config Exists]: Config Exists and is out of date - Updating',
-                                )
-                                setGHRestStatus(RESTStatus.COMPLETE)
-                                return
-                            }
-                        }
+                    trace(`[Config]: ${JSON.stringify(config_json)}`)
+                    if ((!response.ok || !(response instanceof Object)) && config === '') {
+                        warn('[Config Exists]: Most likely rate limited')
+                        setGHData(config_json, false)
+                        setGHRestStatus(RESTStatus.COMPLETE)
+                        return
+                    }
+                    if (response.data['name'] === config_json.version) {
                         debug('[Config Exists]: Config Exists and is up to date')
                         setGHData(response.data, false)
                         return
                     }
-                    warn('[Config Exists]: Most likely rate limited')
-                    setGHData(config_json, false)
+
+                    // update config
+                    setGHData(response.data, true)
+                    debug('[Config Exists]: Config Exists and is out of date - Updating')
                     setGHRestStatus(RESTStatus.COMPLETE)
+                    return
                 } catch (err) {
                     setGHRestStatus(RESTStatus.NO_CONFIG)
                     if (response.ok) {
@@ -389,8 +449,8 @@ export const AppAPIProvider: ParentComponent = (props) => {
                     error(`[Config Read Error]: Config does not exist ${err}`)
                 }
                 const config_json = JSON.parse(config)
-                debug('[OpenIris Version]: ', config_json.version)
-                debug(config_json)
+                debug(`[OpenIris Version]: ${config_json.version}`)
+                trace(`[Config.JSON Contents]:${config_json}`)
                 if (config !== '') {
                     debug('[Config Exists]: Config Exists and is up to date')
                     setGHData(config_json, false)
@@ -424,15 +484,30 @@ export const AppAPIProvider: ParentComponent = (props) => {
         }
     }
 
-    const useRequestHook = async (endpointName: string, deviceName: string, args: string) => {
-        let endpoint: string = getEndpoints().get(endpointName)?.url ?? ''
-        const device = getDevices().find(
-            (Device: { address: string }) => Device.address === deviceName,
-        )
+    const useRequestHook = async (
+        endpointName: IEndpointKey,
+        deviceName?: string,
+        args?: string,
+    ): Promise<boolean> => {
+        let endpoint: string = getEndpoint(endpointName)!.url
+        const method: RESTType = getEndpoint(endpointName)!.type
+
+        if (typeof deviceName != 'undefined') {
+            deviceName = 'http://' + deviceName
+        } else {
+            deviceName = 'http://localhost'
+        }
+
+        const device = getDevices().find((device) => device.address === deviceName)
         if (!device) {
-            setRESTStatus(RESTStatus.NO_DEVICE)
-            debug('No Device found at that address')
-            return
+            const msg = 'No Device found at that address'
+            debug(msg)
+            addNotification({
+                title: 'Error',
+                message: msg,
+                type: ENotificationType.ERROR,
+            })
+            return false
         }
 
         if (args) {
@@ -441,20 +516,26 @@ export const AppAPIProvider: ParentComponent = (props) => {
         setRESTStatus(RESTStatus.LOADING)
 
         try {
-            const response = await invoke('do_rest_request', {
-                endpoint: endpoint,
-                deviceName: device?.address,
-                method: getEndpoints().get(endpointName)?.type,
-            })
-            if (typeof response === 'string') {
-                setRESTStatus(RESTStatus.ACTIVE)
-                const parsedResponse = JSON.parse(response)
-                setRESTResponse(parsedResponse)
+            console.log('[RequestHook]: Making request')
+            setRESTStatus(RESTStatus.ACTIVE)
+            const response = await makeRequest(endpoint, deviceName, method)
+            if (response.status === 'error') {
+                setRESTStatus(RESTStatus.FAILED)
+                error(`[REST Request]: ${response.error}`)
+                addNotification({
+                    title: 'Error',
+                    message: response.error,
+                    type: ENotificationType.ERROR,
+                })
+                return false
             }
+            setRESTResponse(response)
             setRESTStatus(RESTStatus.COMPLETE)
+            return true
         } catch (err) {
             setRESTStatus(RESTStatus.FAILED)
             error(`[REST Request]: ${err}`)
+            return false
         }
     }
 
@@ -465,21 +546,19 @@ export const AppAPIProvider: ParentComponent = (props) => {
      *
      */
     const useOTA = async (firmwareName: string, device: string) => {
-        let endpoints: Map<string, IEndpoint> = new Map()
+        const res = await useRequestHook('ota', device)
 
-        if (getEndpoints) {
-            endpoints = getEndpoints()
-        }
-
-        const ota: string = endpoints.get('ota')?.url ?? ''
-        const Device = getDevices().find((Device) => Device.address === device)
-        if (!Device) {
-            debug('No Device found at that address')
+        if (!res) {
+            addNotification({
+                title: 'Error',
+                message: 'Failed to upload firmware',
+                type: ENotificationType.ERROR,
+            })
             return
         }
-        const server = Device.address + ota
+
         const path = await join(await appConfigDir(), firmwareName + '.bin')
-        await upload(server, path)
+        await upload(device, path)
     }
     //#endregion
 
@@ -487,25 +566,36 @@ export const AppAPIProvider: ParentComponent = (props) => {
     return (
         <AppAPIContext.Provider
             value={{
+                ssid,
+                password,
+                setNetwork,
+                setActiveBoard,
+                activeBoard,
                 getGHRestStatus,
                 getFirmwareAssets,
                 getFirmwareVersion,
                 getGHEndpoint,
-                setGHRestStatus,
-                setFirmwareAssets,
-                setFirmwareVersion,
+                getFirmwareType,
                 getRESTStatus,
                 getRESTDevice,
                 getRESTResponse,
+                getEndpoints,
+                getEndpoint,
+                setGHRestStatus,
+                setFirmwareAssets,
+                setFirmwareVersion,
+                setFirmwareType,
                 setRESTStatus,
                 setRESTDevice,
                 setRESTResponse,
-                getEndpoints,
-                getEndpoint,
                 downloadAsset,
                 doGHRequest,
                 useRequestHook,
                 useOTA,
+                loader,
+                setLoader,
+                apModeStatus,
+                setAPModeStatus,
             }}>
             {props.children}
         </AppAPIContext.Provider>

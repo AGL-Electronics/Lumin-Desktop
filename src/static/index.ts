@@ -1,9 +1,56 @@
 import { createSignal, Setter } from 'solid-js'
-import { DEVICE_TYPE } from './enums'
 import { toCamelCase } from '@src/lib/utils'
 import * as enums from '@static/enums'
 import * as types from '@static/types'
 
+// Define known dataLabel keys
+type KnownDataLabel =
+    | 'led-type'
+    | 'led-bars-connected'
+    | 'led-connection-point'
+    | 'device-label'
+    | 'device-type'
+    | 'printer-serial-number'
+    | 'mqtt-password'
+    | 'flash-firmware'
+    | 'wifi-ssid'
+    | 'wifi-password'
+    | 'lumin-device-address'
+
+// Convert these known labels to camelCase for IntelliSense
+type CamelCaseDataLabels = {
+    [K in KnownDataLabel as ReturnType<typeof toCamelCase>]: string
+}
+
+interface GenericSignal {
+    value: () => string
+    setValue: Setter<string>
+}
+
+export type SelectionSignals = {
+    [K in KnownDataLabel]?: GenericSignal
+}
+
+export type InputSignals = {
+    [K in KnownDataLabel]?: GenericSignal
+}
+
+export const radius = 25
+export const usb = 'USB'
+export const installModalClassName = 'mdc-button__label'
+export const installModalTarget = 'Install'
+export const installationSuccess = 'Installation complete!'
+export const questionModalId = 'questionModal'
+export const apModalID = 'apMode'
+export const debugModalId = 'debugModal'
+export const debugModes = [...Object.values(enums.DebugMode)]
+
+const circleSize = Math.PI * (radius * 2)
+
+const selectionSignals: SelectionSignals = {}
+const inputSignals: InputSignals = {}
+
+const dataLabels: CamelCaseDataLabels = {} as CamelCaseDataLabels
 const themes = [
     'light',
     'dark',
@@ -39,41 +86,33 @@ const themes = [
     'sunset',
 ]
 
-// Define known dataLabel keys
-type KnownDataLabel =
-    | 'led-type'
-    | 'led-bars-connected'
-    | 'led-connection-point'
-    | 'device-label'
-    | 'device-type'
-    | 'printer-serial-number'
-    | 'mqtt-password'
-    | 'wifi-ssid'
-    | 'wifi-password'
-    | 'lumin-device-address'
-
-// Convert these known labels to camelCase for IntelliSense
-type CamelCaseDataLabels = {
-    [K in KnownDataLabel as ReturnType<typeof toCamelCase>]: string
+export const stepStatus: {
+    [key in enums.STEP_STATUS_ENUM]: {
+        step: string
+        description: string
+        dashoffset: string
+        index: string
+    }
+} = {
+    [enums.STEP_STATUS_ENUM.CONFIGURE_BOARD]: {
+        index: '1',
+        step: 'Step 1',
+        description: 'Setup your Lumin device',
+        dashoffset: (((100 - 0) / 100) * circleSize).toString(),
+    },
+    [enums.STEP_STATUS_ENUM.FLASH_FIRMWARE]: {
+        index: '2',
+        step: 'Step 2',
+        description: 'Flash firmware assets',
+        dashoffset: (((100 - 50) / 100) * circleSize).toString(),
+    },
+    [enums.STEP_STATUS_ENUM.BOARD_MANAGER]: {
+        index: '3',
+        step: 'Step 3',
+        description: 'Board Manager',
+        dashoffset: (((100 - 100) / 100) * circleSize).toString(),
+    },
 }
-
-interface GenericSignal {
-    value: () => string
-    setValue: Setter<string>
-}
-
-export type SelectionSignals = {
-    [K in KnownDataLabel]?: GenericSignal
-}
-
-export type InputSignals = {
-    [K in KnownDataLabel]?: GenericSignal
-}
-
-const selectionSignals: SelectionSignals = {}
-const inputSignals: InputSignals = {}
-
-const dataLabels: CamelCaseDataLabels = {} as CamelCaseDataLabels
 
 export interface DeviceSettingsObj {
     label: string
@@ -84,7 +123,7 @@ export interface DeviceSettingsObj {
     options?: string[]
     required: boolean
     inputType?: string
-    type: 'select' | 'input'
+    type: 'select' | 'input' | 'checkbox'
 }
 
 const ledSettings: DeviceSettingsObj[] = [
@@ -138,9 +177,11 @@ const generalSettings: DeviceSettingsObj[] = [
         label: 'Lumin Type',
         dataLabel: 'device-type',
         popoverDescription: 'The type of Lumin device you are using',
-        placeholder: DEVICE_TYPE.WIRED,
+        placeholder: enums.DEVICE_TYPE.WIRED,
         ariaLabel: 'Select Lumin Device Type',
-        options: [...Object.values(DEVICE_TYPE).filter((type) => type !== DEVICE_TYPE.NONE)],
+        options: [
+            ...Object.values(enums.DEVICE_TYPE).filter((type) => type !== enums.DEVICE_TYPE.NONE),
+        ],
         required: true,
         type: 'select',
     },
@@ -161,6 +202,15 @@ const generalSettings: DeviceSettingsObj[] = [
         required: true,
         inputType: 'password',
         type: 'input',
+    },
+    {
+        label: 'Flash Firmware',
+        dataLabel: 'flash-firmware',
+        popoverDescription: 'Do you want to flash the firmware?',
+        placeholder: 'Flash Firmware',
+        required: true,
+        inputType: '',
+        type: 'checkbox',
     },
 ]
 
@@ -204,6 +254,7 @@ networkInputs.push({
 
 const generalSelections = generalSettings.filter((setting) => setting.type === 'select')
 const generalInputs = generalSettings.filter((setting) => setting.type === 'input')
+const generalCheckboxes = generalSettings.filter((setting) => setting.type === 'checkbox')
 
 // Function to process each setting array
 const processSettings = (settings: { dataLabel: KnownDataLabel }[]) => {
@@ -220,6 +271,7 @@ processSettings(networkSelections)
 processSettings(networkInputs)
 processSettings(generalInputs)
 processSettings(generalSelections)
+processSettings(generalCheckboxes)
 
 // Generic callback function
 export function genericCallback(
@@ -241,6 +293,8 @@ ledInputs.forEach((setting) => genericCallback(setting, inputSignals))
 networkInputs.forEach((setting) => genericCallback(setting, inputSignals))
 generalInputs.forEach((setting) => genericCallback(setting, inputSignals))
 
+generalCheckboxes.forEach((setting) => genericCallback(setting, inputSignals))
+
 export {
     themes,
     enums,
@@ -253,6 +307,8 @@ export {
     networkInputs,
     networkSelections,
     generalInputs,
+    generalSelections,
+    generalCheckboxes,
     ledInputs,
     selectionSignals,
     inputSignals,

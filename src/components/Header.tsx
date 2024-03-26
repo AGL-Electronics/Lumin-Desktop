@@ -1,13 +1,43 @@
 import { Image } from '@kobalte/core'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { Show, createEffect, createSignal, type Component } from 'solid-js'
+import { ProgressBar } from './ProgressBar/ProgressBar'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import Popover from '@components/Popover'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
+import { Label } from '@components/ui/label'
 import { ANIMATION_MODE, POPOVER_ID } from '@src/static/enums'
 
-const Header: Component = () => {
+interface HeaderProps {
+    step?: { step: string; description: string; dashoffset: string; index: string }
+    currentStep?: string
+}
+
+const StepperProgress: Component<HeaderProps> = (props) => {
+    const location = useLocation()
+    return (
+        <Show when={location.pathname !== '/deviceSettings/false'}>
+            <Flex
+                flexDirection="row"
+                justifyContent="center"
+                alignItems="center"
+                class="gap-[6px] min-w-[210px]">
+                <ProgressBar currentStep={props.currentStep!} dashoffset={props.step!.dashoffset} />
+                <Flex flexDirection="col" justifyContent="end" alignItems="start" class="w-full">
+                    <Label size="sm" weight="bold" class="text-white leading-normal">
+                        {props.step!.step}
+                    </Label>
+                    <Label size="xs" weight="normal" class="text-white font-sans leading-normal">
+                        {props.step!.description}
+                    </Label>
+                </Flex>
+            </Flex>
+        </Show>
+    )
+}
+
+const Header: Component<HeaderProps> = (props) => {
     const [deviceSettingsActive, setDeviceSettingsActive] = createSignal(false)
     const params = useLocation()
     const navigate = useNavigate()
@@ -34,8 +64,15 @@ const Header: Component = () => {
                         </Image.Root>
                     </a>
                 </div>
+                <Label size="3xl" weight="bold" class="text-white pb-2 leading-10">
+                    Lumin
+                </Label>
                 <div class="mx-auto">
-                    <Show when={!deviceSettingsActive()}>
+                    <Show
+                        when={!deviceSettingsActive()}
+                        fallback={
+                            <StepperProgress step={props.step} currentStep={props.currentStep} />
+                        }>
                         <CustomSlideAnimation
                             defaultAnimationMode={ANIMATION_MODE.GRIP}
                             defaultDisplayMode={POPOVER_ID.GRIP}

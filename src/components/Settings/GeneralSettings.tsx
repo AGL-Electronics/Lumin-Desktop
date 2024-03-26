@@ -1,4 +1,4 @@
-import { For, Show, type Component } from 'solid-js'
+import { For, Switch, Match, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -27,9 +27,7 @@ interface GeneralSettingsProps extends DeviceSettingsContentProps {
 
 const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
     /* TODO: limit serial number to 15 character - must be alphanumeric 
-    - the LAnCODE is always 7 alphanumeric 
-    
-    */
+    - the LAnCODE is always 7 alphanumeric */
 
     return (
         <DeviceSettingContainer label="General Setup" layout="col">
@@ -42,9 +40,20 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                     <DeviceSettingItemWrapper
                         label={deviceSetting.label}
                         popoverDescription={deviceSetting.popoverDescription}>
-                        <Show
-                            when={deviceSetting.type === 'input'}
-                            fallback={
+                        <Switch>
+                            <Match when={deviceSetting.type === 'input'}>
+                                <Input
+                                    class="border border-accent"
+                                    autocomplete="off"
+                                    data-label={deviceSetting.dataLabel}
+                                    placeholder={deviceSetting.placeholder}
+                                    id={deviceSetting.dataLabel}
+                                    required={deviceSetting.required}
+                                    type={deviceSetting.inputType}
+                                    onChange={props.handleInputChange}
+                                />
+                            </Match>
+                            <Match when={deviceSetting.type === 'select'}>
                                 <Select
                                     value={selectionSignals[dataLabels.deviceType]?.value()}
                                     onChange={(value) =>
@@ -67,18 +76,21 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     </SelectTrigger>
                                     <SelectContent class="bg-base-300/75 hover:bg-base-200 overflow-y-scroll h-[70px]" />
                                 </Select>
-                            }>
-                            <Input
-                                class="border border-accent"
-                                autocomplete="off"
-                                data-label={deviceSetting.dataLabel}
-                                placeholder={deviceSetting.placeholder}
-                                id={deviceSetting.dataLabel}
-                                required={deviceSetting.required}
-                                type={deviceSetting.inputType}
-                                onChange={props.handleInputChange}
-                            />
-                        </Show>
+                            </Match>
+                            <Match when={deviceSetting.type === 'checkbox'}>
+                                // TODO: Setup firmware flashing toggle button
+                                <Input
+                                    class="border border-accent"
+                                    autocomplete="off"
+                                    data-label={deviceSetting.dataLabel}
+                                    placeholder={deviceSetting.placeholder}
+                                    id={deviceSetting.dataLabel}
+                                    required={deviceSetting.required}
+                                    type="checkbox"
+                                    onChange={props.handleInputChange}
+                                />
+                            </Match>
+                        </Switch>
                     </DeviceSettingItemWrapper>
                 )}
             </For>

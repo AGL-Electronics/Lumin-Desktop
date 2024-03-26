@@ -1,5 +1,5 @@
 import { useNavigate } from '@solidjs/router'
-import { type Component } from 'solid-js'
+import { createMemo, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
@@ -86,7 +86,8 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
         setDevice(device)
 
-        navigate('/')
+        if (inputSignals[dataLabels.flashFirmware]?.value()) navigate('/flashFirmware')
+        else navigate('/')
 
         let notification: Notifications
 
@@ -123,6 +124,14 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
         console.debug('Delete', selectedDevice.id, selectedDevice.name)
     }
+
+    const submitLabel = createMemo(() => {
+        if (props.createNewDevice) {
+            if (inputSignals[dataLabels.flashFirmware]?.value()) return 'Flash Firmware'
+            return 'Create Device'
+        }
+        return 'Save'
+    })
 
     return (
         <Card class="h-full w-full overflow-y-scroll">
@@ -181,7 +190,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                             </div>
                         </div>
                         <FormActions
-                            submitLabel={props.createNewDevice ? 'Create Device' : 'Save'}
+                            submitLabel={submitLabel()}
                             cancelLabel="Cancel"
                             onSubmit={handleSubmit}
                             onCancel={handleBackButton}

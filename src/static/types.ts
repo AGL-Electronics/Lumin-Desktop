@@ -6,9 +6,14 @@ import type {
     RESTType,
     RESTStatus,
     DEVICE_TYPE,
+    DebugMode,
 } from '@static/enums'
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
+
+export interface CustomHTMLElement extends HTMLElement {
+    port: Navigator
+}
 
 //********************************* Device *************************************/
 
@@ -57,19 +62,23 @@ export interface AppStoreNotifications {
 
 export interface UIStore {
     showDeviceView: boolean
-    tabs: UITab[]
-    selectedTab: UITab | null
-    loggedIn: boolean
     modalStatus?: {
         openModal: boolean
         editingMode: boolean
     }
     showNotifications?: boolean
+    contextAnchor?: HTMLElement | null
 }
 
 export interface AppStoreAPI {
+    loader: boolean
     restAPI: IRest
     ghAPI: IGHRest
+    firmwareType: string
+    activeBoard: string
+    ssid: string
+    password: string
+    apModeStatus: boolean
 }
 
 export interface AppStoreDevice {
@@ -87,18 +96,6 @@ export interface AppStoreNetwork {
 // #region Config
 
 //********************************* Config *************************************/
-
-/**
- * @description Debug mode levels
- * @export typedef {string} DebugMode
- * @property {'off'} off
- * @property {'error'} error
- * @property {'warn'} warn
- * @property {'info'} info
- * @property {'debug'} debug
- * @property {'trace'} trace
- */
-export type DebugMode = 'off' | 'error' | 'warn' | 'info' | 'debug' | 'trace'
 
 /**
  * @description This is the export type that is passed to the Tauri Store instance to handle persistent data within the app.
@@ -187,36 +184,24 @@ export interface Notifications {
     type: ENotificationType
 }
 
-type TabEvent = 'add' | 'hide' | 'show' | 'active' | DropZoneName
-export type DropZoneName = 'left' | 'right' | 'bottom'
-
-/**
- * @description Business logic for the application
- * @interface UITabs
- * @property {string} id - The id of the UI element
- * @property {string} label - The label of the UI element
- * @property {string} icon - The icon of the UI element
- * @property {JSXElement | null} content - The content of the UI element
- * @property {boolean} enabled - The enabled state of the UI element
- * @property {boolean} visible - The visible state of the UI element
- * @property {DropZoneName} dropZone - The position of the UI element
- * @property {TabEvent} event - The event to trigger on the UI element
- */
-export interface UITab {
-    id: string
-    icon: string
-    content: JSXElement | null
-    dropZone: DropZoneName
-    visible: boolean
-    label?: string
-    event?: TabEvent
-}
-
 // #endregion
 
 // #region Network
 
 //********************************* Network *************************************/
+
+export type IEndpointKey =
+    | 'ota'
+    | 'ping'
+    | 'save'
+    | 'wifi'
+    | 'setDevice'
+    | 'setTxPower'
+    | 'resetConfig'
+    | 'rebootDevice'
+    | 'wifiStrength'
+    | 'restartCamera'
+    | 'getStoredConfig'
 
 export interface IEndpoint {
     url: string
