@@ -3,6 +3,7 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { HoverPopover } from '@components/ui/popover'
+import { cn } from '@src/lib/utils'
 import { DEVICE_STATUS } from '@static/enums'
 
 export interface DeviceSettingsContentProps {
@@ -14,12 +15,13 @@ export interface DeviceSettingsContentProps {
 const DeviceSettingContainer: ParentComponent<{
     label: string
     layout?: 'row' | 'col'
+    styles?: string
 }> = (props) => {
     return (
         <div class="w-full p-3 mb-5">
             <Flex
                 flexDirection="col"
-                class="pl-4 pr-4 rounded-xl pb-4 pt-4 bg-[#333742] text-white">
+                class={cn('pl-4 pr-4 rounded-xl pb-4 pt-4 bg-[#333742] text-white', props.styles)}>
                 <Flex flexDirection={props.layout} justifyContent="between" class="text-base">
                     <Label weight="extraBold" size="lg">
                         {props.label}
@@ -35,6 +37,8 @@ const DeviceSettingItemWrapper: ParentComponent<{
     label: string
     popover?: JSXElement
     popoverDescription?: string
+    labelJustify?: 'start' | 'end' | 'center'
+    styles?: string
 }> = (props) => {
     return (
         <Flex
@@ -42,7 +46,11 @@ const DeviceSettingItemWrapper: ParentComponent<{
             justifyContent="start"
             alignItems="start"
             class="mb-5 gap-2 text-secondary-content">
-            <Flex class="gap-2" flexDirection="row" justifyContent="start" alignItems="center">
+            <Flex
+                class={cn('w-full gap-2', props.styles)}
+                flexDirection="row"
+                justifyContent={props.labelJustify || 'start'}
+                alignItems="center">
                 <Label size="lg" weight="bold" for="device-address">
                     {props.label}
                 </Label>

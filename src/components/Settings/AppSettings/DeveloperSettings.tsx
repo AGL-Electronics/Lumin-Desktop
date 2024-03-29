@@ -1,17 +1,23 @@
+import { DeviceSettingContainer } from '../DeviceSettingUtil'
 import DownloadAssetsButton from '@components/Buttons/DownloadAssetsButton'
 import EraseButton from '@components/Buttons/EraseButton'
 import OpenDocs from '@components/OpenDocs'
 import WebSerial from '@components/WebSerial'
+import { Flex } from '@components/ui/flex'
+
+// TODO: Setup iterating through all connected devices and updating them with the new firmware
 
 const FlashSettings = () => {
     return (
-        <div class="flex grow rounded-xl flex-col pl-4 pr-4 pb-4 pt-4 bg-[#333742]">
-            <div>
-                <div class="pb-6 pl-3 pr-3">
-                    <p class="text-start text-2xl">Flash Settings</p>
-                </div>
-            </div>
-            <div class="flex justify-evenly flex-wrap items-center gap-3">
+        <DeviceSettingContainer
+            label="Flash Settings"
+            layout="col"
+            styles="bg-[#333742] text-white rounded-xl p-3">
+            <Flex
+                flexDirection="row"
+                justifyContent="evenly"
+                alignItems="center"
+                class="flex-wrap gap-3">
                 <div>
                     <DownloadAssetsButton />
                 </div>
@@ -24,8 +30,8 @@ const FlashSettings = () => {
                 <div>
                     <EraseButton />
                 </div>
-            </div>
-        </div>
+            </Flex>
+        </DeviceSettingContainer>
     )
 }
 export default FlashSettings
