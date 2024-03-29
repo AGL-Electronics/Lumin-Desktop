@@ -1,7 +1,8 @@
 import { useNavigate } from '@solidjs/router'
+
 import { useFormHandler } from 'solid-form-handler'
 import { yupSchema } from 'solid-form-handler/yup'
-import { createMemo, type Component } from 'solid-js'
+import { createMemo, onMount, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
@@ -14,20 +15,26 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { capitalizeFirstLetter } from '@src/lib/utils'
-import { selectionSignals, inputSignals, dataLabels, schema } from '@src/static'
+import { selectionSignals, inputSignals, dataLabels, wiredSchema, wifiSchema } from '@src/static'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
 import { DEVICE_STATUS, ENotificationType } from '@static/enums'
 import { Device, Notifications } from '@static/types'
 import { useAppContext } from '@store/context/app'
 import { useAppDeviceContext } from '@store/context/device'
-
 const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
     const { appState } = useAppContext()
     const { setDevice, getSelectedDevice, setRemoveDevice } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
-    const formHandler = useFormHandler(yupSchema(schema))
-    const { formData } = formHandler
     const navigate = useNavigate()
+
+    const wiredFormHandler = useFormHandler(yupSchema(wiredSchema))
+    //const wifiFormHandler = useFormHandler(yupSchema(wifiSchema))
+    const { formData } = wiredFormHandler
+    //const { formData: wifiFormData } = wifiFormHandler
+
+    onMount(() => {
+        //selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
+    })
 
     const handleSelectionChange = (dataLabel: string, value: string) => {
         if (!selectionSignals[dataLabel]) return
@@ -55,7 +62,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
     }
 
     const reset = () => {
-        formHandler.resetForm()
+        wiredFormHandler.resetForm()
     }
 
     const handleBackButton = (e: PointerEvent) => {
@@ -68,12 +75,14 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         e.preventDefault()
 
         try {
-            await formHandler.validateForm()
+            await wiredFormHandler.validateForm()
             //alert('Data sent with success: ' + JSON.stringify(formData()))
             // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
             if (!props.createNewDevice) {
                 const selectedDevice = getSelectedDevice()
                 if (!selectedDevice) return
+
+                // TODO: Update the selected device with the new data
 
                 /* const device = {
                 ledType: selectionSignals['led-type'].selectedValue(),
@@ -128,7 +137,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
             addNotification(notification)
 
-            formHandler.resetForm()
+            wiredFormHandler.resetForm()
 
             console.debug('Submit', device)
 
@@ -260,7 +269,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
                                     handleToggleChange={handleToggleChange}
-                                    formHandler={formHandler}
+                                    formHandler={wiredFormHandler}
                                     handleValueChange={handleValueChange}
                                 />
                                 <NetworkSettings
@@ -268,7 +277,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     enableMDNS={appState().enableMDNS}
                                     deviceStatus={props.deviceStatus}
                                     handleInputChange={handleInputChange}
-                                    formHandler={formHandler}
+                                    formHandler={wiredFormHandler}
                                     handleValueChange={handleValueChange}
                                 />
                                 <LEDSettings
@@ -277,7 +286,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     selectionSignals={selectionSignals}
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
-                                    formHandler={formHandler}
+                                    formHandler={wiredFormHandler}
                                     handleValueChange={handleValueChange}
                                 />
                             </div>
@@ -298,8 +307,15 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
 export default DeviceSettingsContent
 
+// TODO: Setup device camera modal - only if device has camera
+// TODO: Setup device config viewer - only in selectedDevice mode
+
 /* 
 <div class="lg:mt-5 max-w-[700px] w-full">
     <DevicesModal devicesUrl={props.devicesUrl} />
 </div>
 */
+/* 
+<div class="w-full pb-12">
+    <DeviceConfig />
+</div> */

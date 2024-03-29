@@ -311,7 +311,14 @@ export type Schema = {
     [K in KnownDataLabel]?: string
 }
 
-const schema: yup.Schema<Schema> = yup.object({
+const wiredSchema: yup.Schema<Schema> = yup.object({
+    [dataLabels.deviceLabel]: yup.string().required().min(1).max(20),
+    [dataLabels.printerSerialNumber]: yup.string().required().min(15).max(15),
+    [dataLabels.mqttPassword]: yup.string().required().min(7).max(7),
+    [dataLabels.luminDeviceAddress]: yup.string().required().min(7).max(15),
+})
+
+const wifiSchema: yup.Schema<Schema> = yup.object({
     [dataLabels.deviceLabel]: yup.string().required().min(1).max(20),
     [dataLabels.printerSerialNumber]: yup.string().required().min(15).max(15),
     [dataLabels.mqttPassword]: yup.string().required().min(7).max(7),
@@ -326,7 +333,8 @@ export {
     themes,
     enums,
     types,
-    schema,
+    wiredSchema,
+    wifiSchema,
     generalSettings,
     ledSettings,
     networkSettings,

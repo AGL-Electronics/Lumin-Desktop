@@ -48,7 +48,10 @@ const List: Component<ListProps> = (props) => {
                 </Label>
             </div>
             <div class="max-md:hidden text-left flex justify-end content-center items-center ">
-                <div class={`ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px] bg-[${status()}]`} />
+                <div
+                    style={{ 'background-color': status() }}
+                    class="ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px]"
+                />
                 <Label class="text-ellipsis overflow-hidden text-[#FFFF] whitespace-nowrap text-base">
                     {capitalizeFirstLetter(props.status.toLocaleLowerCase())}
                 </Label>

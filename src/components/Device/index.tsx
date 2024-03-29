@@ -1,8 +1,10 @@
-import { createEffect, createSignal, type Component } from 'solid-js'
+import { createEffect, createSignal, type Component, Show } from 'solid-js'
+import WifiSignal from './WIFIStrength'
 import WebSocketHandler from '@components/WebSocketHandler'
 import { Flex } from '@components/ui/flex'
 import { Label } from '@components/ui/label'
 import { ActiveStatus, DEFAULT_COLOR, capitalizeFirstLetter } from '@src/lib/utils'
+import { DEVICE_TYPE } from '@src/static/enums'
 import { Device } from '@static/types'
 
 export interface DeviceComponentProps extends Device {
@@ -16,7 +18,6 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
     const [status, setStatus] = createSignal(DEFAULT_COLOR)
 
     createEffect(() => {
-        console.debug('status', props.status)
         setStatus(ActiveStatus(props.status))
     })
 
@@ -41,11 +42,6 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                     flexDirection="col"
                     justifyContent="between"
                     class="gap-2 ml-2.5 rounded-xl md:rounded-t-none md:max-w-full md:h-full md:ml-0 lg:rounded-xl bg-[#292D36] rounded-b-xl min-[1749px]:rounded-xl max-w-[209px] h-full w-full p-3">
-                    {/* If wifi, show RSSI value with wifi symbol filled in relative to strength */}
-                    {/* 
-                    <Label size="lg" class="text-center pb-3 text-white">
-                        {props.activeDeviceSection}
-                    </Label> */}
                     <Flex justifyContent="between" flexDirection="row" class="text-base 2xl:pb-3">
                         <Label class="text-[#A9B6BF] pr-2">Name</Label>
                         <div class="overflow-hidden pl-2">
@@ -64,15 +60,29 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                     </Flex>
                     <Flex justifyContent="between" flexDirection="row" class="text-base 2xl:pb-3">
                         <Label class="text-[#A9B6BF] pr-2">Status</Label>
-                        <div class="max-md:hidden text-left flex justify-end content-center items-center">
+                        <div class="max-md:hidden text-left flex justify-end content-center items-center ">
                             <div
-                                class={`ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px] bg-[${status()}]`}
+                                style={{ 'background-color': status() }}
+                                class="ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px]"
                             />
-                            <Label class="text-ellipsis overflow-hidden text-[#FFFF] whitespace-nowrap text-base">
+                            <Label class="text-ellipsis overflow-hidden text-[#fff] whitespace-nowrap text-base">
                                 {capitalizeFirstLetter(props.status.toLocaleLowerCase())}
                             </Label>
                         </div>
                     </Flex>
+                    <Show when={props.type === DEVICE_TYPE.WIRELESS}>
+                        <Flex
+                            justifyContent="between"
+                            flexDirection="row"
+                            class="text-base 2xl:pb-3">
+                            <Label class="text-[#A9B6BF] pr-2">Network</Label>
+                            <div class="overflow-hidden pl-2">
+                                <Label size="lg" class="text-white text-ellipsis overflow-hidden">
+                                    <WifiSignal rssi={-55} />
+                                </Label>
+                            </div>
+                        </Flex>
+                    </Show>
                     <Flex flexDirection="row" justifyContent="between" class="text-base 2xl:pb-3">
                         <Label class="text-[#A9B6BF] pr-2">Firmware</Label>
                         <Label size="xs" class="text-white">
