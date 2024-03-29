@@ -121,7 +121,7 @@ async fn main() -> tauri::Result<()> {
             // Configure IPC for custom protocol
             app.ipc_scope().configure_remote_access(
                 RemoteDomainAccessScope::new("localhost")
-                    .allow_on_scheme("eyetrackvr")
+                    .allow_on_scheme("Lumin")
                     .add_window("main"),
             );
 

@@ -1,6 +1,6 @@
+import { Board } from '@components/Board'
 import { FaSolidXmark } from 'solid-icons/fa'
 import { type Component, For } from 'solid-js'
-import { Board } from '@components/Board/Board/Board'
 import { SelectButton } from '@components/Buttons/SelectButton'
 
 export interface IProps {

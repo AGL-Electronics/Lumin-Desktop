@@ -1,3 +1,4 @@
+import { FormHandler } from 'solid-form-handler'
 import { For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
@@ -18,6 +19,7 @@ interface NetworkSettingsProps extends DeviceSettingsContentProps {
             target: HTMLInputElement
         },
     ) => void
+    formHandler?: FormHandler | undefined
 }
 
 const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
@@ -36,7 +38,6 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
             {/* Network Setup */}
             {/* Set WIFI SSID */}
             {/* Set WIFI Password */}
-            {/* Set MQTT password */}
             <Show
                 when={!props.createNewDevice}
                 fallback={
@@ -50,11 +51,15 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                                     autocomplete="off"
                                     class="border border-accent"
                                     data-label="lumin-device-address"
+                                    name="lumin-device-address"
                                     placeholder="192.168.0.245"
                                     id="lumin-device-address"
+                                    minLength={7}
+                                    maxLength={15}
                                     required={true}
                                     type="text"
                                     onChange={props.handleInputChange}
+                                    formHandler={props.formHandler}
                                 />
                             }>
                             {/* TODO: show a drop-down list of detected lumin devices */}
@@ -63,7 +68,7 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                     </DeviceSettingItemWrapper>
                 }>
                 <DeviceSettingItemWrapper
-                    label="Lumin Device Address"
+                    label="Lumin Device Status"
                     popoverDescription="The status of your Lumin Device">
                     <Label class={`text-[${ActiveStatus(props.deviceStatus)}]`}>
                         {props.deviceStatus}
@@ -79,11 +84,15 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                             autocomplete="off"
                             class="border border-accent"
                             data-label={deviceSetting.dataLabel}
+                            name={deviceSetting.dataLabel}
                             placeholder={deviceSetting.placeholder}
                             id={deviceSetting.dataLabel}
                             required={deviceSetting.required}
                             type={deviceSetting.inputType}
+                            minLength={deviceSetting.minLen}
+                            maxLength={deviceSetting.maxLen}
                             onChange={props.handleInputChange}
+                            formHandler={props.formHandler}
                         />
                     </DeviceSettingItemWrapper>
                 )}

@@ -64,10 +64,12 @@ export const toCamelCase = (str: string) => {
     return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (match, chr) => chr.toUpperCase())
 }
 
-export const isEmpty = <T>(obj: object | Array<T>) => {
+export const isEmpty = <T>(obj: string | object | Array<T>) => {
     if (!Array.isArray(obj)) {
-        // ⇒ do not attempt to process array
         return Object.keys(obj).length === 0
+    } else if (typeof obj === 'string') {
+        obj = obj as string
+        return !obj.length || obj === '' || obj === null || obj === undefined
     }
     return !obj.length
 }

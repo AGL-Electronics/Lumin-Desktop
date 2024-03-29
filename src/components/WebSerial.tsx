@@ -3,7 +3,7 @@ import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { FaSolidPlug } from 'solid-icons/fa'
 import { createEffect, createSignal } from 'solid-js'
 import { debug } from 'tauri-plugin-log-api'
-import CustomButton from '@components/CustomButton'
+import CustomButton from '@components/Buttons/CustomButton'
 
 declare module 'solid-js' {
     // eslint-disable-next-line @typescript-eslint/no-namespace

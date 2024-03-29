@@ -1,4 +1,6 @@
 import { useNavigate } from '@solidjs/router'
+import { useFormHandler } from 'solid-form-handler'
+import { yupSchema } from 'solid-form-handler/yup'
 import { createMemo, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
@@ -11,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
-import { selectionSignals, inputSignals, dataLabels } from '@src/static'
+import { capitalizeFirstLetter } from '@src/lib/utils'
+import { selectionSignals, inputSignals, dataLabels, schema } from '@src/static'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
 import { DEVICE_STATUS, ENotificationType } from '@static/enums'
 import { Device, Notifications } from '@static/types'
@@ -22,6 +25,8 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
     const { appState } = useAppContext()
     const { setDevice, getSelectedDevice, setRemoveDevice } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
+    const formHandler = useFormHandler(yupSchema(schema))
+    const { formData } = formHandler
     const navigate = useNavigate()
 
     const handleSelectionChange = (dataLabel: string, value: string) => {
@@ -44,68 +49,109 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         inputSignals[dataLabel].setValue(value)
     }
 
+    const handleToggleChange = (isChecked: boolean) => {
+        console.debug('Toggle:', isChecked)
+        inputSignals[dataLabels.flashFirmware]?.setValue(isChecked)
+    }
+
+    const reset = () => {
+        formHandler.resetForm()
+    }
+
     const handleBackButton = (e: PointerEvent) => {
         e.preventDefault()
+        reset()
         navigate('/')
     }
 
-    const handleSubmit = (e: PointerEvent) => {
+    const handleSubmit = async (e: Event) => {
         e.preventDefault()
 
-        // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
-        if (!props.createNewDevice) {
-            const selectedDevice = getSelectedDevice()
-            if (!selectedDevice) return
+        try {
+            await formHandler.validateForm()
+            alert('Data sent with success: ' + JSON.stringify(formData()))
+            // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
+            if (!props.createNewDevice) {
+                const selectedDevice = getSelectedDevice()
+                if (!selectedDevice) return
 
-            /* const device = {
+                /* const device = {
                 ledType: selectionSignals['led-type'].selectedValue(),
                 ledCount: selectionSignals['led-bars-connected'].selectedValue(),
                 ledConnection: selectionSignals['led-connection-point'].selectedValue(),
             }
 
             setDevice({ ...selectedDevice, ...device }) */
-            return
-        }
-
-        const device: Device = {
-            id: uuidv4(),
-            name: inputSignals[dataLabels.deviceLabel]?.value(),
-            status: DEVICE_STATUS.LOADING,
-            hasCamera: false,
-            type: selectionSignals[dataLabels.deviceType]?.value(),
-            address: inputSignals[dataLabels.luminDeviceAddress]?.value(),
-            led: {
-                ledCount: inputSignals[dataLabels.ledBarsConnected]?.value(),
-                ledType: selectionSignals[dataLabels.ledType]?.value(),
-                ledConnection: selectionSignals[dataLabels.ledConnectionPoint]?.value(),
-            },
-            ws: {},
-        }
-
-        console.debug('Device:', device)
-
-        setDevice(device)
-
-        if (inputSignals[dataLabels.flashFirmware]?.value()) navigate('/flashFirmware')
-        else navigate('/')
-
-        let notification: Notifications
-
-        if (props.createNewDevice) {
-            notification = {
-                title: 'Device Created',
-                message: `${device.name} has been created.`,
-                type: ENotificationType.SUCCESS,
+                return
             }
-        } else {
-            notification = {
-                title: 'Device Updated',
-                message: `${device.name} has been updated.`,
-                type: ENotificationType.SUCCESS,
-            }
-        }
 
-        addNotification(notification)
+            const device: Device = {
+                id: uuidv4(),
+                name: inputSignals[dataLabels.deviceLabel]?.value(),
+                status: DEVICE_STATUS.LOADING,
+                hasCamera: false,
+                type: selectionSignals[dataLabels.deviceType]?.value(),
+                serialNumber: inputSignals[dataLabels.printerSerialNumber]?.value(),
+                lanCode: inputSignals[dataLabels.mqttPassword]?.value(),
+                wifi: {
+                    ssid: inputSignals[dataLabels.wifiSsid]?.value(),
+                    password: inputSignals[dataLabels.wifiPassword]?.value(),
+                },
+                address: inputSignals[dataLabels.luminDeviceAddress]?.value(),
+                led: {
+                    ledCount: inputSignals[dataLabels.ledBarsConnected]?.value(),
+                    ledType: selectionSignals[dataLabels.ledType]?.value(),
+                    ledConnection: selectionSignals[dataLabels.ledConnectionPoint]?.value(),
+                },
+                ws: {},
+            }
+
+            console.debug('Device:', device)
+
+            setDevice(device)
+
+            let notification: Notifications
+
+            if (props.createNewDevice) {
+                notification = {
+                    title: 'Device Created',
+                    message: `${device.name} has been created.`,
+                    type: ENotificationType.SUCCESS,
+                }
+            } else {
+                notification = {
+                    title: 'Device Updated',
+                    message: `${device.name} has been updated.`,
+                    type: ENotificationType.SUCCESS,
+                }
+            }
+
+            addNotification(notification)
+
+            formHandler.resetForm()
+
+            console.debug('Submit', device)
+
+            if (inputSignals[dataLabels.flashFirmware]?.value()) navigate('/flashFirmware')
+            else navigate('/')
+        } catch (error) {
+            // loop through the errors and create a notification for each
+            const errors = (error as object)['validationResult'] as Array<object>
+
+            for (let i = errors.length - 1; i >= 0; i--) {
+                const error = errors[i]
+
+                const message = capitalizeFirstLetter(error['message'].replace(/-/g, ' '))
+
+                addNotification({
+                    title: 'Error',
+                    message: message,
+                    type: ENotificationType.ERROR,
+                })
+            }
+            console.error('Error:', error)
+            //reset()
+        }
     }
 
     const handleDelete = (e: PointerEvent) => {
@@ -127,11 +173,50 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
     const submitLabel = createMemo(() => {
         if (props.createNewDevice) {
-            if (inputSignals[dataLabels.flashFirmware]?.value()) return 'Flash Firmware'
+            if (inputSignals[dataLabels.flashFirmware]?.value()) {
+                return 'Flash Firmware'
+            }
             return 'Create Device'
         }
-        return 'Save'
+        return 'Update Device'
     })
+
+    const handleValueChange = (dataLabel: string): string => {
+        // if we are NOT creating a new device, then we are editing an existing device, set the form data to the selected device data
+        if (props.createNewDevice) return ''
+
+        const selectedDevice = getSelectedDevice()
+
+        if (!selectedDevice) {
+            console.error('No device selected')
+            return ''
+        }
+
+        switch (dataLabel) {
+            case dataLabels.deviceLabel:
+                return selectedDevice.name
+            case dataLabels.deviceType:
+                return selectedDevice.type
+            case dataLabels.printerSerialNumber:
+                return selectedDevice.serialNumber
+            case dataLabels.mqttPassword:
+                return selectedDevice.lanCode
+            case dataLabels.wifiSsid:
+                return selectedDevice.wifi.ssid
+            case dataLabels.wifiPassword:
+                return selectedDevice.wifi.password
+            case dataLabels.luminDeviceAddress:
+                return selectedDevice.address
+            case dataLabels.ledBarsConnected:
+                return selectedDevice.led.ledCount
+            case dataLabels.ledType:
+                return selectedDevice.led.ledType
+            case dataLabels.ledConnectionPoint:
+                return selectedDevice.led.ledConnection
+            default:
+                return ''
+        }
+    }
 
     return (
         <Card class="h-full w-full overflow-y-scroll">
@@ -162,10 +247,9 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                 </CardHeader>
                 <CardContent class="w-full overflow-y-scroll">
                     <form
+                        autocomplete="off"
                         class="flex flex-col w-full pb-4 pr-2 overflow-y-scroll"
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                        }}>
+                        onSubmit={handleSubmit}>
                         <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
                             <div class="w-full">
                                 <GeneralSettings
@@ -173,12 +257,16 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     deviceStatus={props.deviceStatus}
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
+                                    handleToggleChange={handleToggleChange}
+                                    formHandler={formHandler}
+                                    handleValueChange={handleValueChange}
                                 />
                                 <NetworkSettings
                                     createNewDevice={props.createNewDevice}
                                     enableMDNS={appState().enableMDNS}
                                     deviceStatus={props.deviceStatus}
                                     handleInputChange={handleInputChange}
+                                    formHandler={formHandler}
                                 />
                                 <LEDSettings
                                     createNewDevice={props.createNewDevice}
@@ -186,6 +274,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     selectionSignals={selectionSignals}
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
+                                    formHandler={formHandler}
                                 />
                             </div>
                         </div>

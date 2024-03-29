@@ -2,7 +2,7 @@ import { WebviewWindow, getCurrent } from '@tauri-apps/api/window'
 import { FaSolidGraduationCap } from 'solid-icons/fa'
 import { createSignal } from 'solid-js'
 import { debug } from 'tauri-plugin-log-api'
-import CustomButton from '@components/CustomButton'
+import CustomButton from '@components/Buttons/CustomButton'
 
 const OpenDocs = () => {
     const [isButtonActive, setIsButtonActive] = createSignal(false)

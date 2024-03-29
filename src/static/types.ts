@@ -26,8 +26,14 @@ export interface LEDDevice {
 export interface Device {
     id: string
     name: string
-    status: DEVICE_STATUS
     type: DEVICE_TYPE
+    status: DEVICE_STATUS
+    serialNumber: string
+    lanCode: string
+    wifi: {
+        ssid: string
+        password: string
+    }
     address: string
     led: LEDDevice
     hasCamera: boolean
@@ -83,7 +89,7 @@ export interface AppStoreAPI {
 
 export interface AppStoreDevice {
     devices: Device[]
-    selectedDevice: Device
+    selectedDevice?: Device
 }
 
 export interface AppStoreNetwork {

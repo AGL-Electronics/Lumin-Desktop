@@ -8,6 +8,7 @@ import { debug, error, trace, warn } from 'tauri-plugin-log-api'
 import { download, upload } from 'tauri-plugin-upload-api'
 import { useAppDeviceContext } from './device'
 import { useAppNotificationsContext } from './notifications'
+import { isEmpty } from '@src/lib/utils'
 import { ENotificationType, RESTStatus, RESTType, ESPEndpoints } from '@static/enums'
 import { AppStoreAPI, IEndpoint, IEndpointKey, IGHAsset, IGHRelease } from '@static/types'
 import { makeRequest } from 'tauri-plugin-request-client'
@@ -59,7 +60,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
     const { getDevices } = useAppDeviceContext()
 
     // TODO: change to firmware release repo
-    const ghEndpoint = 'https://api.github.com/repos/EyeTrackVR/OpenIris/releases/latest'
+    const ghEndpoint = 'https://api.github.com/repos/Lumin/OpenIris/releases/latest'
 
     // TODO: Use backend api schema to generate endpoints map and use that instead of hardcoding the endpoints
     const endpointsMap: Map<IEndpointKey, IEndpoint> = new Map<IEndpointKey, IEndpoint>([
@@ -205,7 +206,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
     //#region hooks
     const getRelease = async (firmware: string) => {
         const appConfigDirPath = await appConfigDir()
-        if (firmware === '' || firmware.length === 0) {
+        if (isEmpty(firmware)) {
             addNotification({
                 title: 'Please Select a Firmware',
                 message: 'A firmware must be selected before downloading',
@@ -222,82 +223,88 @@ export const AppAPIProvider: ParentComponent = (props) => {
 
         debug(`[Github Release]: Firmware Asset: ${firmwareAsset}`)
 
-        if (firmwareAsset) {
-            debug(`[Github Release]: Downloading firmware: ${firmware}`)
-            debug(`[Github Release]: Firmware URL: ${firmwareAsset}`)
+        if (!firmwareAsset) return
 
-            // parse out the file name from the firmwareAsset.url and append it to the appConfigDirPath
-            const fileName =
-                firmwareAsset.browser_download_url.split('/')[
-                    firmwareAsset.browser_download_url.split('/').length - 1
-                ]
-            //debug('[Github Release]: File Name: ', fileName)
-            // ${appConfigDirPath}${fileName}
-            const path = await join(appConfigDirPath, fileName)
-            debug(`[Github Release]: Path: ${path}`)
-            // get the latest release
-            const response = await download(
-                firmwareAsset.browser_download_url,
-                path,
-                (progress, total) => {
-                    debug(`[Github Release]: Downloaded ${progress} of ${total} bytes`)
-                },
-            )
-            debug(`[Github Release]: Download Response: ${response}`)
+        debug(`[Github Release]: Downloading firmware: ${firmware}`)
+        debug(`[Github Release]: Firmware URL: ${firmwareAsset}`)
 
+        // parse out the file name from the firmwareAsset.url and append it to the appConfigDirPath
+        const fileName =
+            firmwareAsset.browser_download_url.split('/')[
+                firmwareAsset.browser_download_url.split('/').length - 1
+            ]
+        //debug('[Github Release]: File Name: ', fileName)
+        // ${appConfigDirPath}${fileName}
+        const path = await join(appConfigDirPath, fileName)
+        debug(`[Github Release]: Path: ${path}`)
+        // get the latest release
+        const response = await download(
+            firmwareAsset.browser_download_url,
+            path,
+            (progress, total) => {
+                debug(`[Github Release]: Downloaded ${progress} of ${total} bytes`)
+            },
+        )
+        debug(`[Github Release]: Download Response: ${response}`)
+
+        addNotification({
+            title: 'Lumin Firmware Downloaded',
+            message: `Downloaded Firmware ${firmware}`,
+            type: ENotificationType.INFO,
+        })
+
+        const res = await invoke('unzip_archive', {
+            archivePath: path,
+            targetDir: appConfigDirPath,
+        })
+        await removeFile(path)
+
+        debug(`[Github Release]: Unzip Response: ${res}`)
+
+        const manifest = await readTextFile('manifest.json', { dir: BaseDirectory.AppConfig })
+
+        const config_json = JSON.parse(manifest)
+
+        if (isEmpty(manifest)) {
+            error('[Manifest Error]: Manifest does not exist')
             addNotification({
-                title: 'ETVR Firmware Downloaded',
-                message: `Downloaded Firmware ${firmware}`,
-                type: ENotificationType.INFO,
+                title: 'Error',
+                message: 'Firmware Manifest does not exist',
+                type: ENotificationType.ERROR,
             })
-
-            const res = await invoke('unzip_archive', {
-                archivePath: path,
-                targetDir: appConfigDirPath,
-            })
-            await removeFile(path)
-
-            debug(`[Github Release]: Unzip Response: ${res}`)
-
-            const manifest = await readTextFile('manifest.json', { dir: BaseDirectory.AppConfig })
-
-            const config_json = JSON.parse(manifest)
-
-            if (manifest !== '') {
-                // modify the version property
-                config_json['version'] = getFirmwareVersion()
-                // loop through the builds array and the parts array and update the path property
-                for (let i = 0; i < config_json['builds'].length; i++) {
-                    for (let j = 0; j < config_json['builds'][i]['parts'].length; j++) {
-                        const firmwarePath = await join(
-                            appConfigDirPath,
-                            config_json['builds'][i]['parts'][j]['path'],
-                        )
-                        debug(`[Github Release]: Firmware Path: ${firmwarePath}`)
-                        const firmwareSrc = convertFileSrc(firmwarePath)
-                        debug(`[Github Release]: Firmware Src: ${firmwareSrc}`)
-                        config_json['builds'][i]['parts'][j]['path'] = firmwareSrc
-                    }
-                }
-
-                // write the config file
-                writeTextFile('manifest.json', JSON.stringify(config_json), {
-                    dir: BaseDirectory.AppConfig,
-                })
-                    .then(() => {
-                        debug('[Manifest Updated]: Manifest Updated Successfully')
-                    })
-                    .finally(() => {
-                        debug('[Manifest Updated]: Finished')
-                    })
-                    .catch((err) => {
-                        error(`[Manifest Update Error]: ${err}`)
-                    })
-
-                debug('[Github Release]: Manifest: ', config_json)
-                return
+            return
+        }
+        // modify the version property
+        config_json['version'] = getFirmwareVersion()
+        // loop through the builds array and the parts array and update the path property
+        for (let i = 0; i < config_json['builds'].length; i++) {
+            for (let j = 0; j < config_json['builds'][i]['parts'].length; j++) {
+                const firmwarePath = await join(
+                    appConfigDirPath,
+                    config_json['builds'][i]['parts'][j]['path'],
+                )
+                debug(`[Github Release]: Firmware Path: ${firmwarePath}`)
+                const firmwareSrc = convertFileSrc(firmwarePath)
+                debug(`[Github Release]: Firmware Src: ${firmwareSrc}`)
+                config_json['builds'][i]['parts'][j]['path'] = firmwareSrc
             }
         }
+
+        // write the config file
+        writeTextFile('manifest.json', JSON.stringify(config_json), {
+            dir: BaseDirectory.AppConfig,
+        })
+            .then(() => {
+                debug('[Manifest Updated]: Manifest Updated Successfully')
+            })
+            .finally(() => {
+                debug('[Manifest Updated]: Finished')
+            })
+            .catch((err) => {
+                error(`[Manifest Update Error]: ${err}`)
+            })
+
+        debug('[Github Release]: Manifest: ', config_json)
     }
 
     /**
@@ -372,7 +379,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
      * @async
      * @export
      * @note This function will call the github repo REST API release endpoint and update/create a config.json file with the latest release data
-     * @note This function will write the file to the app config directory C:\Users\<User>\AppData\Roaming\com.eyetrackvr.dev\config.json
+     * @note This function will write the file to the app config directory C:\Users\<User>\AppData\Roaming\com.Lumin.dev\config.json
      * @note Should be called on app start
      * @example
      * import { doGHRequest } from './github'
@@ -394,7 +401,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
                     timeout: 30,
                     // the expected response type
                     headers: {
-                        'User-Agent': 'EyeTrackVR',
+                        'User-Agent': 'Lumin',
                     },
                     responseType: ResponseType.JSON,
                 })

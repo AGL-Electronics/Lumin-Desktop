@@ -1,3 +1,4 @@
+import { FormHandler } from 'solid-form-handler'
 import { For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
@@ -24,6 +25,7 @@ interface LEDSettingsProps extends DeviceSettingsContentProps {
         },
     ) => void
     handleSelectionChange: (dataLabel: string, value: string) => void
+    formHandler?: FormHandler | undefined
 }
 
 const LEDSettings: Component<LEDSettingsProps> = (props) => {
@@ -78,13 +80,15 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                             autocomplete="off"
                                             class="border border-accent"
                                             data-label={deviceSetting.dataLabel}
+                                            name={deviceSetting.dataLabel}
                                             placeholder={deviceSetting.placeholder}
                                             id={deviceSetting.dataLabel}
                                             required={true}
                                             type="number"
-                                            min={1}
-                                            max={23}
+                                            minLength={deviceSetting.minLen}
+                                            maxLength={deviceSetting.maxLen}
                                             onChange={props.handleInputChange}
+                                            formHandler={props.formHandler}
                                         />
                                     }>
                                     <Select

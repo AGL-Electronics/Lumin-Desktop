@@ -1,3 +1,4 @@
+import { FormHandler } from 'solid-form-handler'
 import { For, Switch, Match, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
@@ -12,6 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
+import { Switch as ToggleSwitch } from '@components/ui/switch'
 import { dataLabels, generalSettings, selectionSignals } from '@src/static'
 import { DEVICE_TYPE } from '@src/static/enums'
 
@@ -23,6 +25,9 @@ interface GeneralSettingsProps extends DeviceSettingsContentProps {
             target: HTMLInputElement
         },
     ) => void
+    handleToggleChange: (isChecked: boolean) => void
+    formHandler?: FormHandler | undefined
+    handleValueChange: (dataLabel: string) => string
 }
 
 const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
@@ -46,11 +51,16 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     class="border border-accent"
                                     autocomplete="off"
                                     data-label={deviceSetting.dataLabel}
+                                    name={deviceSetting.dataLabel}
                                     placeholder={deviceSetting.placeholder}
                                     id={deviceSetting.dataLabel}
+                                    minLength={deviceSetting.minLen}
+                                    maxLength={deviceSetting.maxLen}
                                     required={deviceSetting.required}
                                     type={deviceSetting.inputType}
+                                    value={props.handleValueChange(deviceSetting.dataLabel)}
                                     onChange={props.handleInputChange}
+                                    formHandler={props.formHandler}
                                 />
                             </Match>
                             <Match when={deviceSetting.type === 'select'}>
@@ -78,16 +88,11 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                 </Select>
                             </Match>
                             <Match when={deviceSetting.type === 'checkbox'}>
-                                // TODO: Setup firmware flashing toggle button
-                                <Input
-                                    class="border border-accent"
-                                    autocomplete="off"
-                                    data-label={deviceSetting.dataLabel}
-                                    placeholder={deviceSetting.placeholder}
-                                    id={deviceSetting.dataLabel}
-                                    required={deviceSetting.required}
-                                    type="checkbox"
-                                    onChange={props.handleInputChange}
+                                <ToggleSwitch
+                                    id="firmware-flashing-toggle"
+                                    aria-label={deviceSetting.ariaLabel}
+                                    label={deviceSetting.label}
+                                    onChange={props.handleToggleChange}
                                 />
                             </Match>
                         </Switch>

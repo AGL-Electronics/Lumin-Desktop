@@ -4,7 +4,7 @@ import { appConfigDir, join } from '@tauri-apps/api/path'
 import { FaSolidTrashCan } from 'solid-icons/fa'
 import { createSignal } from 'solid-js'
 import { error, debug } from 'tauri-plugin-log-api'
-import CustomButton from '@components/CustomButton'
+import CustomButton from '@components/Buttons/CustomButton'
 import { ENotificationType } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 
@@ -22,7 +22,7 @@ const EraseButton = () => {
 
     const handleOnClick = () => {
         ask('This action cannot be reverted. Are you sure?', {
-            title: 'EyeTrackVR Erase Firmware Assets',
+            title: 'Lumin Erase Firmware Assets',
             type: 'warning',
         }).then((res) => {
             if (res) {
@@ -30,7 +30,7 @@ const EraseButton = () => {
                     .then(() => {
                         debug('[Erasing Firmware Assets]: Erased')
                         addNotification({
-                            title: 'ETVR Firmware Assets Erased',
+                            title: 'Lumin Firmware Assets Erased',
                             message: 'The firmware assets have been erased from your system.',
                             type: ENotificationType.SUCCESS,
                         })
@@ -38,7 +38,7 @@ const EraseButton = () => {
                     .catch((err) => {
                         error(err)
                         addNotification({
-                            title: 'ETVR Firmware Assets Erase Failed',
+                            title: 'Lumin Firmware Assets Erase Failed',
                             message: 'The firmware assets could not be erased from your system.',
                             type: ENotificationType.ERROR,
                         })

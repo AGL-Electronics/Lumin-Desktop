@@ -81,7 +81,7 @@ impl<R: Runtime> APIPlugin<R> {
                     .lock()
                     .await
                     .get(&base_url)
-                    .header("User-Agent", "EyeTrackVR")
+                    .header("User-Agent", "Lumin")
                     .send()
                     .await?
                     .text()
@@ -95,7 +95,7 @@ impl<R: Runtime> APIPlugin<R> {
                     .lock()
                     .await
                     .post(&base_url)
-                    .header("User-Agent", "EyeTrackVR")
+                    .header("User-Agent", "Lumin")
                     .send()
                     .await?
                     .text()

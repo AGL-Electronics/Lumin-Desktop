@@ -10,7 +10,6 @@ import {
 import { createStore, produce } from 'solid-js/store'
 import { debug } from 'tauri-plugin-log-api'
 // eslint-disable-next-line import/named
-import { v4 as uuidv4 } from 'uuid'
 import { usePersistentStore } from '../tauriStore'
 import { useAppContext } from './app'
 import type { Device, AppStoreDevice } from '@static/types'
@@ -20,10 +19,10 @@ interface AppDeviceContext {
     getDevices: Accessor<Device[]>
     getDeviceAddresses: Accessor<string[]>
     getDeviceStatus: Accessor<DEVICE_STATUS[]>
-    getSelectedDevice: Accessor<Device>
-    getSelectedDeviceAddress: Accessor<string>
-    getSelectedDeviceStatus: Accessor<DEVICE_STATUS>
-    getSelectedDeviceType: Accessor<DEVICE_TYPE>
+    getSelectedDevice: Accessor<Device | undefined>
+    getSelectedDeviceAddress: Accessor<string | undefined>
+    getSelectedDeviceStatus: Accessor<DEVICE_STATUS | undefined>
+    getSelectedDeviceType: Accessor<DEVICE_TYPE | undefined>
     getSelectedDeviceSocket: Accessor<object | undefined>
     setDevice: (device: Device) => void
     setAddDeviceMDNS: (device: Device, address: string) => void
@@ -40,19 +39,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
 
     const defaultState: AppStoreDevice = {
         devices: [],
-        selectedDevice: {
-            id: uuidv4(),
-            name: '',
-            status: DEVICE_STATUS.NONE,
-            type: DEVICE_TYPE.NONE,
-            led: {
-                ledType: '',
-                ledCount: '',
-                ledConnection: '',
-            },
-            address: '',
-            hasCamera: false,
-        },
+        selectedDevice: undefined,
     }
 
     const [state, setState] = createStore<AppStoreDevice>(defaultState)
@@ -135,11 +122,10 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const getDeviceAddresses = createMemo(() => deviceState().devices.map(({ address }) => address))
     const getDeviceStatus = createMemo(() => deviceState().devices.map(({ status }) => status))
     const getSelectedDevice = createMemo(() => deviceState().selectedDevice)
-    const getSelectedDeviceAddress = createMemo(() => deviceState().selectedDevice.address)
-    const getSelectedDeviceStatus = createMemo(() => deviceState().selectedDevice.status)
-    const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice.type)
-
-    const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice.ws)
+    const getSelectedDeviceAddress = createMemo(() => deviceState().selectedDevice?.address)
+    const getSelectedDeviceStatus = createMemo(() => deviceState().selectedDevice?.status)
+    const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice?.type)
+    const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice?.ws)
 
     const { get } = usePersistentStore()
 

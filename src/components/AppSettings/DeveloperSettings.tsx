@@ -1,5 +1,5 @@
-import DownloadAssetsButton from '@components/DownloadAssetsButton'
-import EraseButton from '@components/EraseButton'
+import DownloadAssetsButton from '@components/Buttons/DownloadAssetsButton'
+import EraseButton from '@components/Buttons/EraseButton'
 import OpenDocs from '@components/OpenDocs'
 import WebSerial from '@components/WebSerial'
 

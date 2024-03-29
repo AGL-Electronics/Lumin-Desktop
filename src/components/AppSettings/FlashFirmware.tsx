@@ -1,4 +1,4 @@
-import FirmwareList from '@components/Selection/FirmwareList'
+import FirmwareList from '@components/FirmwareSelection/FirmwareList'
 
 const FlashFirmware = () => {
     return (

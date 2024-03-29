@@ -1,4 +1,3 @@
-import FlashFirmware from '@pages/FlashFirmware/FlashFirmware'
 import { useNavigate } from '@solidjs/router'
 import { ask } from '@tauri-apps/api/dialog'
 import { listen } from '@tauri-apps/api/event'
@@ -8,6 +7,7 @@ import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { WebviewWindow, appWindow, getCurrent } from '@tauri-apps/api/window'
 import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
 import { debug, error } from 'tauri-plugin-log-api'
+import FlashFirmware from '@pages/FlashFirmware'
 import { installModalClassName, installModalTarget, installationSuccess, usb } from '@src/static'
 import { ENotificationType, TITLEBAR_ACTION } from '@src/static/enums'
 import { CustomHTMLElement } from '@src/static/types'
@@ -74,7 +74,7 @@ export const ManageFlashFirmware = () => {
             addNotification({
                 title: 'Error',
                 message:
-                    'Could not connect to device, please connect your PC to the EyeTrackVR Access Point and try again.',
+                    'Could not connect to device, please connect your PC to the Lumin Access Point and try again.',
                 type: ENotificationType.ERROR,
             })
             return
@@ -142,6 +142,16 @@ export const ManageFlashFirmware = () => {
         })
     }
 
+    const handleWifiConfigurationError = () => {
+        setInstallationConfirmed(false)
+        setPort(null)
+        addNotification({
+            title: 'WIFI configuration failed',
+            message: 'Failed to configure WIFI',
+            type: ENotificationType.ERROR,
+        })
+    }
+
     createEffect(() => {
         if (isUSBBoard()) return
         document.addEventListener('click', (e) => {
@@ -167,28 +177,16 @@ export const ManageFlashFirmware = () => {
             const el: HTMLElement | null = document.querySelector('[state="INSTALL"]')
             const ewtDialog = el?.shadowRoot?.querySelector('ewt-page-message')
             const label = ewtDialog?.getAttribute('label')
-            if (label === installationSuccess) {
-                setInstallationConfirmed(true)
-            }
+            if (label !== installationSuccess) return
+            setInstallationConfirmed(true)
         }, 200)
         return () => clearInterval(intervalId)
     })
 
     createEffect(() => {
-        const handleWifiConfigurationError = () => {
-            setInstallationConfirmed(false)
-            setPort(null)
-            addNotification({
-                title: 'WIFI configuration failed',
-                message: 'Failed to configure WIFI',
-                type: ENotificationType.ERROR,
-            })
-        }
-        if (installationConfirmed() && port() !== null) {
-            if (!apModeStatus()) {
-                configureWifiConnection().catch(handleWifiConfigurationError)
-            }
-        }
+        if (!installationConfirmed() && port() === null) return
+        if (apModeStatus()) return
+        configureWifiConnection().catch(handleWifiConfigurationError)
     })
 
     return (
@@ -197,7 +195,7 @@ export const ManageFlashFirmware = () => {
             isUSBBoard={isUSBBoard()}
             manifest={manifest()}
             onClickEnableAPMode={() => setAPModeStatus(!apModeStatus())}
-            onClickHeader={(action: TITLEBAR_ACTION) => {
+            onPointerDownHeader={(action: TITLEBAR_ACTION) => {
                 switch (action) {
                     case TITLEBAR_ACTION.MINIMIZE:
                         appWindow.minimize()
@@ -212,7 +210,7 @@ export const ManageFlashFirmware = () => {
                         return
                 }
             }}
-            onClickConfigurAPMode={() => {
+            onClickConfigureAPMode={() => {
                 if (!apModeStatus()) return
                 configureAPConnection().catch(() => {
                     addNotification({
@@ -234,7 +232,7 @@ export const ManageFlashFirmware = () => {
                 return manifestFirmware.includes(deviceFirmware)
             }}
             onClickBack={() => {
-                navigate(isUSBBoard() ? '/' : '/network')
+                navigate('/')
             }}
             onClickDownloadFirmware={() => {
                 downloadAsset(getFirmwareType()).catch(() => {
@@ -247,7 +245,7 @@ export const ManageFlashFirmware = () => {
             }}
             onClickEraseSoft={() => {
                 ask('This action cannot be reverted. Are you sure?', {
-                    title: 'EyeTrackVR Erase Firmware Assets',
+                    title: 'Lumin Erase Firmware Assets',
                     type: 'warning',
                 })
                     .then((res) => {
@@ -256,7 +254,7 @@ export const ManageFlashFirmware = () => {
                                 .then(() => {
                                     debug('[Erasing Firmware Assets]: Erased')
                                     addNotification({
-                                        title: 'ETVR Firmware Assets Erased',
+                                        title: 'Lumin Firmware Assets Erased',
                                         message:
                                             'The firmware assets have been erased from your system.',
                                         type: ENotificationType.SUCCESS,
@@ -265,7 +263,7 @@ export const ManageFlashFirmware = () => {
                                 .catch((err) => {
                                     error(err)
                                     addNotification({
-                                        title: 'ETVR Firmware Assets Erase Failed',
+                                        title: 'Lumin Firmware Assets Erase Failed',
                                         message:
                                             'The firmware assets could not be erased from your system.',
                                         type: ENotificationType.ERROR,
@@ -275,7 +273,7 @@ export const ManageFlashFirmware = () => {
                     })
                     .catch(() => {
                         addNotification({
-                            title: 'ETVR Firmware Assets Erase Failed',
+                            title: 'Lumin Firmware Assets Erase Failed',
                             message: 'The firmware assets could not be erased from your system.',
                             type: ENotificationType.ERROR,
                         })
@@ -286,7 +284,7 @@ export const ManageFlashFirmware = () => {
                     const currentMainWindow = getCurrent()
                     currentMainWindow.innerPosition().then((position) => {
                         debug(`[OpenDocs]: Window Position${position.x}, ${position.y}`)
-                        const webview = new WebviewWindow('eyetrack-docs', {
+                        const webview = new WebviewWindow('lumin-docs', {
                             url: 'src/windows/docs/index.html',
                             resizable: true,
                             decorations: false,

@@ -1,4 +1,5 @@
 import { createSignal, Setter } from 'solid-js'
+import * as yup from 'yup'
 import { toCamelCase } from '@src/lib/utils'
 import * as enums from '@static/enums'
 import * as types from '@static/types'
@@ -123,6 +124,8 @@ export interface DeviceSettingsObj {
     options?: string[]
     required: boolean
     inputType?: string
+    minLen?: number
+    maxLen?: number
     type: 'select' | 'input' | 'checkbox'
 }
 
@@ -143,6 +146,8 @@ const ledSettings: DeviceSettingsObj[] = [
         placeholder: '2',
         popoverDescription: 'The number of LED bars connected',
         required: true,
+        minLen: 1,
+        maxLen: 23,
         type: 'input',
     },
     {
@@ -171,6 +176,8 @@ const generalSettings: DeviceSettingsObj[] = [
         placeholder: 'Lumin Device',
         required: true,
         inputType: 'text',
+        minLen: 1,
+        maxLen: 20,
         type: 'input',
     },
     {
@@ -192,6 +199,8 @@ const generalSettings: DeviceSettingsObj[] = [
         placeholder: '123456789',
         required: true,
         inputType: 'text',
+        minLen: 15,
+        maxLen: 15,
         type: 'input',
     },
     {
@@ -201,6 +210,8 @@ const generalSettings: DeviceSettingsObj[] = [
         placeholder: 'password',
         required: true,
         inputType: 'password',
+        minLen: 7,
+        maxLen: 7,
         type: 'input',
     },
     {
@@ -295,10 +306,25 @@ generalInputs.forEach((setting) => genericCallback(setting, inputSignals))
 
 generalCheckboxes.forEach((setting) => genericCallback(setting, inputSignals))
 
+// generate a schema type from the networkInputs and generalInputs settings
+export type Schema = {
+    [K in KnownDataLabel]?: string
+}
+
+const schema: yup.Schema<Schema> = yup.object({
+    [dataLabels.deviceLabel]: yup.string().required().min(1).max(20),
+    [dataLabels.printerSerialNumber]: yup.string().required().min(15).max(15),
+    [dataLabels.mqttPassword]: yup.string().required().min(7).max(7),
+    [dataLabels.wifiSsid]: yup.string().required().min(1),
+    [dataLabels.wifiPassword]: yup.string().required(),
+    [dataLabels.luminDeviceAddress]: yup.string().required().min(7).max(15),
+})
+
 export {
     themes,
     enums,
     types,
+    schema,
     generalSettings,
     ledSettings,
     networkSettings,

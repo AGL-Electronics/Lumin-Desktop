@@ -31,7 +31,6 @@ const DeviceConfig = () => {
     })
 
     const handleGetConfig = async () => {
-
         debug(`Response: ${response()}`)
 
         //* Check if there is a response from the device
@@ -41,7 +40,7 @@ const DeviceConfig = () => {
             addNotification({
                 title: 'Error',
                 message:
-                    'Could not connect to device, please connect your PC to the EyeTrackVR Access Point and try again.',
+                    'Could not connect to device, please connect your PC to the Lumin Access Point and try again.',
                 type: ENotificationType.ERROR,
             })
             return

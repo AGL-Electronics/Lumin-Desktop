@@ -1,7 +1,7 @@
 import { FaSolidDownload } from 'solid-icons/fa'
 import { createSignal } from 'solid-js'
 import { debug } from 'tauri-plugin-log-api'
-import CustomButton from '@components/CustomButton'
+import CustomButton from '@components/Buttons/CustomButton'
 import { useAppAPIContext } from '@src/store/context/api'
 
 const DownloadAssetsButton = () => {
