@@ -5,7 +5,6 @@ use tauri::{
 
 use reqwest::Client;
 use std::sync::{Arc, Mutex};
-
 use utils::{errors::AppResult, errors::Error, prelude::*};
 
 const PLUGIN_NAME: &str = "tauri-plugin-request-client";
@@ -173,12 +172,15 @@ async fn make_request<R: Runtime>(
     }
 }
 
+#[allow(unused_macros)]
 macro_rules! specta_builder {
     ($e:expr, Runtime) => {
         ts::builder()
             .commands(collect_commands![make_request::<$e>])
             .path(generate_plugin_path(PLUGIN_NAME))
-            .config(specta::ts::ExportConfig::default().formatter(specta::ts::prettier))
+            .config(
+                specta::ts::ExportConfig::default().formatter(specta::js_doc::formatter::prettier),
+            )
         //.events(collect_events![RandomNumber])
     };
 }

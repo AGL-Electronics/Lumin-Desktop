@@ -11,9 +11,10 @@ pub use std::format as f;
 pub struct W<T>(pub T);
 
 pub fn generate_plugin_path(plugin_name: &str) -> String {
-  f!("{}{}.ts", EXPORT_PATH_ROOT, plugin_name)
+    f!("{}{}.ts", EXPORT_PATH_ROOT, plugin_name)
 }
 
+#[allow(unused_macros)]
 macro_rules! tauri_handlers {
 	($($name:path),+) => {{
 		#[cfg(debug_assertions)]
