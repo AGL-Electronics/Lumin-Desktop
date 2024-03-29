@@ -1,11 +1,11 @@
 import { Component } from 'solid-js'
-import { QuestionMarkModal } from '../QuestionMarkModal/QuestionMarkModal'
-import { Titlebar } from '@components/Titlebar/Titlebar'
+import { QuestionMarkModal } from './QuestionMarkModal'
+import { Titlebar } from '@components/Titlebar'
 import { questionModalId } from '@src/static'
-import { TITLEBAR_ACTION } from '@src/static/types/enums'
+import { TITLEBAR_ACTION } from '@static/enums'
 
 export interface IProps {
-    onClickHeader: (action: TITLEBAR_ACTION) => void
+    onPointerDownHeader: (action: TITLEBAR_ACTION) => void
     onClickOpenModal: (id: string) => void
 }
 
@@ -21,7 +21,7 @@ export const QuestionMark: Component<IProps> = (props) => {
                 <p class="text-white leading-[12px]">?</p>
             </button>
             <dialog id={questionModalId} class="modal">
-                <Titlebar onClickHeader={props.onClickHeader} />
+                <Titlebar onPointerDownHeader={props.onPointerDownHeader} />
                 <div class="modal-box w-auto h-auto p-[10px] bg-transparent ">
                     <QuestionMarkModal />
                 </div>

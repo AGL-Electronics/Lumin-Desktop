@@ -69,7 +69,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
         try {
             await formHandler.validateForm()
-            alert('Data sent with success: ' + JSON.stringify(formData()))
+            //alert('Data sent with success: ' + JSON.stringify(formData()))
             // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
             if (!props.createNewDevice) {
                 const selectedDevice = getSelectedDevice()
@@ -185,6 +185,8 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         // if we are NOT creating a new device, then we are editing an existing device, set the form data to the selected device data
         if (props.createNewDevice) return ''
 
+        console.debug('Data Label:', dataLabel)
+
         const selectedDevice = getSelectedDevice()
 
         if (!selectedDevice) {
@@ -267,6 +269,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     deviceStatus={props.deviceStatus}
                                     handleInputChange={handleInputChange}
                                     formHandler={formHandler}
+                                    handleValueChange={handleValueChange}
                                 />
                                 <LEDSettings
                                     createNewDevice={props.createNewDevice}
@@ -275,6 +278,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                                     handleInputChange={handleInputChange}
                                     handleSelectionChange={handleSelectionChange}
                                     formHandler={formHandler}
+                                    handleValueChange={handleValueChange}
                                 />
                             </div>
                         </div>

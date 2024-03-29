@@ -15,7 +15,6 @@ import {
 } from '@components/ui/select'
 import { Switch as ToggleSwitch } from '@components/ui/switch'
 import { dataLabels, generalSettings, selectionSignals } from '@src/static'
-import { DEVICE_TYPE } from '@src/static/enums'
 
 interface GeneralSettingsProps extends DeviceSettingsContentProps {
     handleSelectionChange: (dataLabel: string, value: string) => void
@@ -31,9 +30,6 @@ interface GeneralSettingsProps extends DeviceSettingsContentProps {
 }
 
 const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
-    /* TODO: limit serial number to 15 character - must be alphanumeric 
-    - the LAnCODE is always 7 alphanumeric */
-
     return (
         <DeviceSettingContainer label="General Setup" layout="col">
             {/* Set Name */}
@@ -69,7 +65,7 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     onChange={(value) =>
                                         props.handleSelectionChange(dataLabels.deviceType, value)
                                     }
-                                    defaultValue={DEVICE_TYPE.WIRED}
+                                    defaultValue={props.handleValueChange(dataLabels.deviceType)}
                                     options={deviceSetting.options!}
                                     placeholder={deviceSetting.placeholder}
                                     itemComponent={(props) => (

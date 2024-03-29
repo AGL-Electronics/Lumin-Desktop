@@ -19,6 +19,7 @@ interface NetworkSettingsProps extends DeviceSettingsContentProps {
             target: HTMLInputElement
         },
     ) => void
+    handleValueChange: (dataLabel: string) => string
     formHandler?: FormHandler | undefined
 }
 
@@ -92,6 +93,7 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                             minLength={deviceSetting.minLen}
                             maxLength={deviceSetting.maxLen}
                             onChange={props.handleInputChange}
+                            value={props.handleValueChange(deviceSetting.dataLabel)}
                             formHandler={props.formHandler}
                         />
                     </DeviceSettingItemWrapper>

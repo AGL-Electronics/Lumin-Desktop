@@ -320,6 +320,8 @@ const schema: yup.Schema<Schema> = yup.object({
     [dataLabels.luminDeviceAddress]: yup.string().required().min(7).max(15),
 })
 
+console.debug('dataLabels:', dataLabels)
+
 export {
     themes,
     enums,

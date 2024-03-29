@@ -25,6 +25,7 @@ interface LEDSettingsProps extends DeviceSettingsContentProps {
         },
     ) => void
     handleSelectionChange: (dataLabel: string, value: string) => void
+    handleValueChange: (dataLabel: string) => string
     formHandler?: FormHandler | undefined
 }
 
@@ -88,6 +89,7 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                             minLength={deviceSetting.minLen}
                                             maxLength={deviceSetting.maxLen}
                                             onChange={props.handleInputChange}
+                                            value={props.handleValueChange(deviceSetting.dataLabel)}
                                             formHandler={props.formHandler}
                                         />
                                     }>
@@ -103,7 +105,9 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                                 value,
                                             )
                                         }
-                                        defaultValue={deviceSetting.options?.[0]}
+                                        defaultValue={props.handleValueChange(
+                                            deviceSetting.dataLabel,
+                                        )}
                                         options={deviceSetting.options || []}
                                         placeholder={deviceSetting.placeholder}
                                         itemComponent={(props) => (
