@@ -78,7 +78,7 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                             <Label class="text-[#A9B6BF] pr-2">Network</Label>
                             <div class="overflow-hidden pl-2">
                                 <Label size="lg" class="text-white text-ellipsis overflow-hidden">
-                                    <WifiSignal rssi={-55} />
+                                    <WifiSignal rssi={-25} />
                                 </Label>
                             </div>
                         </Flex>

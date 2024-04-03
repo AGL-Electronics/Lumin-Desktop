@@ -19,23 +19,21 @@ export default function Main() {
 
     return (
         <PageWrapper>
-            <Card class="overflow-auto w-auto bg-primary-300 h-full pb-8">
-                <CardContent class="flex flex-1">
-                    <Dashboard
-                        firmwareVersion={firmwareVersion()}
-                        devices={getDevices()}
-                        onClickNavigateDevice={(device) => {
-                            navigate('/deviceSettings/false', { replace: true })
-                            setSelectedDevice(device)
-                            setRESTDevice(device.address)
-                        }}
-                        onClickNavigateCreateDevice={() => {
-                            navigate('/deviceSettings/true', { replace: true })
-                            resetSelectedDevice()
-                        }}
-                    />
-                </CardContent>
-            </Card>
+            <CardContent class="flex flex-1">
+                <Dashboard
+                    firmwareVersion={firmwareVersion()}
+                    devices={getDevices()}
+                    onClickNavigateDevice={(device) => {
+                        navigate('/deviceSettings/false', { replace: true })
+                        setSelectedDevice(device)
+                        setRESTDevice(device.address)
+                    }}
+                    onClickNavigateCreateDevice={() => {
+                        navigate('/deviceSettings/true', { replace: true })
+                        resetSelectedDevice()
+                    }}
+                />
+            </CardContent>
         </PageWrapper>
     )
 }

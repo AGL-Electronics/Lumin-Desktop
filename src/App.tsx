@@ -6,6 +6,11 @@ import Header from '@containers/Header'
 import { TITLEBAR_ACTION } from '@static/enums'
 import { useAppContextMain } from '@store/context/main'
 
+// TODO: Implement LED control via device preview
+// TODO: Implement LED color control in device settings
+// TODO: Device Settings has camera view, and led controls
+// FIXME: Remove stepper
+
 const ToastNotificationWindow = lazy(() => import('@components/Notifications'))
 
 const App: ParentComponent = (props) => {
