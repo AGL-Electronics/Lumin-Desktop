@@ -1,7 +1,7 @@
 import { Image } from '@kobalte/core'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { Show, createEffect, createSignal, type Component } from 'solid-js'
-import { ProgressBar } from './ProgressBar/ProgressBar'
+//import { ProgressBar } from './ProgressBar/ProgressBar'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import Popover from '@components/Popover'
 import { Flex } from '@components/ui/flex'
@@ -10,11 +10,11 @@ import { Label } from '@components/ui/label'
 import { ANIMATION_MODE, POPOVER_ID } from '@src/static/enums'
 
 interface HeaderProps {
-    step?: { step: string; description: string; dashoffset: string; index: string }
-    currentStep?: string
+    //step?: { step: string; description: string; dashoffset: string; index: string }
+    //currentStep?: string
 }
 
-const StepperProgress: Component<HeaderProps> = (props) => {
+/* const StepperProgress: Component<HeaderProps> = (props) => {
     const location = useLocation()
     return (
         <Show when={location.pathname !== '/deviceSettings/false'}>
@@ -35,9 +35,9 @@ const StepperProgress: Component<HeaderProps> = (props) => {
             </Flex>
         </Show>
     )
-}
+} */
 
-const Header: Component<HeaderProps> = (props) => {
+const Header: Component<HeaderProps> = (/* props */) => {
     const [deviceSettingsActive, setDeviceSettingsActive] = createSignal(false)
     const params = useLocation()
     const navigate = useNavigate()
@@ -70,9 +70,10 @@ const Header: Component<HeaderProps> = (props) => {
                 <div class="mx-auto">
                     <Show
                         when={!deviceSettingsActive()}
-                        fallback={
+                        /* fallback={
                             <StepperProgress step={props.step} currentStep={props.currentStep} />
-                        }>
+                        } */
+                    >
                         <CustomSlideAnimation
                             defaultAnimationMode={ANIMATION_MODE.GRIP}
                             defaultDisplayMode={POPOVER_ID.GRIP}

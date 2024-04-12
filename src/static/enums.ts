@@ -19,6 +19,12 @@ export enum DEVICE_TYPE {
     NONE = 'NONE',
 }
 
+export enum DEVICE_MODIFY_EVENT {
+    PUSH = 'PUSH',
+    UPDATE = 'UPDATE',
+    DELETE = 'DELETE',
+}
+
 //********************************* UI *************************************/
 
 export enum TITLEBAR_ACTION {

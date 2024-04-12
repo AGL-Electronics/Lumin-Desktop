@@ -1,5 +1,4 @@
-import { FormHandler } from 'solid-form-handler'
-import { For, Show, type Component } from 'solid-js'
+import { For, Show, Switch, type Component, Match, createSignal, createEffect } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -7,31 +6,59 @@ import {
 } from './DeviceSettingUtil'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
-import { ActiveStatus } from '@src/lib/utils'
-import { dataLabels, networkSettings, DeviceSettingsObj, selectionSignals } from '@src/static'
+import { ActiveStatus, capitalizeFirstLetter, DEFAULT_COLOR } from '@src/lib/utils'
 import { DEVICE_TYPE } from '@src/static/enums'
+import { useAppContext } from '@src/store/context/app'
+import { useAppDeviceContext } from '@store/context/device'
+import {
+    deviceSettings,
+    useDeviceSettingsContext,
+    DeviceSettingsStore,
+} from '@store/context/deviceSettings'
 
-interface NetworkSettingsProps extends DeviceSettingsContentProps {
-    enableMDNS: boolean
-    handleInputChange: (
-        e: Event & {
-            currentTarget: HTMLInputElement
-            target: HTMLInputElement
-        },
-    ) => void
-    handleValueChange: (dataLabel: string) => string
-    formHandler?: FormHandler | undefined
-}
+interface NetworkSettingsProps extends DeviceSettingsContentProps {}
 
 const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
-    /* TODO: implement showing wifi settings only when device type is set to wireless */
+    const { settings, setSettingWithoutSubcategory } = useDeviceSettingsContext()
+    const { getSelectedDevice } = useAppDeviceContext()
+    const { appState } = useAppContext()
 
-    const handleDeviceType = (): DeviceSettingsObj[] => {
-        return selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
-            ? networkSettings
-            : networkSettings.filter(
-                  (setting) => setting.label !== 'WIFI SSID' && setting.label !== 'WIFI Password',
-              )
+    const [status, setStatus] = createSignal(DEFAULT_COLOR)
+
+    createEffect(() => {
+        setStatus(getSelectedDevice() ? ActiveStatus(getSelectedDevice()!.status) : DEFAULT_COLOR)
+    })
+
+    const handleDeviceStatusRender = (): string => {
+        // Get the selected device
+        if (!getSelectedDevice()) return ''
+        return capitalizeFirstLetter(getSelectedDevice()!.status)
+    }
+
+    const handleDeviceSelectedValues = (
+        key: keyof DeviceSettingsStore['networkSettings'],
+    ): string | undefined => {
+        // Get the selected device
+        const selectedDevice = getSelectedDevice()
+        if (!selectedDevice || typeof selectedDevice.status !== 'string') {
+            return settings.networkSettings[
+                key as keyof DeviceSettingsStore['networkSettings']
+            ] as string
+        }
+
+        console.debug('Found Selected Device:', selectedDevice)
+
+        // use a switch statement to handle the different keys, and return the value of the key
+        switch (key) {
+            case 'luminDeviceAddress':
+                return selectedDevice.network.address
+            case 'wifiSSID':
+                return selectedDevice.network.wifi.ssid
+            case 'wifiPassword':
+                return selectedDevice.network.wifi.password
+            default:
+                return ''
+        }
     }
 
     return (
@@ -39,64 +66,70 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
             {/* Network Setup */}
             {/* Set WIFI SSID */}
             {/* Set WIFI Password */}
-            <Show
-                when={!props.createNewDevice}
-                fallback={
-                    <DeviceSettingItemWrapper
-                        label="Lumin Device Address"
-                        popoverDescription="The IP address or MDNS name of the Lumin device">
-                        <Show
-                            when={props.enableMDNS}
-                            fallback={
+            {/* TODO: show a drop-down list of detected lumin devices when mdns is enabled */}
+            <Show when={!props.createNewDevice}>
+                <DeviceSettingItemWrapper
+                    label="Status"
+                    popoverDescription="The current status of the device">
+                    <div class="max-md:hidden text-left flex justify-end content-center items-center ">
+                        <Label
+                            style={{ color: status() }}
+                            class="text-ellipsis overflow-hidden whitespace-nowrap text-base">
+                            {handleDeviceStatusRender()}
+                        </Label>
+                        <div
+                            style={{ 'background-color': status() }}
+                            class="ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px]"
+                        />
+                    </div>
+                </DeviceSettingItemWrapper>
+            </Show>
+            <For
+                each={deviceSettings.networkSettings.filter((setting) => {
+                    // Always exclude the 'lumin-device-mdns' setting if the specific condition is false
+                    if (!appState().enableMDNS && setting.dataLabel === 'lumin-device-mdns') {
+                        return false
+                    }
+                    // Exclude 'ssid' and 'password' settings if the deviceType is 'ethernet'
+                    if (
+                        settings.generalSettings.deviceType === DEVICE_TYPE.WIRED &&
+                        (setting.dataLabel === 'wifi-ssid' || setting.dataLabel === 'wifi-password')
+                    ) {
+                        return false
+                    }
+                    return true // Include the setting by default
+                })}>
+                {(deviceSetting) => (
+                    <Switch>
+                        <Match when={deviceSetting.type === 'input'}>
+                            <DeviceSettingItemWrapper
+                                label={deviceSetting.label}
+                                popoverDescription={deviceSetting.popoverDescription}>
                                 <Input
                                     autocomplete="off"
                                     class="border border-accent"
-                                    data-label="lumin-device-address"
-                                    name="lumin-device-address"
-                                    placeholder="192.168.0.245"
-                                    id="lumin-device-address"
-                                    minLength={7}
-                                    maxLength={15}
-                                    required={true}
-                                    type="text"
-                                    onChange={props.handleInputChange}
-                                    formHandler={props.formHandler}
+                                    data-label={deviceSetting.dataLabel}
+                                    name={deviceSetting.dataLabel}
+                                    placeholder={deviceSetting.placeholder}
+                                    id={deviceSetting.dataLabel}
+                                    minLength={deviceSetting.minLen}
+                                    maxLength={deviceSetting.maxLen}
+                                    required={deviceSetting.required}
+                                    type={deviceSetting.inputType}
+                                    value={handleDeviceSelectedValues(
+                                        deviceSetting.key as keyof DeviceSettingsStore['networkSettings'],
+                                    )}
+                                    onChange={(e) => {
+                                        setSettingWithoutSubcategory(
+                                            'networkSettings',
+                                            deviceSetting.key as keyof DeviceSettingsStore['networkSettings'],
+                                            (e.target as HTMLInputElement).value,
+                                        )
+                                    }}
                                 />
-                            }>
-                            {/* TODO: show a drop-down list of detected lumin devices */}
-                            <></>
-                        </Show>
-                    </DeviceSettingItemWrapper>
-                }>
-                <DeviceSettingItemWrapper
-                    label="Lumin Device Status"
-                    popoverDescription="The status of your Lumin Device">
-                    <Label class={`text-[${ActiveStatus(props.deviceStatus)}]`}>
-                        {props.deviceStatus}
-                    </Label>
-                </DeviceSettingItemWrapper>
-            </Show>
-            <For each={handleDeviceType()}>
-                {(deviceSetting) => (
-                    <DeviceSettingItemWrapper
-                        label={deviceSetting.label}
-                        popoverDescription={deviceSetting.popoverDescription}>
-                        <Input
-                            autocomplete="off"
-                            class="border border-accent"
-                            data-label={deviceSetting.dataLabel}
-                            name={deviceSetting.dataLabel}
-                            placeholder={deviceSetting.placeholder}
-                            id={deviceSetting.dataLabel}
-                            required={deviceSetting.required}
-                            type={deviceSetting.inputType}
-                            minLength={deviceSetting.minLen}
-                            maxLength={deviceSetting.maxLen}
-                            onChange={props.handleInputChange}
-                            value={props.handleValueChange(deviceSetting.dataLabel)}
-                            formHandler={props.formHandler}
-                        />
-                    </DeviceSettingItemWrapper>
+                            </DeviceSettingItemWrapper>
+                        </Match>
+                    </Switch>
                 )}
             </For>
         </DeviceSettingContainer>

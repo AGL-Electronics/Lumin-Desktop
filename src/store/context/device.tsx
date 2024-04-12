@@ -13,20 +13,18 @@ import { debug } from 'tauri-plugin-log-api'
 import { usePersistentStore } from '../tauriStore'
 import { useAppContext } from './app'
 import type { Device, AppStoreDevice } from '@static/types'
-import { DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
+import { UniqueArray } from '@src/static/uniqueArray'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
 
 interface AppDeviceContext {
-    getDevices: Accessor<Device[]>
-    getDeviceAddresses: Accessor<string[]>
-    getDeviceStatus: Accessor<DEVICE_STATUS[]>
+    getDevices: Accessor<UniqueArray<Device>>
     getSelectedDevice: Accessor<Device | undefined>
     getSelectedDeviceAddress: Accessor<string | undefined>
     getSelectedDeviceStatus: Accessor<DEVICE_STATUS | undefined>
     getSelectedDeviceType: Accessor<DEVICE_TYPE | undefined>
     getSelectedDeviceSocket: Accessor<object | undefined>
-    setDevice: (device: Device) => void
-    setAddDeviceMDNS: (device: Device, address: string) => void
-    setRemoveDevice: (Device: Device) => void
+    setDevice: (device: Device, event: DEVICE_MODIFY_EVENT) => void
+    setDeviceMDNS: (device: Device, address: string) => void
     setDeviceStatus: (Device: Device, status: DEVICE_STATUS) => void
     setDeviceWS: (Device: Device, ws: object) => void
     setSelectedDevice: (Device: Device) => void
@@ -38,18 +36,16 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const { setDevices } = useAppContext()
 
     const defaultState: AppStoreDevice = {
-        devices: [],
+        devices: UniqueArray.from([]),
         selectedDevice: undefined,
     }
 
     const [state, setState] = createStore<AppStoreDevice>(defaultState)
 
-    const setDevice = (device: Device) => {
+    /* const setDevice = (device: Device) => {
         setState(
             produce((s) => {
-                const index = s.devices.findIndex(
-                    (c: { address: string }) => c.address === device.address,
-                )
+                const index = s.devices.findIndex((c: { id: string }) => c.id === device.id)
                 if (index !== -1) {
                     s.devices[index] = device
                 } else {
@@ -57,23 +53,32 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 }
             }),
         )
-    }
+    } */
 
-    const setAddDeviceMDNS = (device: Device, address: string) => {
+    const setDevice = (device: Device, event: DEVICE_MODIFY_EVENT) => {
         setState(
             produce((s) => {
-                s.devices = s.devices.filter((c: { address: string }) => c.address !== address)
-                s.devices.push({ ...device, address })
+                switch (event) {
+                    case DEVICE_MODIFY_EVENT.PUSH:
+                        return s.devices.add(device)
+                    case DEVICE_MODIFY_EVENT.UPDATE:
+                        return s.devices.map((dvc) => (dvc.id === device.id ? device : dvc))
+                    case DEVICE_MODIFY_EVENT.DELETE:
+                        return s.devices.filter((dvc) => dvc.id !== device.id)
+                    default:
+                        return s
+                }
             }),
         )
     }
 
-    const setRemoveDevice = (Device: Device) => {
+    const setDeviceMDNS = (device: Device, mdns: string) => {
         setState(
             produce((s) => {
-                s.devices = s.devices.filter(
-                    (c: { address: string }) => c.address !== Device.address,
+                s.devices = UniqueArray.from(
+                    s.devices.filter((c: { id: string }) => c.id !== device.id),
                 )
+                s.devices.add({ ...device, network: { ...device.network, mdns } })
             }),
         )
     }
@@ -81,10 +86,10 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setDeviceStatus = (device: Device, status: DEVICE_STATUS) => {
         setState(
             produce((s) => {
-                s.devices = s.devices.filter(
-                    (c: { address: string }) => c.address !== device.address,
+                s.devices = UniqueArray.from(
+                    s.devices.filter((c: { id: string }) => c.id !== device.id),
                 )
-                s.devices.push({ ...device, status })
+                s.devices.add({ ...device, status })
             }),
         )
     }
@@ -92,10 +97,10 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setDeviceWS = (device: Device, ws: object) => {
         setState(
             produce((s) => {
-                s.devices = s.devices.filter(
-                    (c: { address: string }) => c.address !== device.address,
+                s.devices = UniqueArray.from(
+                    s.devices.filter((c: { id: string }) => c.id !== device.id),
                 )
-                s.devices.push({ ...device, ws })
+                s.devices.add({ ...device, ws })
             }),
         )
     }
@@ -119,10 +124,8 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const deviceState = createMemo(() => state)
 
     const getDevices = createMemo(() => deviceState().devices)
-    const getDeviceAddresses = createMemo(() => deviceState().devices.map(({ address }) => address))
-    const getDeviceStatus = createMemo(() => deviceState().devices.map(({ status }) => status))
     const getSelectedDevice = createMemo(() => deviceState().selectedDevice)
-    const getSelectedDeviceAddress = createMemo(() => deviceState().selectedDevice?.address)
+    const getSelectedDeviceAddress = createMemo(() => deviceState().selectedDevice?.network.address)
     const getSelectedDeviceStatus = createMemo(() => deviceState().selectedDevice?.status)
     const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice?.type)
     const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice?.ws)
@@ -131,12 +134,22 @@ export const AppDeviceProvider: ParentComponent = (props) => {
 
     onMount(() => {
         get('settings').then((settings) => {
-            if (settings) {
-                debug('loading settings')
-                settings.devices.forEach((device: Device) => {
-                    setDevice(device)
-                })
+            if (!settings) {
+                console.debug('No settings file found')
+                return
             }
+
+            console.debug(`Loading Settings Config File from Disk: ${settings}`)
+            debug(`Loading Settings Config File from Disk: ${settings}`)
+
+            if (settings.devices.size === 0) {
+                console.debug('No devices found in settings file')
+                return
+            }
+
+            settings.devices.forEach((device: Device) => {
+                setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
+            })
         })
 
         /* doGHRequest()
@@ -153,16 +166,13 @@ export const AppDeviceProvider: ParentComponent = (props) => {
         <AppDeviceContext.Provider
             value={{
                 getDevices,
-                getDeviceAddresses,
-                getDeviceStatus,
                 getSelectedDevice,
                 getSelectedDeviceAddress,
                 getSelectedDeviceStatus,
                 getSelectedDeviceType,
                 getSelectedDeviceSocket,
                 setDevice,
-                setAddDeviceMDNS,
-                setRemoveDevice,
+                setDeviceMDNS,
                 setDeviceStatus,
                 setDeviceWS,
                 setSelectedDevice,

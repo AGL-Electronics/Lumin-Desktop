@@ -54,7 +54,7 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                         <Label class="text-[#A9B6BF] pr-2">Address</Label>
                         <div class="overflow-hidden pl-2">
                             <Label class="text-white text-ellipsis overflow-hidden">
-                                {props.address}
+                                {props.network.address}
                             </Label>
                         </div>
                     </Flex>

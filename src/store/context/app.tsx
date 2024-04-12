@@ -10,8 +10,9 @@ import {
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
 import { debug } from 'tauri-plugin-log-api'
-import type { AppStore, DebugMode, Device, PersistentSettings } from '@static/types'
-import { ENotificationAction } from '@static/enums'
+import type { AppStore, Device, PersistentSettings } from '@static/types'
+import { UniqueArray } from '@src/static/uniqueArray'
+import { DebugMode, ENotificationAction } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 import { AppUIProvider } from '@store/context/ui'
 import { usePersistentStore } from '@store/tauriStore'
@@ -21,17 +22,17 @@ interface AppContext {
     setDebugMode: (mode: DebugMode | undefined) => void
     setEnableMDNS: (enable: boolean) => void
     setScanForDeviceOnStartup: (enable: boolean) => void
-    setDevices: (devices: Device[]) => void
+    setDevices: (devices: UniqueArray<Device>) => void
 }
 
 const AppContext = createContext<AppContext>()
 export const AppProvider: ParentComponent = (props) => {
     //#region Store
     const defaultState: AppStore = {
-        debugMode: 'off',
+        debugMode: DebugMode.OFF,
         enableMDNS: false,
         scanForDevicesOnStartup: false,
-        devices: [],
+        devices: UniqueArray.from([]),
     }
 
     const [state, setState] = createStore<AppStore>(defaultState)
@@ -39,12 +40,12 @@ export const AppProvider: ParentComponent = (props) => {
     const setDebugMode = (mode: DebugMode | undefined) => {
         setState(
             produce((s) => {
-                s.debugMode = mode || 'info'
+                s.debugMode = mode || DebugMode.INFO
             }),
         )
     }
 
-    const setDevices = (devices: Device[]) => {
+    const setDevices = (devices: UniqueArray<Device>) => {
         setState(
             produce((s) => {
                 s.devices = devices
@@ -88,22 +89,21 @@ export const AppProvider: ParentComponent = (props) => {
     onMount(() => {
         // load the app settings from the persistent store and assign to the global state
         get('settings').then((settings) => {
-            if (settings) {
-                debug('loading settings')
-                const activeUserName =
-                    typeof settings.user === 'string' ? settings.user : 'stranger'
-
-                //setConnectedUser(activeUserName)
-                setEnableNotifications(settings.enableNotifications)
-                setEnableNotificationsSounds(settings.enableNotificationsSounds)
-                setGlobalNotificationsType(
-                    settings.globalNotificationsType ?? ENotificationAction.APP,
-                )
-
-                setEnableMDNS(settings.enableMDNS)
-                setDebugMode(settings.debugMode)
-                setScanForDeviceOnStartup(settings.scanForDevicesOnStartup)
+            if (!settings) {
+                debug('No settings file found')
+                return
             }
+            debug('loading settings')
+            const activeUserName = typeof settings.user === 'string' ? settings.user : 'stranger'
+
+            //setConnectedUser(activeUserName)
+            setEnableNotifications(settings.enableNotifications)
+            setEnableNotificationsSounds(settings.enableNotificationsSounds)
+            setGlobalNotificationsType(settings.globalNotificationsType ?? ENotificationAction.APP)
+
+            setEnableMDNS(settings.enableMDNS)
+            setDebugMode(settings.debugMode)
+            setScanForDeviceOnStartup(settings.scanForDevicesOnStartup)
         })
         checkPermission()
     })

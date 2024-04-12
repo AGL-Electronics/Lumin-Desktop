@@ -1,8 +1,8 @@
 import { appWindow } from '@tauri-apps/api/window'
 import { ParentComponent, lazy, onMount } from 'solid-js'
 import { Transition } from 'solid-transition-group'
+import MainHeader from '@components/Header'
 import { Titlebar } from '@components/Titlebar'
-import Header from '@containers/Header'
 import { TITLEBAR_ACTION } from '@static/enums'
 import { useAppContextMain } from '@store/context/main'
 
@@ -40,7 +40,7 @@ const App: ParentComponent = (props) => {
             />
 
             <div id="header-wrapper" class="header-wrapper overflow-hidden">
-                <Header />
+                <MainHeader />
             </div>
             <main class="w-full overflow-y-scroll">
                 <Transition

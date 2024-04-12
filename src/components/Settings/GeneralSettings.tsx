@@ -1,4 +1,3 @@
-import { FormHandler } from 'solid-form-handler'
 import { For, Switch, Match, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
@@ -14,29 +13,55 @@ import {
     SelectValue,
 } from '@components/ui/select'
 import { Switch as ToggleSwitch } from '@components/ui/switch'
-import { dataLabels, generalSettings, selectionSignals } from '@src/static'
+import { useAppDeviceContext } from '@store/context/device'
+import {
+    useDeviceSettingsContext,
+    deviceSettings,
+    DeviceSettingsStore,
+} from '@store/context/deviceSettings'
 
-interface GeneralSettingsProps extends DeviceSettingsContentProps {
-    handleSelectionChange: (dataLabel: string, value: string) => void
-    handleInputChange: (
-        e: Event & {
-            currentTarget: HTMLInputElement
-            target: HTMLInputElement
-        },
-    ) => void
-    handleToggleChange: (isChecked: boolean) => void
-    formHandler?: FormHandler | undefined
-    handleValueChange: (dataLabel: string) => string
-}
+interface GeneralSettingsProps extends DeviceSettingsContentProps {}
 
-const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
+const GeneralSettings: Component<GeneralSettingsProps> = () => {
+    const { settings, setSettingWithoutSubcategory } = useDeviceSettingsContext()
+    const { getSelectedDevice } = useAppDeviceContext()
+
+    const handleDefaultValue = (key: keyof DeviceSettingsStore['generalSettings']) => {
+        return settings.generalSettings[key] as string
+    }
+
+    const handleDeviceSelectedValues = (key: keyof DeviceSettingsStore['generalSettings']) => {
+        // Get the selected device
+        const selectedDevice = getSelectedDevice()
+        if (!selectedDevice || typeof selectedDevice.status !== 'string') {
+            return settings.generalSettings[
+                key as keyof DeviceSettingsStore['generalSettings']
+            ] as string
+        }
+
+        console.debug('Found Selected Device:', selectedDevice)
+
+        switch (key) {
+            case 'deviceLabel':
+                return selectedDevice.name
+            case 'deviceType':
+                return selectedDevice.type
+            case 'printerSerialNumber':
+                return selectedDevice.serialNumber
+            case 'lanCode':
+                return selectedDevice.network.lanCode
+            default:
+                return ''
+        }
+    }
+
     return (
         <DeviceSettingContainer label="General Setup" layout="col">
             {/* Set Name */}
             {/* Set Bound Printer - from MDNS dropdown list*/}
             {/* Set Printer Serial number */}
             {/* Set Printer LAN Code */}
-            <For each={generalSettings}>
+            <For each={deviceSettings.generalSettings}>
                 {(deviceSetting) => (
                     <DeviceSettingItemWrapper
                         label={deviceSetting.label}
@@ -54,18 +79,35 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     maxLength={deviceSetting.maxLen}
                                     required={deviceSetting.required}
                                     type={deviceSetting.inputType}
-                                    value={props.handleValueChange(deviceSetting.dataLabel)}
-                                    onChange={props.handleInputChange}
-                                    formHandler={props.formHandler}
+                                    value={handleDeviceSelectedValues(
+                                        deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                    )}
+                                    onInput={(e) =>
+                                        setSettingWithoutSubcategory(
+                                            'generalSettings',
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                            (e.target as HTMLInputElement).value,
+                                        )
+                                    }
                                 />
                             </Match>
                             <Match when={deviceSetting.type === 'select'}>
                                 <Select
-                                    value={selectionSignals[dataLabels.deviceType]?.value()}
+                                    value={handleDeviceSelectedValues(
+                                        deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                    )}
                                     onChange={(value) =>
-                                        props.handleSelectionChange(dataLabels.deviceType, value)
+                                        setSettingWithoutSubcategory(
+                                            'generalSettings',
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                            value,
+                                        )
                                     }
-                                    defaultValue={props.handleValueChange(dataLabels.deviceType)}
+                                    defaultValue={
+                                        handleDefaultValue(
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                        ) as string
+                                    }
                                     options={deviceSetting.options!}
                                     placeholder={deviceSetting.placeholder}
                                     itemComponent={(props) => (
@@ -83,12 +125,18 @@ const GeneralSettings: Component<GeneralSettingsProps> = (props) => {
                                     <SelectContent class="bg-base-300/75 hover:bg-base-200 overflow-y-scroll h-[70px]" />
                                 </Select>
                             </Match>
-                            <Match when={deviceSetting.type === 'checkbox'}>
+                            <Match when={deviceSetting.type === 'toggle'}>
                                 <ToggleSwitch
                                     id="firmware-flashing-toggle"
                                     aria-label={deviceSetting.ariaLabel}
                                     label={deviceSetting.label}
-                                    onChange={props.handleToggleChange}
+                                    onChange={(value) => {
+                                        setSettingWithoutSubcategory(
+                                            'generalSettings',
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
+                                            value,
+                                        )
+                                    }}
                                 />
                             </Match>
                         </Switch>

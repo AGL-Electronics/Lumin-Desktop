@@ -1,8 +1,5 @@
 import { useNavigate } from '@solidjs/router'
-
-import { useFormHandler } from 'solid-form-handler'
-import { yupSchema } from 'solid-form-handler/yup'
-import { createMemo, onMount, type Component } from 'solid-js'
+import { createMemo, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
@@ -15,51 +12,17 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { capitalizeFirstLetter } from '@src/lib/utils'
-import { selectionSignals, inputSignals, dataLabels, wiredSchema, wifiSchema } from '@src/static'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
-import { DEVICE_STATUS, ENotificationType } from '@static/enums'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType } from '@static/enums'
 import { Device, Notifications } from '@static/types'
-import { useAppContext } from '@store/context/app'
 import { useAppDeviceContext } from '@store/context/device'
+import { wiredFormHandler, useDeviceSettingsContext } from '@store/context/deviceSettings'
+
 const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
-    const { appState } = useAppContext()
-    const { setDevice, getSelectedDevice, setRemoveDevice } = useAppDeviceContext()
+    const { setDevice, getSelectedDevice } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
+    const { settings } = useDeviceSettingsContext()
     const navigate = useNavigate()
-
-    const wiredFormHandler = useFormHandler(yupSchema(wiredSchema))
-    //const wifiFormHandler = useFormHandler(yupSchema(wifiSchema))
-    const { formData } = wiredFormHandler
-    //const { formData: wifiFormData } = wifiFormHandler
-
-    onMount(() => {
-        //selectionSignals[dataLabels.deviceType]?.value() === DEVICE_TYPE.WIRELESS
-    })
-
-    const handleSelectionChange = (dataLabel: string, value: string) => {
-        if (!selectionSignals[dataLabel]) return
-        selectionSignals[dataLabel].setValue(value)
-    }
-
-    const handleInputChange = (
-        e: Event & {
-            currentTarget: HTMLInputElement
-            target: HTMLInputElement
-        },
-    ) => {
-        console.debug(e.currentTarget.dataset.label, e.currentTarget.value)
-
-        const dataLabel = e.currentTarget.dataset.label as string
-        if (!inputSignals[dataLabel]) return
-
-        const value = e.currentTarget.value
-        inputSignals[dataLabel].setValue(value)
-    }
-
-    const handleToggleChange = (isChecked: boolean) => {
-        console.debug('Toggle:', isChecked)
-        inputSignals[dataLabels.flashFirmware]?.setValue(isChecked)
-    }
 
     const reset = () => {
         wiredFormHandler.resetForm()
@@ -75,49 +38,71 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         e.preventDefault()
 
         try {
-            await wiredFormHandler.validateForm()
-            //alert('Data sent with success: ' + JSON.stringify(formData()))
-            // if we are not in create mode, then we are in edit mode, in edit mode we take the selected device and update it
+            //await wiredFormHandler.validateForm()
             if (!props.createNewDevice) {
+                console.debug('Updating device')
                 const selectedDevice = getSelectedDevice()
                 if (!selectedDevice) return
 
-                // TODO: Update the selected device with the new data
+                // generate a new device object with the updated values from the form
+                const device: Device = {
+                    ...selectedDevice,
+                    name: settings.generalSettings.deviceLabel,
+                    type: settings.generalSettings.deviceType,
+                    serialNumber: settings.generalSettings.printerSerialNumber,
+                    network: {
+                        lanCode: settings.networkSettings.lanCode,
+                        // TODO: Add mDNS scanning support
+                        address:
+                            settings.networkSettings.luminDeviceAddress === 'auto'
+                                ? ''
+                                : settings.networkSettings.luminDeviceAddress,
+                        wifi: {
+                            ssid: settings.networkSettings.wifiSSID,
+                            password: settings.networkSettings.wifiPassword,
+                        },
+                    },
+                    led: {
+                        ledCount: settings.ledSettings.ledBarsConnected,
+                        ledType: settings.ledSettings.ledType,
+                        ledConnection: settings.ledSettings.ledConnectionPoint,
+                    },
+                }
 
-                /* const device = {
-                ledType: selectionSignals['led-type'].selectedValue(),
-                ledCount: selectionSignals['led-bars-connected'].selectedValue(),
-                ledConnection: selectionSignals['led-connection-point'].selectedValue(),
-            }
+                setDevice(device, DEVICE_MODIFY_EVENT.UPDATE)
 
-            setDevice({ ...selectedDevice, ...device }) */
                 return
             }
 
             const device: Device = {
                 id: uuidv4(),
-                name: inputSignals[dataLabels.deviceLabel]?.value(),
+                name: settings.generalSettings.deviceLabel,
+                type: settings.generalSettings.deviceType,
                 status: DEVICE_STATUS.LOADING,
-                hasCamera: false,
-                type: selectionSignals[dataLabels.deviceType]?.value(),
-                serialNumber: inputSignals[dataLabels.printerSerialNumber]?.value(),
-                lanCode: inputSignals[dataLabels.mqttPassword]?.value(),
-                wifi: {
-                    ssid: inputSignals[dataLabels.wifiSsid]?.value(),
-                    password: inputSignals[dataLabels.wifiPassword]?.value(),
+                serialNumber: settings.generalSettings.printerSerialNumber,
+                network: {
+                    lanCode: settings.networkSettings.lanCode,
+                    address:
+                        settings.networkSettings.luminDeviceAddress === 'auto'
+                            ? ''
+                            : settings.networkSettings.luminDeviceAddress,
+                    wifi: {
+                        ssid: settings.networkSettings.wifiSSID,
+                        password: settings.networkSettings.wifiPassword,
+                    },
                 },
-                address: inputSignals[dataLabels.luminDeviceAddress]?.value(),
                 led: {
-                    ledCount: inputSignals[dataLabels.ledBarsConnected]?.value(),
-                    ledType: selectionSignals[dataLabels.ledType]?.value(),
-                    ledConnection: selectionSignals[dataLabels.ledConnectionPoint]?.value(),
+                    ledCount: settings.ledSettings.ledBarsConnected,
+                    ledType: settings.ledSettings.ledType,
+                    ledConnection: settings.ledSettings.ledConnectionPoint,
                 },
-                ws: {},
+                // TODO: Add camera support
+                hasCamera: false,
             }
 
             console.debug('Device:', device)
 
-            setDevice(device)
+            setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
 
             let notification: Notifications
 
@@ -141,7 +126,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
             console.debug('Submit', device)
 
-            if (inputSignals[dataLabels.flashFirmware]?.value()) navigate('/flashFirmware')
+            if (settings.generalSettings.flashFirmware) navigate('/flashFirmware')
             else navigate('/')
         } catch (error) {
             // loop through the errors and create a notification for each
@@ -167,7 +152,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         e.preventDefault()
         const selectedDevice = getSelectedDevice()
         if (!selectedDevice) return
-        setRemoveDevice(selectedDevice)
+        setDevice(selectedDevice, DEVICE_MODIFY_EVENT.DELETE)
 
         navigate('/')
 
@@ -182,52 +167,13 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
     const submitLabel = createMemo(() => {
         if (props.createNewDevice) {
-            if (inputSignals[dataLabels.flashFirmware]?.value()) {
+            if (settings.generalSettings.flashFirmware) {
                 return 'Flash Firmware'
             }
             return 'Create Device'
         }
         return 'Update Device'
     })
-
-    const handleValueChange = (dataLabel: string): string => {
-        // if we are NOT creating a new device, then we are editing an existing device, set the form data to the selected device data
-        if (props.createNewDevice) return ''
-
-        console.debug('Data Label:', dataLabel)
-
-        const selectedDevice = getSelectedDevice()
-
-        if (!selectedDevice) {
-            console.error('No device selected')
-            return ''
-        }
-
-        switch (dataLabel) {
-            case dataLabels.deviceLabel:
-                return selectedDevice.name
-            case dataLabels.deviceType:
-                return selectedDevice.type
-            case dataLabels.printerSerialNumber:
-                return selectedDevice.serialNumber
-            case dataLabels.mqttPassword:
-                return selectedDevice.lanCode
-            case dataLabels.wifiSsid:
-                return selectedDevice.wifi.ssid
-            case dataLabels.wifiPassword:
-                return selectedDevice.wifi.password
-            case dataLabels.luminDeviceAddress:
-                return selectedDevice.address
-            case dataLabels.ledBarsConnected:
-                return selectedDevice.led.ledCount
-            case dataLabels.ledType:
-                return selectedDevice.led.ledType
-            case dataLabels.ledConnectionPoint:
-                return selectedDevice.led.ledConnection
-            default:
-                return ''
-        }
-    }
 
     return (
         <Card class="h-full w-full overflow-y-scroll">
@@ -257,38 +203,18 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                     </Flex>
                 </CardHeader>
                 <CardContent class="w-full overflow-y-scroll">
+                    {/* <Show when={!props.createNewDevice}>
+                        // TODO: LEDController settings, conditionally render
+                    </Show> */}
                     <form
                         autocomplete="off"
                         class="flex flex-col w-full pb-4 pr-2 overflow-y-scroll"
                         onSubmit={handleSubmit}>
                         <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
                             <div class="w-full">
-                                <GeneralSettings
-                                    createNewDevice={props.createNewDevice}
-                                    deviceStatus={props.deviceStatus}
-                                    handleInputChange={handleInputChange}
-                                    handleSelectionChange={handleSelectionChange}
-                                    handleToggleChange={handleToggleChange}
-                                    formHandler={wiredFormHandler}
-                                    handleValueChange={handleValueChange}
-                                />
-                                <NetworkSettings
-                                    createNewDevice={props.createNewDevice}
-                                    enableMDNS={appState().enableMDNS}
-                                    deviceStatus={props.deviceStatus}
-                                    handleInputChange={handleInputChange}
-                                    formHandler={wiredFormHandler}
-                                    handleValueChange={handleValueChange}
-                                />
-                                <LEDSettings
-                                    createNewDevice={props.createNewDevice}
-                                    deviceStatus={props.deviceStatus}
-                                    selectionSignals={selectionSignals}
-                                    handleInputChange={handleInputChange}
-                                    handleSelectionChange={handleSelectionChange}
-                                    formHandler={wiredFormHandler}
-                                    handleValueChange={handleValueChange}
-                                />
+                                <GeneralSettings createNewDevice={props.createNewDevice} />
+                                <NetworkSettings createNewDevice={props.createNewDevice} />
+                                <LEDSettings createNewDevice={props.createNewDevice} />
                             </div>
                         </div>
                         <FormActions

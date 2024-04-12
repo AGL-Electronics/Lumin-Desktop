@@ -12,6 +12,7 @@ import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { ANIMATION_MODE, POPOVER_ID } from '@static/enums'
 import { Device } from '@static/types'
+import { UniqueArray } from '@static/uniqueArray'
 
 /**
  * Dashboard component:
@@ -27,7 +28,7 @@ import { Device } from '@static/types'
 interface DashboardProps {
     onClickNavigateDevice: (device: Device) => void
     onClickNavigateCreateDevice: () => void
-    devices: Device[]
+    devices: UniqueArray<Device>
     firmwareVersion: string
 }
 
@@ -85,7 +86,7 @@ const Dashboard: Component<DashboardProps> = (props) => {
                 <Switch>
                     <Match when={displayMode() === POPOVER_ID.GRIP}>
                         <Grid cols={4} colsSm={2} colsMd={4} colsLg={4} class="gap-4">
-                            <For each={props.devices}>
+                            <For each={props.devices.allItems}>
                                 {(device) => (
                                     <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
                                         <div class="pt-3">
@@ -109,9 +110,9 @@ const Dashboard: Component<DashboardProps> = (props) => {
                         </Grid>
                     </Match>
                     <Match when={displayMode() === POPOVER_ID.LIST}>
-                        <Show when={props.devices.length > 0}>
+                        <Show when={props.devices.size > 0}>
                             <ListHeader />
-                            <For each={props.devices}>
+                            <For each={props.devices.allItems}>
                                 {(device) => (
                                     <List
                                         {...device}

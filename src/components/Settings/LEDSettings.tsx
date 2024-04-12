@@ -1,4 +1,3 @@
-import { FormHandler } from 'solid-form-handler'
 import { For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
@@ -14,27 +13,29 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
-import { DeviceSettingsObj, SelectionSignals, dataLabels, ledSettings } from '@src/static'
+import { useAppDeviceContext } from '@store/context/device'
+import {
+    wiredFormHandler,
+    useDeviceSettingsContext,
+    deviceSettings,
+    DeviceSettingsStore,
+    DeviceSettingsObj,
+} from '@store/context/deviceSettings'
 
-interface LEDSettingsProps extends DeviceSettingsContentProps {
-    selectionSignals: SelectionSignals
-    handleInputChange: (
-        e: Event & {
-            currentTarget: HTMLInputElement
-            target: HTMLInputElement
-        },
-    ) => void
-    handleSelectionChange: (dataLabel: string, value: string) => void
-    handleValueChange: (dataLabel: string) => string
-    formHandler?: FormHandler | undefined
-}
+interface LEDSettingsProps extends DeviceSettingsContentProps {}
 
-const LEDSettings: Component<LEDSettingsProps> = (props) => {
-    const handleLEDSettings = (): DeviceSettingsObj[] => {
+const LEDSettings: Component<LEDSettingsProps> = () => {
+    const { settings, setSettingWithoutSubcategory } = useDeviceSettingsContext()
+    const { getSelectedDevice } = useAppDeviceContext()
+
+    const handleLEDSettings = (): DeviceSettingsObj<'ledSettings'>[] => {
         // if led-type is LedBar, remove the led-bars-connected from the list of setting.
         // if led-type is not LedBar, remove the Molex option from the led-connection-point from the list of settings options.
 
-        const ledType = props.selectionSignals[dataLabels.ledType]?.value()
+        const ledType = settings.ledSettings
+            .ledType as DeviceSettingsStore['ledSettings']['ledType']
+
+        const ledSettings = deviceSettings.ledSettings
 
         const ledSettingsCopy = ledSettings.map((setting) => ({
             ...setting,
@@ -46,15 +47,23 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
         }
 
         return ledSettingsCopy.filter((setting) => {
-            if (setting.dataLabel === dataLabels.ledBarsConnected) {
+            if (setting.key === 'ledBarsConnected') {
                 return false
             }
 
-            if (setting.dataLabel === dataLabels.ledConnectionPoint) {
+            if (setting.key === 'ledConnectionPoint') {
                 setting.options = setting.options?.filter((option) => option !== 'Molex')
             }
             return true
         })
+    }
+
+    const handleDefaultValue = (key: keyof DeviceSettingsStore['ledSettings']) => {
+        if (!getSelectedDevice()) {
+            console.debug('No device selected')
+            return ''
+        }
+        return settings.ledSettings[key] as string | number | (string | number)[] | undefined
     }
 
     return (
@@ -88,26 +97,39 @@ const LEDSettings: Component<LEDSettingsProps> = (props) => {
                                             type="number"
                                             minLength={deviceSetting.minLen}
                                             maxLength={deviceSetting.maxLen}
-                                            onChange={props.handleInputChange}
-                                            value={props.handleValueChange(deviceSetting.dataLabel)}
-                                            formHandler={props.formHandler}
+                                            onInput={(e) => {
+                                                setSettingWithoutSubcategory(
+                                                    'ledSettings',
+                                                    deviceSetting.key as keyof DeviceSettingsStore['ledSettings'],
+                                                    (e.target as HTMLInputElement).value,
+                                                )
+                                            }}
+                                            value={
+                                                settings.generalSettings[
+                                                    deviceSetting.key as keyof DeviceSettingsStore['ledSettings']
+                                                ] as string
+                                            }
+                                            formHandler={wiredFormHandler}
                                         />
                                     }>
                                     <Select
                                         value={
-                                            props.selectionSignals[
-                                                deviceSetting.dataLabel
-                                            ]!.value()!
+                                            settings.ledSettings[
+                                                deviceSetting.key as keyof DeviceSettingsStore['ledSettings']
+                                            ]
                                         }
                                         onChange={(value) =>
-                                            props.handleSelectionChange(
-                                                deviceSetting.dataLabel,
+                                            setSettingWithoutSubcategory(
+                                                'ledSettings',
+                                                deviceSetting.key as keyof DeviceSettingsStore['ledSettings'],
                                                 value,
                                             )
                                         }
-                                        defaultValue={props.handleValueChange(
-                                            deviceSetting.dataLabel,
-                                        )}
+                                        defaultValue={
+                                            handleDefaultValue(
+                                                deviceSetting.key as keyof DeviceSettingsStore['ledSettings'],
+                                            ) as string | number
+                                        }
                                         options={deviceSetting.options || []}
                                         placeholder={deviceSetting.placeholder}
                                         itemComponent={(props) => (

@@ -4,12 +4,9 @@ import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { HoverPopover } from '@components/ui/popover'
 import { cn } from '@src/lib/utils'
-import { DEVICE_STATUS } from '@static/enums'
 
 export interface DeviceSettingsContentProps {
-    deviceStatus: DEVICE_STATUS
     createNewDevice: boolean
-    devicesUrl?: string[]
 }
 
 const DeviceSettingContainer: ParentComponent<{

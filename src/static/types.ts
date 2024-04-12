@@ -1,3 +1,4 @@
+import { UniqueArray } from './uniqueArray'
 import type {
     ENotificationType,
     ENotificationAction,
@@ -15,11 +16,22 @@ export interface CustomHTMLElement extends HTMLElement {
     port: Navigator
 }
 
+export interface INavigatorPort extends Navigator {
+    open: ({ baudRate }: { baudRate: number }) => Promise<void>
+    close: () => void
+}
+
+export interface INavigator extends Navigator {
+    serial: {
+        requestPort: () => INavigatorPort
+    }
+}
+
 //********************************* Device *************************************/
 
 export interface LEDDevice {
     ledType: string
-    ledCount: string
+    ledCount: number
     ledConnection: string
 }
 
@@ -29,12 +41,15 @@ export interface Device {
     type: DEVICE_TYPE
     status: DEVICE_STATUS
     serialNumber: string
-    lanCode: string
-    wifi: {
-        ssid: string
-        password: string
+    network: {
+        lanCode: string
+        mdns?: string
+        address: string
+        wifi: {
+            ssid: string
+            password: string
+        }
     }
-    address: string
     led: LEDDevice
     hasCamera: boolean
     ws?: object
@@ -56,7 +71,7 @@ export interface Inputs {
 //********************************* Stores *************************************/
 
 export interface AppStore extends AppSettings {
-    devices: Device[]
+    devices: UniqueArray<Device>
 }
 
 export interface AppStoreNotifications {
@@ -88,7 +103,7 @@ export interface AppStoreAPI {
 }
 
 export interface AppStoreDevice {
-    devices: Device[]
+    devices: UniqueArray<Device>
     selectedDevice?: Device
 }
 
@@ -112,7 +127,7 @@ export interface AppStoreNetwork {
  */
 export type PersistentSettings = {
     user?: string
-    devices: Device[]
+    devices: UniqueArray<Device>
 } & AppSettings &
     AppStoreNotifications
 

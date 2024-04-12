@@ -18,8 +18,10 @@ export interface IProps {
     manifest: string
     checkSameFirmware: (manifest: { name: string }, improvInfo: { firmware: string }) => void
     onClickOpenModal: (id: string) => void
-    onPointerDownHeader: (action: TITLEBAR_ACTION) => void
+    onClickHeader: (action: TITLEBAR_ACTION) => void
     onClickEnableAPMode: () => void
+    onClickESPButton: () => void
+    onClickUpdateNetworkSettings: () => void
     isUSBBoard: boolean
     isAPModeActive: boolean
 }
@@ -35,7 +37,7 @@ const AppSettingsPage: Component<IProps> = (props) => {
                                 <APMode
                                     isAPModeActive={props.isAPModeActive}
                                     onClickOpenModal={props.onClickOpenModal}
-                                    onPointerDownHeader={props.onPointerDownHeader}
+                                    onPointerDownHeader={props.onClickHeader}
                                     onClickEnableAPMode={props.onClickEnableAPMode}
                                     onClickConfigureAPMode={props.onClickConfigureAPMode}
                                 />
@@ -54,10 +56,10 @@ const AppSettingsPage: Component<IProps> = (props) => {
                                         img={<FaSolidDownload size={48} fill="#FFFFFFe3" />}
                                     />
                                     <EspWebButton
-                                        step="2/2"
                                         label="Flash mode"
                                         img={<FaSolidPlug size={48} fill="#FFFFFFe3" />}
                                         manifest={props.manifest}
+                                        onClickESPButton={props.onClickESPButton}
                                         checkSameFirmware={props.checkSameFirmware}
                                     />
                                     <FlashButton
