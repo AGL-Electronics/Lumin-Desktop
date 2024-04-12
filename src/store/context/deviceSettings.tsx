@@ -24,7 +24,6 @@ export interface DeviceSettingsStore {
         wifiPassword: string
         luminDeviceAddress: string
         luminDeviceMDNS: string
-        lanCode: string
     }
     ledControlSettings: {
         behavior: {
@@ -113,7 +112,6 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
             wifiPassword: '',
             luminDeviceAddress: '',
             luminDeviceMDNS: '',
-            lanCode: '',
         },
         ledControlSettings: {
             behavior: {

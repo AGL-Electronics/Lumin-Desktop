@@ -1,4 +1,4 @@
-import { For, Show, type Component } from 'solid-js'
+import { createEffect, For, Show, type Component } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -59,12 +59,21 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
     }
 
     const handleDefaultValue = (key: keyof DeviceSettingsStore['ledSettings']) => {
-        if (!getSelectedDevice()) {
-            console.debug('No device selected')
-            return ''
-        }
-        return settings.ledSettings[key] as string | number | (string | number)[] | undefined
+        return settings.ledSettings[key] as string
     }
+
+    createEffect(() => {
+        const selectedDevice = getSelectedDevice()
+        if (!selectedDevice) return
+
+        setSettingWithoutSubcategory('ledSettings', 'ledType', selectedDevice.led.ledType)
+        setSettingWithoutSubcategory('ledSettings', 'ledBarsConnected', selectedDevice.led.ledCount)
+        setSettingWithoutSubcategory(
+            'ledSettings',
+            'ledConnectionPoint',
+            selectedDevice.led.ledConnection,
+        )
+    })
 
     return (
         <DeviceSettingContainer label="LED Configuration" layout="col">
@@ -97,7 +106,7 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
                                             type="number"
                                             minLength={deviceSetting.minLen}
                                             maxLength={deviceSetting.maxLen}
-                                            onInput={(e) => {
+                                            onChange={(e) => {
                                                 setSettingWithoutSubcategory(
                                                     'ledSettings',
                                                     deviceSetting.key as keyof DeviceSettingsStore['ledSettings'],
@@ -105,7 +114,7 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
                                                 )
                                             }}
                                             value={
-                                                settings.generalSettings[
+                                                settings.ledSettings[
                                                     deviceSetting.key as keyof DeviceSettingsStore['ledSettings']
                                                 ] as string
                                             }
@@ -116,7 +125,7 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
                                         value={
                                             settings.ledSettings[
                                                 deviceSetting.key as keyof DeviceSettingsStore['ledSettings']
-                                            ]
+                                            ] as string
                                         }
                                         onChange={(value) =>
                                             setSettingWithoutSubcategory(

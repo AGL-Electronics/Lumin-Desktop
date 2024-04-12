@@ -32,34 +32,33 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
     const handleDeviceStatusRender = (): string => {
         // Get the selected device
         if (!getSelectedDevice()) return ''
-        return capitalizeFirstLetter(getSelectedDevice()!.status)
+        return capitalizeFirstLetter(getSelectedDevice()!.status.toLocaleLowerCase())
     }
 
-    const handleDeviceSelectedValues = (
-        key: keyof DeviceSettingsStore['networkSettings'],
-    ): string | undefined => {
-        // Get the selected device
+    /* const handleDefaultValue = (key: keyof DeviceSettingsStore['networkSettings']) => {
+        return settings.networkSettings[key] as string
+    } */
+
+    createEffect(() => {
         const selectedDevice = getSelectedDevice()
-        if (!selectedDevice || typeof selectedDevice.status !== 'string') {
-            return settings.networkSettings[
-                key as keyof DeviceSettingsStore['networkSettings']
-            ] as string
-        }
+        if (!selectedDevice) return
 
-        console.debug('Found Selected Device:', selectedDevice)
-
-        // use a switch statement to handle the different keys, and return the value of the key
-        switch (key) {
-            case 'luminDeviceAddress':
-                return selectedDevice.network.address
-            case 'wifiSSID':
-                return selectedDevice.network.wifi.ssid
-            case 'wifiPassword':
-                return selectedDevice.network.wifi.password
-            default:
-                return ''
-        }
-    }
+        setSettingWithoutSubcategory(
+            'networkSettings',
+            'wifiSSID',
+            selectedDevice.network.wifi.ssid,
+        )
+        setSettingWithoutSubcategory(
+            'networkSettings',
+            'wifiPassword',
+            selectedDevice.network.wifi.password,
+        )
+        setSettingWithoutSubcategory(
+            'networkSettings',
+            'luminDeviceAddress',
+            selectedDevice.network.address,
+        )
+    })
 
     return (
         <DeviceSettingContainer label="Lumin Network Setup" layout="col">
@@ -116,9 +115,11 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                                     maxLength={deviceSetting.maxLen}
                                     required={deviceSetting.required}
                                     type={deviceSetting.inputType}
-                                    value={handleDeviceSelectedValues(
-                                        deviceSetting.key as keyof DeviceSettingsStore['networkSettings'],
-                                    )}
+                                    value={
+                                        settings.networkSettings[
+                                            deviceSetting.key as keyof DeviceSettingsStore['networkSettings']
+                                        ] as string
+                                    }
                                     onChange={(e) => {
                                         setSettingWithoutSubcategory(
                                             'networkSettings',

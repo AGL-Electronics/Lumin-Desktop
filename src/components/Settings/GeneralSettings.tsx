@@ -1,4 +1,4 @@
-import { For, Switch, Match, type Component } from 'solid-js'
+import { For, Switch, Match, type Component, createEffect } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
@@ -30,30 +30,18 @@ const GeneralSettings: Component<GeneralSettingsProps> = () => {
         return settings.generalSettings[key] as string
     }
 
-    const handleDeviceSelectedValues = (key: keyof DeviceSettingsStore['generalSettings']) => {
-        // Get the selected device
+    createEffect(() => {
         const selectedDevice = getSelectedDevice()
-        if (!selectedDevice || typeof selectedDevice.status !== 'string') {
-            return settings.generalSettings[
-                key as keyof DeviceSettingsStore['generalSettings']
-            ] as string
-        }
+        if (!selectedDevice) return
 
-        console.debug('Found Selected Device:', selectedDevice)
-
-        switch (key) {
-            case 'deviceLabel':
-                return selectedDevice.name
-            case 'deviceType':
-                return selectedDevice.type
-            case 'printerSerialNumber':
-                return selectedDevice.serialNumber
-            case 'lanCode':
-                return selectedDevice.network.lanCode
-            default:
-                return ''
-        }
-    }
+        setSettingWithoutSubcategory('generalSettings', 'deviceLabel', selectedDevice.name)
+        setSettingWithoutSubcategory(
+            'generalSettings',
+            'printerSerialNumber',
+            selectedDevice.serialNumber,
+        )
+        setSettingWithoutSubcategory('generalSettings', 'lanCode', selectedDevice.network.lanCode)
+    })
 
     return (
         <DeviceSettingContainer label="General Setup" layout="col">
@@ -79,10 +67,12 @@ const GeneralSettings: Component<GeneralSettingsProps> = () => {
                                     maxLength={deviceSetting.maxLen}
                                     required={deviceSetting.required}
                                     type={deviceSetting.inputType}
-                                    value={handleDeviceSelectedValues(
-                                        deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
-                                    )}
-                                    onInput={(e) =>
+                                    value={
+                                        settings.generalSettings[
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings']
+                                        ] as string
+                                    }
+                                    onChange={(e) =>
                                         setSettingWithoutSubcategory(
                                             'generalSettings',
                                             deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
@@ -93,9 +83,11 @@ const GeneralSettings: Component<GeneralSettingsProps> = () => {
                             </Match>
                             <Match when={deviceSetting.type === 'select'}>
                                 <Select
-                                    value={handleDeviceSelectedValues(
-                                        deviceSetting.key as keyof DeviceSettingsStore['generalSettings'],
-                                    )}
+                                    value={
+                                        settings.generalSettings[
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings']
+                                        ] as string
+                                    }
                                     onChange={(value) =>
                                         setSettingWithoutSubcategory(
                                             'generalSettings',

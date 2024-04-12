@@ -1,8 +1,10 @@
-import { Component, createEffect, createSignal } from 'solid-js'
+import { Component, createEffect, createSignal, Show } from 'solid-js'
+import WifiSignal from '@components/Device/WIFIStrength'
 import WebSocketHandler from '@components/WebSocketHandler'
 import { Flex } from '@components/ui/flex'
 import { Label } from '@components/ui/label'
 import { ActiveStatus, DEFAULT_COLOR, capitalizeFirstLetter } from '@src/lib/utils'
+import { DEVICE_TYPE } from '@src/static/enums'
 import { Device } from '@static/types'
 
 interface ListProps extends Device {
@@ -38,16 +40,6 @@ const List: Component<ListProps> = (props) => {
                 </Label>
             </div>
             <div class="text-[#FFFF] max-sm:justify-end flex justify-start content-center items-center">
-                <Label class="text-ellipsis overflow-hidden whitespace-nowrap text-base">
-                    {props.address}
-                </Label>
-            </div>
-            <div class="text-[#FFFF] max-sm:hidden flex max-md:justify-end justify-start content-center items-center">
-                <Label class="text-ellipsis overflow-hidden whitespace-nowrap text-base">
-                    {capitalizeFirstLetter(props.type.toLocaleLowerCase())}
-                </Label>
-            </div>
-            <div class="max-md:hidden text-left flex justify-end content-center items-center ">
                 <div
                     style={{ 'background-color': status() }}
                     class="ml-[6px] h-[10px] rounded-full mr-[10px] w-[10px]"
@@ -56,6 +48,32 @@ const List: Component<ListProps> = (props) => {
                     {capitalizeFirstLetter(props.status.toLocaleLowerCase())}
                 </Label>
             </div>
+            <Show when={props.type === DEVICE_TYPE.WIRELESS}>
+                <Flex
+                    justifyContent="start"
+                    flexDirection="row"
+                    alignItems="center"
+                    class="text-[#FFFF] max-sm:hidden max-md:justify-end content-center">
+                    <div class="overflow-hidden pl-2">
+                        <Label size="lg" class="text-white text-ellipsis overflow-hidden">
+                            <WifiSignal rssi={-25} />
+                        </Label>
+                    </div>
+                </Flex>
+            </Show>
+            <div class="text-[#FFFF] max-sm:hidden flex max-md:justify-end justify-start content-center items-center">
+                <Label class="text-ellipsis overflow-hidden whitespace-nowrap text-base">
+                    {capitalizeFirstLetter(props.type.toLocaleLowerCase())}
+                </Label>
+            </div>
+            <Flex
+                justifyContent="end"
+                alignItems="center"
+                class="max-md:hidden text-left content-center">
+                <Label class="text-ellipsis overflow-hidden whitespace-nowrap text-base">
+                    {props.network.address}
+                </Label>
+            </Flex>
         </div>
     )
 }

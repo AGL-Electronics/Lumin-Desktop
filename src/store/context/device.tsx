@@ -42,29 +42,28 @@ export const AppDeviceProvider: ParentComponent = (props) => {
 
     const [state, setState] = createStore<AppStoreDevice>(defaultState)
 
-    /* const setDevice = (device: Device) => {
-        setState(
-            produce((s) => {
-                const index = s.devices.findIndex((c: { id: string }) => c.id === device.id)
-                if (index !== -1) {
-                    s.devices[index] = device
-                } else {
-                    s.devices.push(device)
-                }
-            }),
-        )
-    } */
-
     const setDevice = (device: Device, event: DEVICE_MODIFY_EVENT) => {
         setState(
             produce((s) => {
                 switch (event) {
                     case DEVICE_MODIFY_EVENT.PUSH:
                         return s.devices.add(device)
-                    case DEVICE_MODIFY_EVENT.UPDATE:
-                        return s.devices.map((dvc) => (dvc.id === device.id ? device : dvc))
-                    case DEVICE_MODIFY_EVENT.DELETE:
-                        return s.devices.filter((dvc) => dvc.id !== device.id)
+                    case DEVICE_MODIFY_EVENT.UPDATE: {
+                        const newItems = s.devices.map((dvc) => {
+                            if (dvc.id === device.id) {
+                                return device
+                            }
+                            return dvc
+                        })
+
+                        s.devices = UniqueArray.from(newItems)
+                        return s
+                    }
+                    case DEVICE_MODIFY_EVENT.DELETE: {
+                        const newItems = s.devices.filter((dvc) => dvc.id !== device.id)
+                        s.devices = UniqueArray.from(newItems)
+                        return s
+                    }
                     default:
                         return s
                 }

@@ -39,19 +39,21 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
 
         try {
             //await wiredFormHandler.validateForm()
+            let device: Device
+
             if (!props.createNewDevice) {
                 console.debug('Updating device')
                 const selectedDevice = getSelectedDevice()
                 if (!selectedDevice) return
 
                 // generate a new device object with the updated values from the form
-                const device: Device = {
+                device = {
                     ...selectedDevice,
                     name: settings.generalSettings.deviceLabel,
                     type: settings.generalSettings.deviceType,
                     serialNumber: settings.generalSettings.printerSerialNumber,
                     network: {
-                        lanCode: settings.networkSettings.lanCode,
+                        lanCode: settings.generalSettings.lanCode,
                         // TODO: Add mDNS scanning support
                         address:
                             settings.networkSettings.luminDeviceAddress === 'auto'
@@ -70,39 +72,36 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                 }
 
                 setDevice(device, DEVICE_MODIFY_EVENT.UPDATE)
-
-                return
-            }
-
-            const device: Device = {
-                id: uuidv4(),
-                name: settings.generalSettings.deviceLabel,
-                type: settings.generalSettings.deviceType,
-                status: DEVICE_STATUS.LOADING,
-                serialNumber: settings.generalSettings.printerSerialNumber,
-                network: {
-                    lanCode: settings.networkSettings.lanCode,
-                    address:
-                        settings.networkSettings.luminDeviceAddress === 'auto'
-                            ? ''
-                            : settings.networkSettings.luminDeviceAddress,
-                    wifi: {
-                        ssid: settings.networkSettings.wifiSSID,
-                        password: settings.networkSettings.wifiPassword,
+            } else {
+                device = {
+                    id: uuidv4(),
+                    name: settings.generalSettings.deviceLabel,
+                    type: settings.generalSettings.deviceType,
+                    status: DEVICE_STATUS.LOADING,
+                    serialNumber: settings.generalSettings.printerSerialNumber,
+                    network: {
+                        lanCode: settings.generalSettings.lanCode,
+                        address:
+                            settings.networkSettings.luminDeviceAddress === 'auto'
+                                ? ''
+                                : settings.networkSettings.luminDeviceAddress,
+                        wifi: {
+                            ssid: settings.networkSettings.wifiSSID,
+                            password: settings.networkSettings.wifiPassword,
+                        },
                     },
-                },
-                led: {
-                    ledCount: settings.ledSettings.ledBarsConnected,
-                    ledType: settings.ledSettings.ledType,
-                    ledConnection: settings.ledSettings.ledConnectionPoint,
-                },
-                // TODO: Add camera support
-                hasCamera: false,
+                    led: {
+                        ledCount: settings.ledSettings.ledBarsConnected,
+                        ledType: settings.ledSettings.ledType,
+                        ledConnection: settings.ledSettings.ledConnectionPoint,
+                    },
+                    // TODO: Add camera support
+                    hasCamera: false,
+                }
+                setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
             }
 
             console.debug('Device:', device)
-
-            setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
 
             let notification: Notifications
 
@@ -152,6 +151,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         e.preventDefault()
         const selectedDevice = getSelectedDevice()
         if (!selectedDevice) return
+        console.debug('Delete', selectedDevice.id, selectedDevice.name)
         setDevice(selectedDevice, DEVICE_MODIFY_EVENT.DELETE)
 
         navigate('/')
@@ -161,8 +161,6 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
             message: `${selectedDevice.name} has been deleted.`,
             type: ENotificationType.SUCCESS,
         })
-
-        console.debug('Delete', selectedDevice.id, selectedDevice.name)
     }
 
     const submitLabel = createMemo(() => {
