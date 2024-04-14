@@ -154,7 +154,7 @@ export interface Inputs {
 //********************************* Stores *************************************/
 
 export interface AppStore extends AppSettings {
-    devices: UniqueArray<Device>
+    devices: Device[]
 }
 
 export interface AppStoreNotifications {
@@ -204,7 +204,7 @@ export interface AppStoreNetwork {
  */
 export type PersistentSettings = {
     user?: string
-    devices: UniqueArray<Device>
+    devices: Device[]
 } & AppSettings &
     AppStoreNotifications
 

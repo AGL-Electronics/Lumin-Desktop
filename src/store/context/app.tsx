@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash'
 import {
     createContext,
     useContext,
@@ -11,8 +12,7 @@ import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
 import { debug } from 'tauri-plugin-log-api'
 import type { AppStore, Device, PersistentSettings } from '@static/types'
-import { UniqueArray } from '@src/static/uniqueArray'
-import { DebugMode, ENotificationAction } from '@static/enums'
+import { DebugMode, ENotificationAction, ENotificationType } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 import { AppUIProvider } from '@store/context/ui'
 import { usePersistentStore } from '@store/tauriStore'
@@ -22,7 +22,7 @@ interface AppContext {
     setDebugMode: (mode: DebugMode | undefined) => void
     setEnableMDNS: (enable: boolean) => void
     setScanForDeviceOnStartup: (enable: boolean) => void
-    setDevices: (devices: UniqueArray<Device>) => void
+    setDevices: (devices: Device[]) => void
 }
 
 const AppContext = createContext<AppContext>()
@@ -32,7 +32,7 @@ export const AppProvider: ParentComponent = (props) => {
         debugMode: DebugMode.OFF,
         enableMDNS: false,
         scanForDevicesOnStartup: false,
-        devices: UniqueArray.from([]),
+        devices: [],
     }
 
     const [state, setState] = createStore<AppStore>(defaultState)
@@ -45,7 +45,7 @@ export const AppProvider: ParentComponent = (props) => {
         )
     }
 
-    const setDevices = (devices: UniqueArray<Device>) => {
+    const setDevices = (devices: Device[]) => {
         setState(
             produce((s) => {
                 s.devices = devices
@@ -93,10 +93,10 @@ export const AppProvider: ParentComponent = (props) => {
                 debug('No settings file found')
                 return
             }
-            debug('loading settings')
-            const activeUserName = typeof settings.user === 'string' ? settings.user : 'stranger'
 
-            //setConnectedUser(activeUserName)
+            console.debug('Loading Settings Config File from Disk:', settings)
+            debug(`Loading Settings Config File from Disk: ${JSON.stringify(settings)}`)
+
             setEnableNotifications(settings.enableNotifications)
             setEnableNotificationsSounds(settings.enableNotificationsSounds)
             setGlobalNotificationsType(settings.globalNotificationsType ?? ENotificationAction.APP)
@@ -104,13 +104,22 @@ export const AppProvider: ParentComponent = (props) => {
             setEnableMDNS(settings.enableMDNS)
             setDebugMode(settings.debugMode)
             setScanForDeviceOnStartup(settings.scanForDevicesOnStartup)
+            if (settings.devices.length === 0) {
+                debug('No devices found in settings file')
+
+                addNotification({
+                    title: 'No Devices Found',
+                    message: 'No devices were found in the settings file',
+                    type: ENotificationType.INFO,
+                })
+            }
+            setDevices(settings.devices)
         })
         checkPermission()
     })
 
     const createSettingsObject = () => {
         const settings: PersistentSettings = {
-            //user: connectedUserName(),
             enableNotifications: getEnableNotifications(),
             enableNotificationsSounds: getEnableNotificationsSounds(),
             globalNotificationsType: getGlobalNotificationsType(),
@@ -124,12 +133,16 @@ export const AppProvider: ParentComponent = (props) => {
 
     const handleSaveSettings = async () => {
         // check if the settings have changed and save to the store if they have
-        get('settings').then((storedSettings) => {
-            /* if (!isEqual(storedSettings, createSettingsObject())) {
-                debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
-                set('settings', createSettingsObject())
-            } */
-        })
+        const storedSettings = await get('settings')
+        if (!isEqual(storedSettings, createSettingsObject())) {
+            debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
+            addNotification({
+                title: 'Settings Saved',
+                message: 'Settings have been saved successfully',
+                type: ENotificationType.INFO,
+            })
+            await set('settings', createSettingsObject())
+        }
     }
 
     createEffect(() => {
@@ -141,7 +154,7 @@ export const AppProvider: ParentComponent = (props) => {
         useEventListener(window, 'blur', () => {
             pause()
             debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
-            set('settings', createSettingsObject())
+            handleSaveSettings()
             resume()
         })
     })

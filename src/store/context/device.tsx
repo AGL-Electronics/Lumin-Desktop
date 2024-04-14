@@ -9,8 +9,6 @@ import {
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import { debug } from 'tauri-plugin-log-api'
-// eslint-disable-next-line import/named
-import { usePersistentStore } from '../tauriStore'
 import { useAppContext } from './app'
 import type { Device, AppStoreDevice } from '@static/types'
 import { UniqueArray } from '@src/static/uniqueArray'
@@ -33,7 +31,7 @@ interface AppDeviceContext {
 
 const AppDeviceContext = createContext<AppDeviceContext>()
 export const AppDeviceProvider: ParentComponent = (props) => {
-    const { setDevices } = useAppContext()
+    const { setDevices, appState } = useAppContext()
 
     const defaultState: AppStoreDevice = {
         devices: UniqueArray.from([]),
@@ -141,7 +139,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice?.type)
     const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice?.ws)
 
-    const { get } = usePersistentStore()
+    /*  const { get } = usePersistentStore()
 
     onMount(() => {
         get('settings').then((settings) => {
@@ -150,27 +148,30 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 return
             }
 
-            console.debug(`Loading Settings Config File from Disk: ${settings}`)
-            debug(`Loading Settings Config File from Disk: ${settings}`)
 
-            if (settings.devices.size === 0) {
-                console.debug('No devices found in settings file')
-                return
-            }
-
-            settings.devices.forEach((device: Device) => {
+            settings.devices.allItems.forEach((device: Device) => {
                 setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
             })
         })
 
-        /* doGHRequest()
+        doGHRequest()
         useMDNSScanner('_lumin._tcp', 5).then(() => {
             // TODO: handle devices found
-        }) */
-    })
+        })
+    }) */
 
     createEffect(() => {
-        setDevices(getDevices())
+        // load the devices from the app context and assign to the global state
+        appState().devices.forEach((device: Device) => {
+            setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
+        })
+
+        if (getDevices().size === 0) {
+            debug('No devices found in settings file')
+            return
+        }
+
+        setDevices(getDevices().allItems)
     })
 
     return (
