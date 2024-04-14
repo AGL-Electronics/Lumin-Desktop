@@ -37,6 +37,10 @@ export class UniqueArray<T> {
         return this.items.delete(item)
     }
 
+    find = (callback: (item: T, index: number, array: T[]) => boolean): T | undefined => {
+        return Array.from(this.items).find(callback)
+    }
+
     // Method to map over the items, converting the Set to an array temporarily
     map<U>(callback: (item: T, index: number, array: T[]) => U): U[] {
         return Array.from(this.items).map(callback)

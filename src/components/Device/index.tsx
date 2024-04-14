@@ -1,5 +1,5 @@
 import { createEffect, createSignal, type Component, Show } from 'solid-js'
-import WifiSignal from './WIFIStrength'
+import WifiSignal from './WifiStrength'
 import WebSocketHandler from '@components/WebSocketHandler'
 import { Flex } from '@components/ui/flex'
 import { Label } from '@components/ui/label'
@@ -78,7 +78,7 @@ const DeviceComponent: Component<DeviceComponentProps> = (props) => {
                             <Label class="text-[#A9B6BF] pr-2">Network</Label>
                             <div class="overflow-hidden pl-2">
                                 <Label size="lg" class="text-white text-ellipsis overflow-hidden">
-                                    <WifiSignal rssi={-25} />
+                                    <WifiSignal {...props} />
                                 </Label>
                             </div>
                         </Flex>

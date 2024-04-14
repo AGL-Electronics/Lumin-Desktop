@@ -1,12 +1,19 @@
 import { useNavigate } from '@solidjs/router'
-import { createMemo, type Component } from 'solid-js'
+import { createMemo, Show, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
 import { DeviceSettingsContentProps } from './DeviceSettingUtil'
 import GeneralSettings from './GeneralSettings'
+import LEDControl from './LEDControl'
 import LEDSettings from './LEDSettings'
 import NetworkSettings from './NetworkSettings'
 import FormActions from '@components/Modal/FormActions'
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@components/ui/accordion'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
@@ -18,21 +25,15 @@ import { Device, Notifications } from '@static/types'
 import { useAppDeviceContext } from '@store/context/device'
 import { wiredFormHandler, useDeviceSettingsContext } from '@store/context/deviceSettings'
 
-const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
+interface DeviceSettingsMainProps extends DeviceSettingsContentProps {
+    handleBackButton: (e: PointerEvent) => void
+}
+
+const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
     const { setDevice, getSelectedDevice } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
-    const { settings } = useDeviceSettingsContext()
+    const { settings, clearStore } = useDeviceSettingsContext()
     const navigate = useNavigate()
-
-    const reset = () => {
-        wiredFormHandler.resetForm()
-    }
-
-    const handleBackButton = (e: PointerEvent) => {
-        e.preventDefault()
-        reset()
-        navigate('/')
-    }
 
     const handleSubmit = async (e: Event) => {
         e.preventDefault()
@@ -42,16 +43,15 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
             let device: Device
 
             if (!props.createNewDevice) {
-                console.debug('Updating device')
                 const selectedDevice = getSelectedDevice()
                 if (!selectedDevice) return
 
-                // generate a new device object with the updated values from the form
                 device = {
                     ...selectedDevice,
                     name: settings.generalSettings.deviceLabel,
                     type: settings.generalSettings.deviceType,
                     serialNumber: settings.generalSettings.printerSerialNumber,
+                    lastUpdate: Date.now(),
                     network: {
                         lanCode: settings.generalSettings.lanCode,
                         // TODO: Add mDNS scanning support
@@ -62,19 +62,107 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                         wifi: {
                             ssid: settings.networkSettings.wifiSSID,
                             password: settings.networkSettings.wifiPassword,
+                            apModeStatus: false,
                         },
                     },
                     led: {
-                        ledCount: settings.ledSettings.ledBarsConnected,
-                        ledType: settings.ledSettings.ledType,
-                        ledConnection: settings.ledSettings.ledConnectionPoint,
+                        settings: {
+                            ledBarsConnected: settings.ledSettings.ledBarsConnected,
+                            ledType: settings.ledSettings.ledType,
+                            ledConnectionPoint: settings.ledSettings.ledConnectionPoint,
+                        },
+                        ledControlSettings: {
+                            behavior: {
+                                maintenanceModeToggle:
+                                    settings.ledControlSettings.behavior.maintenanceModeToggle,
+                                replicateLedStateToggle:
+                                    settings.ledControlSettings.behavior.replicateLedStateToggle,
+                                rgbCycleToggle: settings.ledControlSettings.behavior.rgbCycleToggle,
+                                showWifiStrengthToggle:
+                                    settings.ledControlSettings.behavior.showWifiStrengthToggle,
+                                testLedsToggle: settings.ledControlSettings.behavior.testLedsToggle,
+                                disableLEDSToggle:
+                                    settings.ledControlSettings.behavior.disableLEDSToggle,
+                            },
+                            options: {
+                                finishIndicationToggle:
+                                    settings.ledControlSettings.options.finishIndicationToggle,
+                                finishIndicationColor:
+                                    settings.ledControlSettings.options.finishIndicationColor,
+                                exitFinishAfterToggle:
+                                    settings.ledControlSettings.options.exitFinishAfterToggle,
+                                exitFinishAfterTime:
+                                    settings.ledControlSettings.options.exitFinishAfterTime,
+                                inactivityTimeout:
+                                    settings.ledControlSettings.options.inactivityTimeout,
+                                debuggingToggle:
+                                    settings.ledControlSettings.options.debuggingToggle,
+                                debuggingOnchangeEventsToggle:
+                                    settings.ledControlSettings.options
+                                        .debuggingOnchangeEventsToggle,
+                                mqttLoggingToggle:
+                                    settings.ledControlSettings.options.mqttLoggingToggle,
+                                inactivityTimeoutToggle:
+                                    settings.ledControlSettings.options.inactivityTimeoutToggle,
+                            },
+                            printer: {
+                                p1PrinterToggle:
+                                    settings.ledControlSettings.printer.p1PrinterToggle,
+                                doorSwitchToggle:
+                                    settings.ledControlSettings.printer.doorSwitchToggle,
+                                lidarStageCleaningNozzleColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageCleaningNozzleColor,
+                                lidarStageBedLevelingColor:
+                                    settings.ledControlSettings.printer.lidarStageBedLevelingColor,
+                                lidarStageCalibratingExtrusionColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageCalibratingExtrusionColor,
+                                lidarStageScanningBedSurfaceColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageScanningBedSurfaceColor,
+                                lidarStageFirstLayerInspectionColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageFirstLayerInspectionColor,
+                            },
+                            customizeColors: {
+                                errorDetectionToggle:
+                                    settings.ledControlSettings.customizeColors
+                                        .errorDetectionToggle,
+                                wifiSetupColor:
+                                    settings.ledControlSettings.customizeColors.wifiSetupColor,
+                                pauseColor: settings.ledControlSettings.customizeColors.pauseColor,
+                                firstLayerErrorColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .firstLayerErrorColor,
+                                nozzleCloggedColor:
+                                    settings.ledControlSettings.customizeColors.nozzleCloggedColor,
+                                hmsSeveritySeriousColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .hmsSeveritySeriousColor,
+                                hmsSeverityFatalColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .hmsSeverityFatalColor,
+                                filamentRunoutColor:
+                                    settings.ledControlSettings.customizeColors.filamentRunoutColor,
+                                frontCoverRemovedColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .frontCoverRemovedColor,
+                                nozzleTempFailColor:
+                                    settings.ledControlSettings.customizeColors.nozzleTempFailColor,
+                                bedTempFailColor:
+                                    settings.ledControlSettings.customizeColors.bedTempFailColor,
+                            },
+                        },
                     },
                 }
 
                 setDevice(device, DEVICE_MODIFY_EVENT.UPDATE)
+                console.debug('Updating device')
             } else {
                 device = {
                     id: uuidv4(),
+                    lastUpdate: Date.now(),
                     name: settings.generalSettings.deviceLabel,
                     type: settings.generalSettings.deviceType,
                     status: DEVICE_STATUS.LOADING,
@@ -88,20 +176,104 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                         wifi: {
                             ssid: settings.networkSettings.wifiSSID,
                             password: settings.networkSettings.wifiPassword,
+                            apModeStatus: false,
                         },
                     },
                     led: {
-                        ledCount: settings.ledSettings.ledBarsConnected,
-                        ledType: settings.ledSettings.ledType,
-                        ledConnection: settings.ledSettings.ledConnectionPoint,
+                        settings: {
+                            ledBarsConnected: settings.ledSettings.ledBarsConnected,
+                            ledType: settings.ledSettings.ledType,
+                            ledConnectionPoint: settings.ledSettings.ledConnectionPoint,
+                        },
+                        ledControlSettings: {
+                            behavior: {
+                                maintenanceModeToggle:
+                                    settings.ledControlSettings.behavior.maintenanceModeToggle,
+                                replicateLedStateToggle:
+                                    settings.ledControlSettings.behavior.replicateLedStateToggle,
+                                rgbCycleToggle: settings.ledControlSettings.behavior.rgbCycleToggle,
+                                showWifiStrengthToggle:
+                                    settings.ledControlSettings.behavior.showWifiStrengthToggle,
+                                testLedsToggle: settings.ledControlSettings.behavior.testLedsToggle,
+                                disableLEDSToggle:
+                                    settings.ledControlSettings.behavior.disableLEDSToggle,
+                            },
+                            options: {
+                                finishIndicationToggle:
+                                    settings.ledControlSettings.options.finishIndicationToggle,
+                                finishIndicationColor:
+                                    settings.ledControlSettings.options.finishIndicationColor,
+                                exitFinishAfterToggle:
+                                    settings.ledControlSettings.options.exitFinishAfterToggle,
+                                exitFinishAfterTime:
+                                    settings.ledControlSettings.options.exitFinishAfterTime,
+                                inactivityTimeout:
+                                    settings.ledControlSettings.options.inactivityTimeout,
+                                debuggingToggle:
+                                    settings.ledControlSettings.options.debuggingToggle,
+                                debuggingOnchangeEventsToggle:
+                                    settings.ledControlSettings.options
+                                        .debuggingOnchangeEventsToggle,
+                                mqttLoggingToggle:
+                                    settings.ledControlSettings.options.mqttLoggingToggle,
+                                inactivityTimeoutToggle:
+                                    settings.ledControlSettings.options.inactivityTimeoutToggle,
+                            },
+                            printer: {
+                                p1PrinterToggle:
+                                    settings.ledControlSettings.printer.p1PrinterToggle,
+                                doorSwitchToggle:
+                                    settings.ledControlSettings.printer.doorSwitchToggle,
+                                lidarStageCleaningNozzleColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageCleaningNozzleColor,
+                                lidarStageBedLevelingColor:
+                                    settings.ledControlSettings.printer.lidarStageBedLevelingColor,
+                                lidarStageCalibratingExtrusionColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageCalibratingExtrusionColor,
+                                lidarStageScanningBedSurfaceColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageScanningBedSurfaceColor,
+                                lidarStageFirstLayerInspectionColor:
+                                    settings.ledControlSettings.printer
+                                        .lidarStageFirstLayerInspectionColor,
+                            },
+                            customizeColors: {
+                                errorDetectionToggle:
+                                    settings.ledControlSettings.customizeColors
+                                        .errorDetectionToggle,
+                                wifiSetupColor:
+                                    settings.ledControlSettings.customizeColors.wifiSetupColor,
+                                pauseColor: settings.ledControlSettings.customizeColors.pauseColor,
+                                firstLayerErrorColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .firstLayerErrorColor,
+                                nozzleCloggedColor:
+                                    settings.ledControlSettings.customizeColors.nozzleCloggedColor,
+                                hmsSeveritySeriousColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .hmsSeveritySeriousColor,
+                                hmsSeverityFatalColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .hmsSeverityFatalColor,
+                                filamentRunoutColor:
+                                    settings.ledControlSettings.customizeColors.filamentRunoutColor,
+                                frontCoverRemovedColor:
+                                    settings.ledControlSettings.customizeColors
+                                        .frontCoverRemovedColor,
+                                nozzleTempFailColor:
+                                    settings.ledControlSettings.customizeColors.nozzleTempFailColor,
+                                bedTempFailColor:
+                                    settings.ledControlSettings.customizeColors.bedTempFailColor,
+                            },
+                        },
                     },
                     // TODO: Add camera support
                     hasCamera: false,
                 }
                 setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
             }
-
-            console.debug('Device:', device)
 
             let notification: Notifications
 
@@ -122,8 +294,7 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
             addNotification(notification)
 
             wiredFormHandler.resetForm()
-
-            console.debug('Submit', device)
+            clearStore()
 
             if (settings.generalSettings.flashFirmware) navigate('/flashFirmware')
             else navigate('/')
@@ -173,6 +344,64 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
         return 'Update Device'
     })
 
+    const defaultAccordionValue = createMemo(() => {
+        if (props.createNewDevice) return ['item-1']
+        return ['']
+    })
+
+    return (
+        <Accordion
+            multiple={false}
+            defaultValue={defaultAccordionValue()}
+            collapsible
+            class="w-full">
+            <AccordionItem value="item-1" class="p-2 pr-6">
+                <AccordionTrigger fill="#fff" stroke="#fff">
+                    <CardHeader>
+                        <CardTitle>
+                            <Label class="text-white" size="xl" weight="extraBold">
+                                Device Settings
+                            </Label>
+                        </CardTitle>
+                    </CardHeader>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <div class="flex flex-col w-full pb-4 pr-2 overflow-y-scroll">
+                        <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
+                            <div class="w-full">
+                                <GeneralSettings createNewDevice={props.createNewDevice} />
+                                <NetworkSettings createNewDevice={props.createNewDevice} />
+                                <LEDSettings createNewDevice={props.createNewDevice} />
+                            </div>
+                        </div>
+                        <FormActions
+                            submitLabel={submitLabel()}
+                            cancelLabel="Cancel"
+                            onSubmit={handleSubmit}
+                            onCancel={props.handleBackButton}
+                            onDelete={props.createNewDevice ? undefined : handleDelete}
+                        />
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    )
+}
+
+const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => {
+    const { getSelectedDevice } = useAppDeviceContext()
+    const navigate = useNavigate()
+
+    const reset = () => {
+        wiredFormHandler.resetForm()
+    }
+
+    const handleBackButton = (e: PointerEvent) => {
+        e.preventDefault()
+        reset()
+        navigate('/')
+    }
+
     return (
         <Card class="h-full w-full overflow-y-scroll">
             <Flex
@@ -195,34 +424,18 @@ const DeviceSettingsContent: Component<DeviceSettingsContentProps> = (props) => 
                     <Flex flexDirection="col" justifyContent="between" alignItems="center">
                         <CardTitle>
                             <Label class="text-white" size="3xl" weight="extraBold">
-                                Device Settings
+                                {props.createNewDevice
+                                    ? 'Add a Lumin Device'
+                                    : getSelectedDevice()?.name}
                             </Label>
                         </CardTitle>
                     </Flex>
                 </CardHeader>
                 <CardContent class="w-full overflow-y-scroll">
-                    {/* <Show when={!props.createNewDevice}>
-                        // TODO: LEDController settings, conditionally render
-                    </Show> */}
-                    <form
-                        autocomplete="off"
-                        class="flex flex-col w-full pb-4 pr-2 overflow-y-scroll"
-                        onSubmit={handleSubmit}>
-                        <div class="flex justify-center flex-col items-center lg:items-start lg:flex-row gap-5">
-                            <div class="w-full">
-                                <GeneralSettings createNewDevice={props.createNewDevice} />
-                                <NetworkSettings createNewDevice={props.createNewDevice} />
-                                <LEDSettings createNewDevice={props.createNewDevice} />
-                            </div>
-                        </div>
-                        <FormActions
-                            submitLabel={submitLabel()}
-                            cancelLabel="Cancel"
-                            onSubmit={handleSubmit}
-                            onCancel={handleBackButton}
-                            onDelete={props.createNewDevice ? undefined : handleDelete}
-                        />
-                    </form>
+                    <Show when={!props.createNewDevice}>
+                        <LEDControl createNewDevice={props.createNewDevice} />
+                    </Show>
+                    <DeviceSettingsMain {...props} handleBackButton={handleBackButton} />
                 </CardContent>
             </Flex>
         </Card>

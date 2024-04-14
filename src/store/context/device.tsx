@@ -24,10 +24,10 @@ interface AppDeviceContext {
     getSelectedDeviceType: Accessor<DEVICE_TYPE | undefined>
     getSelectedDeviceSocket: Accessor<object | undefined>
     setDevice: (device: Device, event: DEVICE_MODIFY_EVENT) => void
-    setDeviceMDNS: (device: Device, address: string) => void
-    setDeviceStatus: (Device: Device, status: DEVICE_STATUS) => void
-    setDeviceWS: (Device: Device, ws: object) => void
-    setSelectedDevice: (Device: Device) => void
+    setDeviceMDNS: (deviceID: string, address: string) => void
+    setDeviceStatus: (deviceID: string, status: DEVICE_STATUS) => void
+    setDeviceWS: (deviceID: string, ws: object) => void
+    setSelectedDevice: (device: Device) => void
     resetSelectedDevice: () => void
 }
 
@@ -71,35 +71,47 @@ export const AppDeviceProvider: ParentComponent = (props) => {
         )
     }
 
-    const setDeviceMDNS = (device: Device, mdns: string) => {
+    const setDeviceMDNS = (deviceID: string, mdns: string) => {
         setState(
             produce((s) => {
-                s.devices = UniqueArray.from(
-                    s.devices.filter((c: { id: string }) => c.id !== device.id),
-                )
-                s.devices.add({ ...device, network: { ...device.network, mdns } })
+                const newItems = s.devices.map((dvc) => {
+                    if (dvc.id === deviceID) {
+                        return { ...dvc, network: { ...dvc.network, mdns } }
+                    }
+                    return dvc
+                })
+
+                s.devices = UniqueArray.from(newItems)
             }),
         )
     }
 
-    const setDeviceStatus = (device: Device, status: DEVICE_STATUS) => {
+    const setDeviceStatus = (deviceID: string, status: DEVICE_STATUS) => {
         setState(
             produce((s) => {
-                s.devices = UniqueArray.from(
-                    s.devices.filter((c: { id: string }) => c.id !== device.id),
-                )
-                s.devices.add({ ...device, status })
+                const newItems = s.devices.map((dvc) => {
+                    if (dvc.id === deviceID) {
+                        return { ...dvc, status }
+                    }
+                    return dvc
+                })
+
+                s.devices = UniqueArray.from(newItems)
             }),
         )
     }
 
-    const setDeviceWS = (device: Device, ws: object) => {
+    const setDeviceWS = (deviceID: string, ws: object) => {
         setState(
             produce((s) => {
-                s.devices = UniqueArray.from(
-                    s.devices.filter((c: { id: string }) => c.id !== device.id),
-                )
-                s.devices.add({ ...device, ws })
+                const newItems = s.devices.map((dvc) => {
+                    if (dvc.id === deviceID) {
+                        return { ...dvc, ws }
+                    }
+                    return dvc
+                })
+
+                s.devices = UniqueArray.from(newItems)
             }),
         )
     }

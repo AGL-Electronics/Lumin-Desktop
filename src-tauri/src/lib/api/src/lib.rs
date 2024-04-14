@@ -14,6 +14,7 @@ pub struct RESTClient {
     pub http_client: Arc<tauri::async_runtime::Mutex<Client>>,
     pub base_url: Arc<Mutex<String>>,
     pub method: Arc<Mutex<String>>,
+    pub body: Arc<Mutex<String>>,
 }
 
 /// A function to create a new RESTClient instance
@@ -25,6 +26,7 @@ impl RESTClient {
             http_client: Arc::new(tauri::async_runtime::Mutex::new(Client::new())),
             base_url: Arc::new(Mutex::new(base_url.unwrap_or_default())),
             method: Arc::new(Mutex::new(method.unwrap_or_default())),
+            body: Arc::new(Mutex::new(String::new())),
         }
     }
 }
@@ -62,21 +64,41 @@ impl<R: Runtime> APIPlugin<R> {
         self.rest_client.method.lock().unwrap().clone()
     }
 
+    fn set_body(&self, body: String) -> &Self {
+        *self.rest_client.body.lock().unwrap() = body;
+        self
+    }
+
+    fn get_body(&self) -> String {
+        self.rest_client.body.lock().unwrap().clone()
+    }
+
     async fn request(&self) -> AppResult<String> {
         info!("Making REST request");
 
         let base_url = self.get_base_url();
-
-        let response: String;
-
         let method = self.get_method();
-
         let method = method.as_str();
+        let body = self.get_body();
+        let body = body.trim(); // Trim the body to remove whitespace from both ends
+
+        debug!("JSON Body: {}", self.get_body());
+
+        let body: serde_json::Value = if !body.is_empty() {
+            match serde_json::from_str(body) {
+                Ok(parsed) => parsed,
+                Err(e) => {
+                    error!("Failed to parse body: {}", e);
+                    serde_json::Value::Null // Use a null JSON value if parsing fails
+                }
+            }
+        } else {
+            serde_json::Value::Null // Default to null if body is empty
+        };
 
         let response = match method {
             "GET" => {
-                response = self
-                    .rest_client
+                self.rest_client
                     .http_client
                     .lock()
                     .await
@@ -85,22 +107,20 @@ impl<R: Runtime> APIPlugin<R> {
                     .send()
                     .await?
                     .text()
-                    .await?;
-                response
+                    .await?
             }
             "POST" => {
-                response = self
-                    .rest_client
+                self.rest_client
                     .http_client
                     .lock()
                     .await
                     .post(&base_url)
+                    .json(&body)
                     .header("User-Agent", "Lumin")
                     .send()
                     .await?
                     .text()
-                    .await?;
-                response
+                    .await?
             }
             _ => {
                 error!("Invalid method");
@@ -110,39 +130,43 @@ impl<R: Runtime> APIPlugin<R> {
                 )));
             }
         };
-        self.app_handle
-            .trigger_global("request-response", Some(response.clone()));
+
+        debug!("Response: {}", response);
+
         Ok(response)
-        // send a global event when the API is closed
     }
 
     /// A function to run a REST Client and create a new RESTClient instance for each device found
     /// ## Arguments
     /// - `endpoint` The endpoint to query for
     /// - `device_name` The name of the device to query
+    /// - `body` The body of the request to send - optional
     async fn run_rest_client(
         &self,
         endpoint: String,
         device_name: String,
         method: String,
-    ) -> AppResult<()> {
+        body: String,
+    ) -> AppResult<String> {
         info!("Starting REST client");
 
         let full_url = format!("{}{}", device_name, endpoint);
         info!("[APIPlugin]: Full url: {}", full_url);
-        self.set_base_url(full_url).set_method(method);
+        info!("[APIPlugin]: Body: {}", body);
+
+        self.set_base_url(full_url)
+            .set_method(method)
+            .set_body(body);
 
         let request_result = self.request().await;
-        match request_result {
-            Ok(response) => {
-                self.app_handle
-                    .emit_all("request-response", Some(response.clone()))
-                    .expect("Failed to emit event");
-                println!("[APIPlugin]: Request response: {}", response);
+        let response_msg = match request_result {
+            Ok(response) => response,
+            Err(e) => {
+                error!("[APIPlugin]: Request failed: {}", e);
+                e.to_string()
             }
-            Err(e) => println!("[APIPlugin]: Request failed: {}", e),
-        }
-        Ok(())
+        };
+        Ok(response_msg)
     }
 }
 
@@ -152,21 +176,22 @@ async fn make_request<R: Runtime>(
     endpoint: String,
     device_name: String,
     method: String,
+    body: String,
     app_handle: AppHandle<R>,
-) -> Result<(), String> {
+) -> Result<String, String> {
     info!("Starting REST request");
     let result = app_handle
         .state::<APIPlugin<R>>()
-        .run_rest_client(endpoint, device_name, method)
+        .run_rest_client(endpoint, device_name, method, body)
         .await;
 
     match result {
-        Ok(()) => {
-            println!("[APIPlugin]: Request response: Ok");
-            Ok(())
+        Ok(response) => {
+            info!("[APIPlugin]: Request response: Ok");
+            Ok(response)
         }
         Err(e) => {
-            println!("[APIPlugin]: Request failed: {}", e);
+            error!("[APIPlugin]: Request failed: {}", e);
             Err(e.to_string())
         }
     }

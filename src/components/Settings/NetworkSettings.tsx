@@ -8,13 +8,10 @@ import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import { ActiveStatus, capitalizeFirstLetter, DEFAULT_COLOR } from '@src/lib/utils'
 import { DEVICE_TYPE } from '@src/static/enums'
+import { DeviceSettingsStore } from '@src/static/types'
 import { useAppContext } from '@src/store/context/app'
 import { useAppDeviceContext } from '@store/context/device'
-import {
-    deviceSettings,
-    useDeviceSettingsContext,
-    DeviceSettingsStore,
-} from '@store/context/deviceSettings'
+import { deviceSettings, useDeviceSettingsContext } from '@store/context/deviceSettings'
 
 interface NetworkSettingsProps extends DeviceSettingsContentProps {}
 

@@ -7,12 +7,12 @@ import { useAppAPIContext } from '@store/context/api'
 import { useAppDeviceContext } from '@store/context/device'
 
 export default function Main() {
-    const { getFirmwareVersion, setRESTDevice } = useAppAPIContext()
+    const { getFirmware } = useAppAPIContext()
     const { getDevices, setSelectedDevice, resetSelectedDevice } = useAppDeviceContext()
     const [firmwareVersion, setFirmwareVersion] = createSignal('0.0.0')
 
     createEffect(() => {
-        setFirmwareVersion(getFirmwareVersion())
+        setFirmwareVersion(getFirmware().version)
     })
 
     const navigate = useNavigate()
@@ -26,7 +26,6 @@ export default function Main() {
                     onClickNavigateDevice={(device) => {
                         navigate('/deviceSettings/false', { replace: true })
                         setSelectedDevice(device)
-                        setRESTDevice(device.network.address)
                     }}
                     onClickNavigateCreateDevice={() => {
                         navigate('/deviceSettings/true', { replace: true })

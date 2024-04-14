@@ -39,6 +39,23 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+// implement std::ops::FromResidual<std::result::Result<std::convert::Infallible, serde_json::Error>> for Error
+impl From<std::result::Result<std::convert::Infallible, serde_json::Error>> for Error {
+    fn from(e: std::result::Result<std::convert::Infallible, serde_json::Error>) -> Self {
+        Error::IO(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            e.err().unwrap().to_string(),
+        ))
+    }
+}
+
+// required for `std::result::Result<std::string::String, utils::errors::Error>` to implement `std::ops::FromResidual<std::result::Result<std::convert::Infallible, serde_json::Error>>`
+impl From<std::convert::Infallible> for Error {
+    fn from(e: std::convert::Infallible) -> Self {
+        Error::IO(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+    }
+}
+
 // TODO: Handler for custom errors
 pub fn handle(result: AppResult<()>) {
     if let Err(error) = result {

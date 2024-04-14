@@ -9,6 +9,7 @@ edition = "2021"
 utils = { path = "../util" }
 thiserror = "1"
 serde = { workspace = true }
+serde_json = { workspace = true }
 specta = { workspace = true }
 tauri = { workspace = true }
 tauri-specta = { workspace = true }

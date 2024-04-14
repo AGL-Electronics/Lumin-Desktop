@@ -9,6 +9,7 @@ edition = "2021"
 log = { workspace = true }
 dialoguer = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 specta = { workspace = true }
 tauri = { workspace = true }
 tauri-specta = { workspace = true }

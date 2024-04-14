@@ -105,19 +105,48 @@ export enum MdnsStatus {
 
 export enum ESPEndpoints {
     //? Default
-    PING = '/control/builtin/command/ping',
-    SAVE = '/control/builtin/command/save',
-    RESET_CONFIG = '/control/builtin/command/resetConfig',
-    REBOOT_DEVICE = '/control/builtin/command/rebootDevice',
-    RESTART_CAMERA = '/control/builtin/command/restartCamera',
-    GET_STORED_CONFIG = '/control/builtin/command/getStoredConfig',
-    SET_TX_POWER = '/control/builtin/command/setTxPower',
-    SET_DEVICE = '/control/builtin/command/setDevice',
+    PING = '/api/builtin/ping',
+    SAVE = '/api/builtin/save',
+    RESET_CONFIG = '/api/builtin/resetConfig',
+    REBOOT_DEVICE = '/api/builtin/rebootDevice',
+    RESTART_CAMERA = '/api/builtin/restartCamera',
+    GET_STORED_CONFIG = '/api/builtin/getStoredConfig',
+    LUMIN_DEVICE_CONFIG = '/lumin/api/json/getConfig',
+    SET_TX_POWER = '/api/builtin/setTxPower',
+    SET_DEVICE = '/api/builtin/setDevice',
     //? Network
-    WIFI = '/control/builtin/command/wifi',
-    WIFI_STRENGTH = '/control/builtin/command/wifiStrength',
+    WIFI = '/api/builtin/wifi',
+    WIFI_STRENGTH = '/api/builtin/wifiStrength',
     OTA = '/update',
+    //? POST BODY
+    JSON_HANDLER = '/lumin/api/json',
 }
+
+export enum ESPCommands {
+    SET_LEDS = 'set_leds',
+    SET_MDNS = 'set_mdns',
+    SET_WIFI = 'set_wifi',
+    SET_MQTT = 'set_mqtt',
+    SET_OTA = 'set_ota',
+    SET_HTTP = 'set_http',
+}
+
+export enum ESPLEDPatterns {
+    UPDATE = 'update',
+    RGB_CYCLE = 'rgb_cycle',
+    RGB = 'rgb',
+    RED = 'red',
+    GREEN = 'green',
+    BLUE = 'blue',
+    WHITE = 'white',
+    WARM = 'warm',
+    COLD = 'cold',
+    WARM_COLD = 'warm_cold',
+    WIFI_STRENGTH = 'wifi_strength',
+    CUSTOM = 'custom',
+    NONE = 'none',
+}
+
 /**
  * @description Debug mode levels
  * @export typedef {string} DebugMode
@@ -135,10 +164,4 @@ export enum DebugMode {
     INFO = 'info',
     DEBUG = 'debug',
     TRACE = 'trace',
-}
-
-export enum DIRECTION {
-    '/' = STEP_STATUS_ENUM.BOARD_MANAGER,
-    '/deviceSettings/true' = STEP_STATUS_ENUM.CONFIGURE_BOARD,
-    '/flashFirmware' = STEP_STATUS_ENUM.FLASH_FIRMWARE,
 }

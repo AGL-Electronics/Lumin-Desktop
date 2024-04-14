@@ -13,12 +13,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@components/ui/select'
+import { DeviceSettingsStore } from '@src/static/types'
 import { useAppDeviceContext } from '@store/context/device'
 import {
     wiredFormHandler,
     useDeviceSettingsContext,
     deviceSettings,
-    DeviceSettingsStore,
     DeviceSettingsObj,
 } from '@store/context/deviceSettings'
 
@@ -66,12 +66,16 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
         const selectedDevice = getSelectedDevice()
         if (!selectedDevice) return
 
-        setSettingWithoutSubcategory('ledSettings', 'ledType', selectedDevice.led.ledType)
-        setSettingWithoutSubcategory('ledSettings', 'ledBarsConnected', selectedDevice.led.ledCount)
+        setSettingWithoutSubcategory('ledSettings', 'ledType', selectedDevice.led.settings.ledType)
+        setSettingWithoutSubcategory(
+            'ledSettings',
+            'ledBarsConnected',
+            selectedDevice.led.settings.ledBarsConnected,
+        )
         setSettingWithoutSubcategory(
             'ledSettings',
             'ledConnectionPoint',
-            selectedDevice.led.ledConnection,
+            selectedDevice.led.settings.ledConnectionPoint,
         )
     })
 

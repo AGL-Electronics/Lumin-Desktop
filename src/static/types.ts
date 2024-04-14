@@ -8,6 +8,7 @@ import type {
     RESTStatus,
     DEVICE_TYPE,
     DebugMode,
+    ESPLEDPatterns,
 } from '@static/enums'
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
@@ -29,10 +30,90 @@ export interface INavigator extends Navigator {
 
 //********************************* Device *************************************/
 
-export interface LEDDevice {
+export interface LEDSettings {
     ledType: string
-    ledCount: number
-    ledConnection: string
+    ledBarsConnected: number
+    ledConnectionPoint: string
+}
+
+export interface GeneralSettings {
+    deviceLabel: string
+    deviceType: DEVICE_TYPE
+    printerSerialNumber: string
+    lanCode: string
+    flashFirmware: boolean
+}
+
+export interface NetworkSettings {
+    wifiSSID: string
+    wifiPassword: string
+    luminDeviceAddress: string
+    luminDeviceMDNS: string
+}
+
+export interface BehaviorSettings {
+    pattern?: ESPLEDPatterns
+    maintenanceModeToggle: boolean
+    rgbCycleToggle: boolean
+    replicateLedStateToggle: boolean
+    testLedsToggle: boolean
+    showWifiStrengthToggle: boolean
+    disableLEDSToggle: boolean
+}
+
+export interface OptionsSettings {
+    finishIndicationToggle: boolean
+    finishIndicationColor: string
+    exitFinishAfterToggle: boolean
+    exitFinishAfterTime: number
+    inactivityTimeoutToggle: boolean
+    inactivityTimeout: number
+    debuggingToggle: boolean
+    debuggingOnchangeEventsToggle: boolean
+    mqttLoggingToggle: boolean
+}
+
+export interface PrinterSettings {
+    p1PrinterToggle: boolean
+    doorSwitchToggle: boolean
+    lidarStageCleaningNozzleColor: string
+    lidarStageBedLevelingColor: string
+    lidarStageCalibratingExtrusionColor: string
+    lidarStageScanningBedSurfaceColor: string
+    lidarStageFirstLayerInspectionColor: string
+}
+
+export interface CustomizeColorsSettings {
+    errorDetectionToggle: boolean
+    wifiSetupColor: string
+    pauseColor: string
+    firstLayerErrorColor: string
+    nozzleCloggedColor: string
+    hmsSeveritySeriousColor: string
+    hmsSeverityFatalColor: string
+    filamentRunoutColor: string
+    frontCoverRemovedColor: string
+    nozzleTempFailColor: string
+    bedTempFailColor: string
+}
+
+export interface LEDControllerSettings {
+    behavior: BehaviorSettings
+    options: OptionsSettings
+    printer: PrinterSettings
+    customizeColors: CustomizeColorsSettings
+}
+
+export interface DeviceSettingsStore {
+    ledSettings: LEDSettings
+    generalSettings: GeneralSettings
+    networkSettings: NetworkSettings
+    ledControlSettings: LEDControllerSettings
+}
+
+export interface LEDDevice {
+    settings: LEDSettings
+    ledControlSettings: LEDControllerSettings
 }
 
 export interface Device {
@@ -46,6 +127,7 @@ export interface Device {
         mdns?: string
         address: string
         wifi: {
+            apModeStatus: boolean
             ssid: string
             password: string
         }
@@ -53,6 +135,7 @@ export interface Device {
     led: LEDDevice
     hasCamera: boolean
     ws?: object
+    lastUpdate: number
 }
 
 //********************************* Components *************************************/
@@ -92,14 +175,8 @@ export interface UIStore {
 }
 
 export interface AppStoreAPI {
-    loader: boolean
     restAPI: IRest
     ghAPI: IGHRest
-    firmwareType: string
-    activeBoard: string
-    ssid: string
-    password: string
-    apModeStatus: boolean
 }
 
 export interface AppStoreDevice {
@@ -223,6 +300,7 @@ export type IEndpointKey =
     | 'wifiStrength'
     | 'restartCamera'
     | 'getStoredConfig'
+    | 'jsonHandler'
 
 export interface IEndpoint {
     url: string
@@ -231,8 +309,14 @@ export interface IEndpoint {
 
 export interface IRest {
     status: RESTStatus
-    device: string
     response: object
+}
+
+export interface IPOSTCommand {
+    commands: Array<{
+        command: 'set_leds' | 'set_mdns' | 'set_wifi' | 'set_mqtt' | 'set_ota' | 'set_http'
+        data: object
+    }>
 }
 
 export interface IGHAsset {
@@ -242,8 +326,11 @@ export interface IGHAsset {
 
 export interface IGHRest {
     status: RESTStatus
-    assets: IGHAsset[]
-    version: string
+    firmware: {
+        assets: IGHAsset[]
+        type: string
+        version: string
+    }
 }
 
 export interface IGHRelease {
@@ -256,8 +343,9 @@ export interface IGHRelease {
 }
 
 export interface IRestProps {
-    endpointName: string
-    deviceName: string
+    endpointKey: IEndpointKey
+    deviceID: string
+    body: IPOSTCommand
     args?: string
 }
 

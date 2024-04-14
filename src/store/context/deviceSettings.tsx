@@ -4,69 +4,8 @@ import { yupSchema } from 'solid-form-handler/yup'
 import { createContext, useContext, type ParentComponent } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import * as yup from 'yup'
-import { DEVICE_TYPE } from '@src/static/enums'
-
-export interface DeviceSettingsStore {
-    ledSettings: {
-        ledType: string
-        ledBarsConnected: number
-        ledConnectionPoint: string
-    }
-    generalSettings: {
-        deviceLabel: string
-        deviceType: DEVICE_TYPE
-        printerSerialNumber: string
-        lanCode: string
-        flashFirmware: boolean
-    }
-    networkSettings: {
-        wifiSSID: string
-        wifiPassword: string
-        luminDeviceAddress: string
-        luminDeviceMDNS: string
-    }
-    ledControlSettings: {
-        behavior: {
-            maintenanceModeToggle: boolean
-            rgbCycleToggle: boolean
-            replicateLedStateToggle: boolean
-            testLedsToggle: boolean
-            showWifiStrengthToggle: boolean
-        }
-        options: {
-            finishIndicationToggle: boolean
-            finishIndicationColor: string
-            exitFinishAfterToggle: boolean
-            exitFinishAfterTime: number
-            inactivityTimeout: number
-            debuggingToggle: boolean
-            debuggingOnchangeEventsToggle: boolean
-            mqttLoggingToggle: boolean
-        }
-        printer: {
-            p1PrinterToggle: boolean
-            doorSwitchToggle: boolean
-            lidarStageCleaningNozzleColor: string
-            lidarStageBedLevelingColor: string
-            lidarStageCalibratingExtrusionColor: string
-            lidarStageScanningBedSurfaceColor: string
-            lidarStageFirstLayerInspectionColor: string
-        }
-        customizeColors: {
-            errorDetectionToggle: boolean
-            wifiSetupColor: string
-            pauseColor: string
-            firstLayerErrorColor: string
-            nozzleCloggedColor: string
-            hmsSeveritySeriousColor: string
-            hmsSeverityFatalColor: string
-            filamentRunoutColor: string
-            frontCoverRemovedColor: string
-            nozzleTempFailColor: string
-            bedTempFailColor: string
-        }
-    }
-}
+import { DEVICE_TYPE, ESPLEDPatterns } from '@src/static/enums'
+import { DeviceSettingsStore } from '@src/static/types'
 
 interface DeviceSettingsContext {
     settings: DeviceSettingsStore
@@ -89,6 +28,7 @@ interface DeviceSettingsContext {
         key: K,
         value: DeviceSettingsStore[C][K],
     ): void
+    clearStore: () => void
 }
 
 const DeviceSettingsContext = createContext<DeviceSettingsContext>()
@@ -115,17 +55,20 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
         },
         ledControlSettings: {
             behavior: {
+                pattern: ESPLEDPatterns.RGB_CYCLE,
                 maintenanceModeToggle: false,
-                rgbCycleToggle: false,
+                rgbCycleToggle: true,
                 replicateLedStateToggle: false,
                 testLedsToggle: false,
                 showWifiStrengthToggle: false,
+                disableLEDSToggle: false,
             },
             options: {
                 finishIndicationToggle: false,
                 finishIndicationColor: '',
                 exitFinishAfterToggle: false,
                 exitFinishAfterTime: 0,
+                inactivityTimeoutToggle: false,
                 inactivityTimeout: 0,
                 debuggingToggle: false,
                 debuggingOnchangeEventsToggle: false,
@@ -184,7 +127,9 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
         )
     }
 
-    const store = { settings, setSettingWithSubcategory, setSettingWithoutSubcategory }
+    const clearStore = () => setSettings(defaultState)
+
+    const store = { settings, setSettingWithSubcategory, setSettingWithoutSubcategory, clearStore }
     //#endregion
 
     return (
@@ -297,6 +242,7 @@ type SettingsKnownDataLabel =
     | 'led-type'
     | 'led-bars-connected'
     | 'led-connection-point'
+    | 'led-pattern'
     | 'device-label'
     | 'device-type'
     | 'printer-serial-number'
@@ -311,10 +257,12 @@ type SettingsKnownDataLabel =
     | 'replicate-led-state-toggle'
     | 'test-leds-toggle'
     | 'show-wifi-strength-toggle'
+    | 'disable-leds-toggle'
     | 'finish-indication-toggle'
     | 'finish-indication-color'
     | 'exit-finish-after-toggle'
     | 'exit-finish-after-time'
+    | 'inactivity-timeout-toggle'
     | 'inactivity-timeout'
     | 'debugging-toggle'
     | 'debugging-onchange-events-toggle'
@@ -521,7 +469,7 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'maintenance-mode-toggle',
                 popoverDescription: 'Enable maintenance mode',
                 placeholder: 'Maintenance Mode',
-                required: true,
+                required: false,
                 type: 'toggle',
                 key: 'maintenanceModeToggle',
             },
@@ -530,7 +478,7 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'rgb-cycle-toggle',
                 popoverDescription: 'Enable RGB Color Cycle',
                 placeholder: 'RGB Cycle',
-                required: true,
+                required: false,
                 type: 'toggle',
                 key: 'rgbCycleToggle',
             },
@@ -539,7 +487,7 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'replicate-led-state-toggle',
                 popoverDescription: 'Enable LED state replication',
                 placeholder: 'Replicate LED State',
-                required: true,
+                required: false,
                 type: 'toggle',
                 key: 'replicateLedStateToggle',
             },
@@ -548,7 +496,7 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'test-leds-toggle',
                 popoverDescription: 'Test the LEDs',
                 placeholder: 'Test LEDs',
-                required: true,
+                required: false,
                 type: 'toggle',
                 key: 'testLedsToggle',
             },
@@ -557,10 +505,29 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'show-wifi-strength-toggle',
                 popoverDescription: 'Show WIFI strength via the LEDs',
                 placeholder: 'Show WIFI Strength',
-                required: true,
+                required: false,
                 type: 'toggle',
                 key: 'showWifiStrengthToggle',
             },
+            {
+                label: 'Disable LEDS',
+                dataLabel: 'disable-leds-toggle',
+                popoverDescription: 'Disable the LEDs',
+                placeholder: 'Disable LEDs',
+                required: false,
+                type: 'toggle',
+                key: 'disableLEDSToggle',
+            },
+            /*  {
+                label: 'Set LED Pattern',
+                dataLabel: 'led-pattern',
+                popoverDescription: 'Select the LED pattern',
+                placeholder: 'Select...',
+                options: [...Object.values(ESPLEDPatterns)],
+                required: true,
+                type: 'select',
+                key: 'pattern',
+            }, */
         ],
         options: [
             {
@@ -605,6 +572,16 @@ export const deviceSettings: SettingCategories = {
             },
             {
                 label: 'Inactivity Timeout',
+                dataLabel: 'inactivity-timeout-toggle',
+                popoverDescription: 'Enable the inactivity timeout',
+                placeholder: '',
+                ariaLabel: 'Enable Inactivity Timeout',
+                required: true,
+                type: 'toggle',
+                key: 'inactivityTimeoutToggle',
+            },
+            {
+                label: 'Inactivity Timeout Time',
                 dataLabel: 'inactivity-timeout',
                 popoverDescription: 'Select the inactivity timeout in minutes',
                 placeholder: 'Select...',

@@ -1,4 +1,4 @@
-import { createSignal, For, Switch, Match, Show } from 'solid-js'
+import { createSignal, For, Switch, Match, Show, createEffect, onCleanup, onMount } from 'solid-js'
 import type { Component } from 'solid-js'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import DeviceComponent from '@components/Device'
@@ -10,7 +10,10 @@ import { Flex } from '@components/ui/flex'
 import { Col, Grid } from '@components/ui/grid'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
-import { ANIMATION_MODE, POPOVER_ID } from '@static/enums'
+import { useAppAPIContext } from '@src/store/context/api'
+import { useAppDeviceContext } from '@src/store/context/device'
+import { useAppNotificationsContext } from '@src/store/context/notifications'
+import { ANIMATION_MODE, DEVICE_STATUS, ENotificationType, POPOVER_ID } from '@static/enums'
 import { Device } from '@static/types'
 import { UniqueArray } from '@static/uniqueArray'
 
@@ -33,7 +36,57 @@ interface DashboardProps {
 }
 
 const Dashboard: Component<DashboardProps> = (props) => {
+    const { useRequestHook } = useAppAPIContext()
+    const { setDeviceStatus } = useAppDeviceContext()
+    const { addNotification } = useAppNotificationsContext()
+
     const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.LIST)
+
+    const handleDeviceCheck = () => {
+        if (props.devices.size === 0) {
+            return
+        }
+
+        props.devices.allItems.forEach((device) => {
+            useRequestHook('ping', device.id)
+                .then((res) => {
+                    if (res.status === 'error') {
+                        addNotification({
+                            title: 'Error',
+                            message: `${device.name} is not reachable.`,
+                            type: ENotificationType.ERROR,
+                        })
+
+                        setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+
+                        return
+                    }
+
+                    setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+                })
+                .catch((err) => {
+                    console.error(err)
+                    setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+                })
+        })
+    }
+
+    createEffect(() => {
+        const interval = setInterval(() => {
+            handleDeviceCheck()
+        }, 65000)
+        onCleanup(() => {
+            clearInterval(interval)
+        })
+    })
+
+    onMount(() => {
+        handleDeviceCheck()
+    })
+
+    onCleanup(() => {
+        setDisplayMode(POPOVER_ID.LIST)
+    })
 
     return (
         <div

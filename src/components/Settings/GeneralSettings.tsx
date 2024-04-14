@@ -13,12 +13,9 @@ import {
     SelectValue,
 } from '@components/ui/select'
 import { Switch as ToggleSwitch } from '@components/ui/switch'
+import { DeviceSettingsStore } from '@src/static/types'
 import { useAppDeviceContext } from '@store/context/device'
-import {
-    useDeviceSettingsContext,
-    deviceSettings,
-    DeviceSettingsStore,
-} from '@store/context/deviceSettings'
+import { useDeviceSettingsContext, deviceSettings } from '@store/context/deviceSettings'
 
 interface GeneralSettingsProps extends DeviceSettingsContentProps {}
 
