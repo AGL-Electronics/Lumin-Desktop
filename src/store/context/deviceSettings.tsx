@@ -44,6 +44,7 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
             deviceLabel: '',
             deviceType: DEVICE_TYPE.WIRELESS,
             printerSerialNumber: '',
+            printerIP: '',
             lanCode: '',
             flashFirmware: false,
         },
@@ -158,6 +159,7 @@ const generalSettingsSchema = yup.object({
     deviceLabel: yup.string().required().min(1).max(20),
     deviceType: yup.string().required(),
     printerSerialNumber: yup.string().required().min(15).max(15),
+    printerIP: yup.string().required(),
     lanCode: yup.string().required().min(7).max(7),
     flashFirmware: yup.boolean(),
 })
@@ -246,6 +248,7 @@ type SettingsKnownDataLabel =
     | 'device-label'
     | 'device-type'
     | 'printer-serial-number'
+    | 'printer-ip'
     | 'lan-code'
     | 'flash-firmware'
     | 'wifi-ssid'
@@ -396,6 +399,16 @@ export const deviceSettings: SettingCategories = {
             maxLen: 15,
             type: 'input',
             key: 'printerSerialNumber',
+        },
+        {
+            label: 'Printer IP Address',
+            dataLabel: 'printer-ip',
+            popoverDescription: 'The IP address of your printer',
+            placeholder: '192.168.0.100',
+            required: true,
+            inputType: 'text',
+            type: 'input',
+            key: 'printerIP',
         },
         {
             label: 'LANCode',

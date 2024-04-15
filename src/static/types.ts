@@ -39,6 +39,7 @@ export interface GeneralSettings {
     deviceLabel: string
     deviceType: DEVICE_TYPE
     printerSerialNumber: string
+    printerIP: string
     lanCode: string
     flashFirmware: boolean
 }

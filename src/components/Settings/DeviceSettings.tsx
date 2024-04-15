@@ -19,9 +19,10 @@ import { Flex } from '@components/ui/flex'
 import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { capitalizeFirstLetter } from '@src/lib/utils'
+import { useAppAPIContext } from '@src/store/context/api'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
-import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType } from '@static/enums'
-import { Device, Notifications } from '@static/types'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType, RESTStatus } from '@static/enums'
+import { Device, IPOSTCommand, Notifications } from '@static/types'
 import { useAppDeviceContext } from '@store/context/device'
 import { wiredFormHandler, useDeviceSettingsContext } from '@store/context/deviceSettings'
 
@@ -30,10 +31,37 @@ interface DeviceSettingsMainProps extends DeviceSettingsContentProps {
 }
 
 const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
-    const { setDevice, getSelectedDevice } = useAppDeviceContext()
+    const { setDevice, getSelectedDevice, setDeviceStatus } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
+    const { useRequestHook } = useAppAPIContext()
     const { settings, clearStore } = useDeviceSettingsContext()
     const navigate = useNavigate()
+
+    const handleDeviceRequest = async (device: Device, command: IPOSTCommand) => {
+        try {
+            const response = await useRequestHook('jsonHandler', device.id, command)
+
+            console.debug('Response:', response)
+
+            if (response.status === RESTStatus.FAILED) {
+                throw new Error(`Failed to update ${device.name} LEDs. ${response.response}`)
+            }
+
+            addNotification({
+                title: 'Device Config Update',
+                message: `${device.name} device config has been updated.`,
+                type: ENotificationType.SUCCESS,
+            })
+        } catch (error) {
+            console.error('Error:', error)
+            addNotification({
+                title: 'Error',
+                message: `Failed to update device. ${error}`,
+                type: ENotificationType.ERROR,
+            })
+            setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+        }
+    }
 
     const handleSubmit = async (e: Event) => {
         e.preventDefault()
@@ -158,6 +186,31 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                         },
                     },
                 }
+
+                const command: IPOSTCommand = {
+                    commands: [
+                        {
+                            command: 'set_wifi',
+                            data: {
+                                ssid: settings.networkSettings.wifiSSID,
+                                password: settings.networkSettings.wifiPassword,
+                                channel: 1,
+                                power: 52,
+                                adhoc: false,
+                            },
+                        },
+                        {
+                            command: 'set_mqtt',
+                            data: {
+                                broker: settings.generalSettings.printerIP,
+                                password: settings.generalSettings.lanCode,
+                                printerSerialNumber: settings.generalSettings.printerSerialNumber,
+                            },
+                        },
+                    ],
+                }
+
+                await handleDeviceRequest(device, command)
 
                 setDevice(device, DEVICE_MODIFY_EVENT.UPDATE)
                 console.debug('Updating device')
