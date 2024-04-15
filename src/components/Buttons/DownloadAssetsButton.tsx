@@ -7,11 +7,11 @@ import { useAppAPIContext } from '@src/store/context/api'
 const DownloadAssetsButton = () => {
     const [isButtonActive, setIsButtonActive] = createSignal(false)
     let download: (firmware: string) => Promise<void> = () => Promise.resolve()
-    const { downloadAsset, getFirmwareType } = useAppAPIContext()
+    const { downloadAsset, getFirmware } = useAppAPIContext()
     if (downloadAsset) download = downloadAsset
 
     const handleDownload = () => {
-        download(getFirmwareType())
+        download(getFirmware().type)
         debug('[Download Asset]: Downloading...')
         setIsButtonActive(!isButtonActive())
     }

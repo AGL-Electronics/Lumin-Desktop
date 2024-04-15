@@ -9,18 +9,18 @@ const FirmwareList: Component = () => {
     const [boardNames, setBoardNames] = createSignal<string[]>([])
     const [defaultValue, setDefaultValue] = createSignal('')
 
-    const { getFirmwareAssets, getFirmwareVersion, setFirmwareType } = useAppAPIContext()
+    const { getFirmware, setFirmware } = useAppAPIContext()
 
     onMount(() => {
         setDefaultValue(
-            getFirmwareAssets().find((item) => item.name === 'esp32AIThinker')?.name || '',
+            getFirmware().assets.find((item) => item.name === 'esp32AIThinker')?.name || '',
         )
-        if (getFirmwareVersion()) setFirmwareVersion(getFirmwareVersion())
+        if (getFirmware().version) setFirmwareVersion(getFirmware().version)
     })
 
     createEffect(() => {
         setBoardNames(
-            getFirmwareAssets().map((item) => {
+            getFirmware().assets.map((item) => {
                 trace(`${item.name}`)
                 return item.name
             }),
@@ -28,10 +28,10 @@ const FirmwareList: Component = () => {
     })
 
     const handleFirmwareChange = (value: string) => {
-        const temp = getFirmwareAssets().find((item) => item.name === value)?.name
+        const temp = getFirmware().assets.find((item) => item.name === value)?.name
         const msg = temp ? temp : 'Not Selected'
         debug(`[Firmware]: ${msg}`)
-        setFirmwareType(msg)
+        setFirmware(undefined, undefined, msg)
     }
 
     return (

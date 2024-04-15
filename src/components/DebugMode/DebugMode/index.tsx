@@ -1,9 +1,9 @@
-import { Titlebar } from '@components/Titlebar/Titlebar'
-import { TITLEBAR_ACTION } from '@src/static/types/enums'
 import { FaSolidGear } from 'solid-icons/fa'
 import { Component } from 'solid-js'
 import DebugModeMenu from '../Debug'
+import { Titlebar } from '@components/Titlebar'
 import { debugModalId } from '@src/static'
+import { TITLEBAR_ACTION } from '@static/enums'
 
 export interface IProps {
     debugMode: string
@@ -25,7 +25,7 @@ export const DebugMode: Component<IProps> = (props) => {
                 <FaSolidGear size={12} fill="#FFFFFFe3" />
             </button>
             <dialog id={debugModalId} class="modal">
-                <Titlebar onClickHeader={props.onClickHeader} />
+                <Titlebar onPointerDownHeader={props.onClickHeader} />
                 <div class="modal-box overflow-visible flex items-center  w-auto h-auto p-[10px] bg-transparent ">
                     <DebugModeMenu
                         debugMode={props.debugMode}

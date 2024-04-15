@@ -1,4 +1,3 @@
-import { Board } from '@components/Board'
 import { FaSolidXmark } from 'solid-icons/fa'
 import { type Component, For } from 'solid-js'
 import { SelectButton } from '@components/Buttons/SelectButton'
@@ -39,18 +38,12 @@ const DebugModeMenu: Component<IProps> = (props) => {
                         tabIndex={0}
                         class="dropdown-content  right-[-13px] mt-[20px] p-[12px] rounded-[12px] border border-solid border-[#192736] bg-[#0D1B26]  w-[350px]">
                         <div class="overflow-y-scroll max-h-[250px] flex flex-col gap-[10px]">
-                            <For each={props.debugModes}>
-                                {(data) => (
-                                    <Board
-                                        board={data}
-                                        description={''}
-                                        isActive={data === props.debugMode}
-                                        onClick={() => {
-                                            props.setDebugMode(data)
-                                        }}
-                                    />
-                                )}
-                            </For>
+                            {/* <For each={props.debugModes}>
+                                {(data) => ({
+                                    <div>
+                                    </div>
+                                })}
+                            </For> */}
                         </div>
                     </div>
                 </div>

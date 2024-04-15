@@ -13,11 +13,13 @@ interface FormActionsProps extends ModalEvents {
 const FormActions: Component<FormActionsProps> = (props) => {
     const handleSubmit = (e: PointerEvent) => {
         e.stopPropagation()
+        if (!props.onSubmit) return
         props.onSubmit(e)
     }
 
     const handleCancel = (e: PointerEvent) => {
         e.stopPropagation()
+        if (!props.onSubmit) return
         props.onCancel(e)
     }
 

@@ -1,4 +1,4 @@
-import Highlight from '@components/Highlight'
+/* import Highlight from '@components/Highlight'
 import { listen } from '@tauri-apps/api/event'
 import { createSignal, onCleanup, onMount } from 'solid-js'
 import { debug } from 'tauri-plugin-log-api'
@@ -73,3 +73,4 @@ const DeviceConfig = () => {
 }
 
 export default DeviceConfig
+ */

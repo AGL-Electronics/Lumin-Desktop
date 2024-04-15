@@ -1,11 +1,11 @@
-import { useNavigate } from '@solidjs/router'
+/* import { useNavigate } from '@solidjs/router'
 import { ask } from '@tauri-apps/api/dialog'
 import { listen } from '@tauri-apps/api/event'
 import { removeFile } from '@tauri-apps/api/fs'
 import { appConfigDir, appDataDir, join } from '@tauri-apps/api/path'
 import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { WebviewWindow, appWindow, getCurrent } from '@tauri-apps/api/window'
-import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
+import { createEffect, createSignal, onCleanup } from 'solid-js'
 import { debug, error } from 'tauri-plugin-log-api'
 import FlashFirmware from '@pages/FlashFirmware'
 import {
@@ -13,27 +13,19 @@ import {
     installModalTarget,
     installationSuccess,
     portBaudRate,
-    usb,
 } from '@src/static'
-import { ENotificationType, TITLEBAR_ACTION } from '@src/static/enums'
-import { CustomHTMLElement, INavigator, INavigatorPort } from '@src/static/types'
-import { useAppDeviceContext } from '@src/store/context/device'
+import { ENotificationType, TITLEBAR_ACTION } from '@static/enums'
+import { CustomHTMLElement, INavigator, INavigatorPort } from '@static/types'
 import { useAppAPIContext } from '@store/context/api'
+import { useAppDeviceContext } from '@store/context/device'
+import { useDeviceSettingsContext } from '@store/context/deviceSettings'
 import { useAppNotificationsContext } from '@store/context/notifications'
 
 export const ManageFlashFirmware = () => {
     const navigate = useNavigate()
-    const {
-        downloadAsset,
-        getFirmwareType,
-        activeBoard,
-        ssid,
-        password,
-        apModeStatus,
-        setAPModeStatus,
-        useRequestHook,
-    } = useAppAPIContext()
-    const { getSelectedDevice } = useAppDeviceContext()
+    const { downloadAsset, getFirmware, useRequestHook } = useAppAPIContext()
+    const { getSe } = useAppDeviceContext()
+    const { settings } = useDeviceSettingsContext()
     const { addNotification } = useAppNotificationsContext()
 
     const [manifest, setManifest] = createSignal<string>('')
@@ -48,8 +40,6 @@ export const ManageFlashFirmware = () => {
         await removeFile(firmwarePath)
         await removeFile(manifestPath)
     }
-
-    const isUSBBoard = createMemo(() => activeBoard().includes(usb))
 
     const _listen = async () => {
         const unlisten = await listen<string>('request-response', (event) => {
@@ -232,7 +222,6 @@ export const ManageFlashFirmware = () => {
     }
 
     createEffect(() => {
-        if (isUSBBoard()) return
         document.addEventListener('click', (e) => {
             const targetElement = e.target as HTMLElement
             const targetValue = targetElement.innerText
@@ -294,7 +283,6 @@ export const ManageFlashFirmware = () => {
                 setPort(null)
             }}
             isAPModeActive={apModeStatus()}
-            isUSBBoard={isUSBBoard()}
             manifest={manifest()}
             onClickEnableAPMode={() => setAPModeStatus(!apModeStatus())}
             onClickHeader={(action: TITLEBAR_ACTION) => {
@@ -432,3 +420,4 @@ export const ManageFlashFirmware = () => {
 }
 
 export default ManageFlashFirmware
+ */

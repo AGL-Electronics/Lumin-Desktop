@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin'
+//import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin'
 import { type ConfigEnv, type UserConfig, defineConfig } from 'vite'
 import solidPlugin from 'vite-plugin-solid'
 
@@ -37,7 +37,7 @@ async function getTauriConfig(configEnv: ConfigEnv) {
                     plugins: ['babel-plugin-macros'],
                 },
             }),
-            optimizeLodashImports(),
+            //optimizeLodashImports(),
         ],
         server: {
             host: true,
