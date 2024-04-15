@@ -13,9 +13,14 @@ import { Label } from '@components/ui/label'
 import { useAppAPIContext } from '@src/store/context/api'
 import { useAppDeviceContext } from '@src/store/context/device'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
-import { ANIMATION_MODE, DEVICE_STATUS, ENotificationType, POPOVER_ID } from '@static/enums'
+import {
+    ANIMATION_MODE,
+    DEVICE_MODIFY_EVENT,
+    DEVICE_STATUS,
+    ENotificationType,
+    POPOVER_ID,
+} from '@static/enums'
 import { Device } from '@static/types'
-import { UniqueArray } from '@static/uniqueArray'
 
 /**
  * Dashboard component:
@@ -31,50 +36,95 @@ import { UniqueArray } from '@static/uniqueArray'
 interface DashboardProps {
     onClickNavigateDevice: (device: Device) => void
     onClickNavigateCreateDevice: () => void
-    devices: UniqueArray<Device>
     firmwareVersion: string
 }
 
 const Dashboard: Component<DashboardProps> = (props) => {
     const { useRequestHook } = useAppAPIContext()
-    const { setDeviceStatus } = useAppDeviceContext()
+    const { setDeviceStatus, setDevice, getDevices } = useAppDeviceContext()
     const { addNotification } = useAppNotificationsContext()
 
     const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.LIST)
 
+    //#region Handling Device Detection
+
     const handleDeviceCheck = () => {
-        if (props.devices.size === 0) {
+        if (getDevices().size === 0) {
             return
         }
 
-        props.devices.allItems.forEach((device) => {
-            useRequestHook('ping', device.id)
-                .then((res) => {
-                    if (res.status === 'error') {
-                        addNotification({
-                            title: 'Error',
-                            message: `${device.name} is not reachable.`,
-                            type: ENotificationType.ERROR,
-                        })
+        getDevices().allItems.forEach(async (device) => {
+            const resPing = await useRequestHook('ping', device.id)
 
-                        setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
-
-                        return
-                    }
-
-                    setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+            if (resPing.status === 'error') {
+                addNotification({
+                    title: 'Error',
+                    message: `${device.name} is not reachable.`,
+                    type: ENotificationType.ERROR,
                 })
-                .catch((err) => {
-                    console.error(err)
-                    setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+
+                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+
+                return
+            }
+
+            setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+
+            if (
+                device.status === DEVICE_STATUS.FAILED ||
+                device.status === DEVICE_STATUS.DISABLED ||
+                device.status === DEVICE_STATUS.NONE ||
+                device.status === DEVICE_STATUS.LOADING
+            ) {
+                return
+            }
+
+            const resRSSI = await useRequestHook('wifiStrength', device.id, undefined, '?points=10')
+
+            if (resRSSI.status === 'error') {
+                addNotification({
+                    title: 'Error',
+                    message: 'Device is not reachable.',
+                    type: ENotificationType.ERROR,
                 })
+
+                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+
+                return
+            }
+
+            const data = resRSSI.data as { rssi: number }
+
+            if (data.rssi < -80) {
+                addNotification({
+                    title: 'Warning',
+                    message: 'Device signal is weak.',
+                    type: ENotificationType.WARNING,
+                })
+            }
+
+            setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+
+            const _device: Device = {
+                ...device,
+                network: {
+                    ...device.network,
+                    wifi: {
+                        ...device.network.wifi,
+                        rssi: data.rssi,
+                    },
+                },
+            }
+
+            setDevice(_device, DEVICE_MODIFY_EVENT.UPDATE)
         })
     }
 
     createEffect(() => {
         const interval = setInterval(() => {
             handleDeviceCheck()
-        }, 65000)
+        }, 30000)
+
         onCleanup(() => {
             clearInterval(interval)
         })
@@ -83,6 +133,8 @@ const Dashboard: Component<DashboardProps> = (props) => {
     onMount(() => {
         handleDeviceCheck()
     })
+
+    //#endregion
 
     onCleanup(() => {
         setDisplayMode(POPOVER_ID.LIST)
@@ -139,7 +191,7 @@ const Dashboard: Component<DashboardProps> = (props) => {
                 <Switch>
                     <Match when={displayMode() === POPOVER_ID.GRIP}>
                         <Grid cols={4} colsSm={2} colsMd={4} colsLg={4} class="gap-4">
-                            <For each={props.devices.allItems}>
+                            <For each={getDevices().allItems}>
                                 {(device) => (
                                     <Col span={4} spanSm={1} spanMd={2} spanLg={4}>
                                         <div class="pt-3">
@@ -163,9 +215,9 @@ const Dashboard: Component<DashboardProps> = (props) => {
                         </Grid>
                     </Match>
                     <Match when={displayMode() === POPOVER_ID.LIST}>
-                        <Show when={props.devices.size > 0}>
+                        <Show when={getDevices().size > 0}>
                             <ListHeader />
-                            <For each={props.devices.allItems}>
+                            <For each={getDevices().allItems}>
                                 {(device) => (
                                     <List
                                         {...device}

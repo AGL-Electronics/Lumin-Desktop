@@ -4,7 +4,7 @@ import WebSocketHandler from '@components/WebSocketHandler'
 import { Flex } from '@components/ui/flex'
 import { Label } from '@components/ui/label'
 import { ActiveStatus, DEFAULT_COLOR, capitalizeFirstLetter } from '@src/lib/utils'
-import { DEVICE_TYPE } from '@src/static/enums'
+import { DEVICE_TYPE } from '@static/enums'
 import { Device } from '@static/types'
 
 export interface DeviceComponentProps extends Device {
