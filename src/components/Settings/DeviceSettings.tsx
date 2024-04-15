@@ -186,7 +186,6 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                         },
                     },
                 }
-
                 const command: IPOSTCommand = {
                     commands: [
                         {

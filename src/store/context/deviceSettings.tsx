@@ -52,6 +52,7 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
             wifiSSID: '',
             wifiPassword: '',
             luminDeviceAddress: '',
+            apModeToggle: false,
             luminDeviceMDNS: '',
         },
         ledControlSettings: {
@@ -254,6 +255,7 @@ type SettingsKnownDataLabel =
     | 'wifi-ssid'
     | 'wifi-password'
     | 'lumin-device-address'
+    | 'ap-mode-toggle'
     | 'lumin-device-mdns'
     | 'maintenance-mode-toggle'
     | 'rgb-cycle-toggle'
@@ -434,6 +436,16 @@ export const deviceSettings: SettingCategories = {
     ],
     networkSettings: [
         {
+            label: 'AP Mode',
+            dataLabel: 'ap-mode-toggle',
+            popoverDescription:
+                'Enable AP mode. This mode is used for initial setup of the device, and requires that you connect the device running this app to the Lumin device via an exposed Lumin WIFI network.',
+            placeholder: 'AP Mode',
+            required: false,
+            type: 'toggle',
+            key: 'apModeToggle',
+        },
+        {
             label: 'WIFI SSID',
             dataLabel: 'wifi-ssid',
             popoverDescription: 'The name of the WIFI network',
@@ -456,9 +468,8 @@ export const deviceSettings: SettingCategories = {
         {
             label: 'Lumin Device Address',
             dataLabel: 'lumin-device-address',
-            popoverDescription:
-                'The device address of the lumin device. If MDNS is enabled this field can be used to manually set the device mdns name. If MDNS is not enabled this is where you enter the IP address of your Lumin device',
-            placeholder: '192.168.0.240 or lumin1',
+            popoverDescription: 'The IP address or mdns of the Lumin device',
+            placeholder: '192.168.0.108 or lumin',
             required: true,
             inputType: 'text',
             type: 'input',

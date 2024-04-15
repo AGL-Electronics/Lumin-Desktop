@@ -48,6 +48,7 @@ export interface NetworkSettings {
     wifiSSID: string
     wifiPassword: string
     luminDeviceAddress: string
+    apModeToggle: boolean
     luminDeviceMDNS: string
 }
 

@@ -1,11 +1,15 @@
+import { FaSolidEye, FaSolidEyeLowVision } from 'solid-icons/fa'
 import { For, Show, Switch, type Component, Match, createSignal, createEffect } from 'solid-js'
 import {
     DeviceSettingContainer,
     DeviceSettingItemWrapper,
     DeviceSettingsContentProps,
 } from './DeviceSettingUtil'
+import { Button } from '@components/ui/button'
+import { Flex } from '@components/ui/flex'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
+import { Switch as ToggleSwitch } from '@components/ui/switch'
 import { ActiveStatus, capitalizeFirstLetter, DEFAULT_COLOR } from '@src/lib/utils'
 import { DEVICE_TYPE } from '@src/static/enums'
 import { DeviceSettingsStore } from '@src/static/types'
@@ -21,6 +25,15 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
     const { appState } = useAppContext()
 
     const [status, setStatus] = createSignal(DEFAULT_COLOR)
+    const [inputType, setInputType] = createSignal('password')
+
+    const togglePasswordVisibility = () => {
+        setInputType(inputType() === 'password' ? 'text' : 'password')
+    }
+
+    const handleSetInputType = (key?: string): string => {
+        return key === 'password' ? inputType() : key || 'text'
+    }
 
     createEffect(() => {
         setStatus(getSelectedDevice() ? ActiveStatus(getSelectedDevice()!.status) : DEFAULT_COLOR)
@@ -93,41 +106,92 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                     ) {
                         return false
                     }
+
+                    if (
+                        settings.generalSettings.deviceType === DEVICE_TYPE.WIRED &&
+                        setting.dataLabel === 'ap-mode-toggle'
+                    ) {
+                        return false
+                    }
                     return true // Include the setting by default
                 })}>
                 {(deviceSetting) => (
-                    <Switch>
-                        <Match when={deviceSetting.type === 'input'}>
-                            <DeviceSettingItemWrapper
-                                label={deviceSetting.label}
-                                popoverDescription={deviceSetting.popoverDescription}>
-                                <Input
-                                    autocomplete="off"
-                                    class="border border-accent"
-                                    data-label={deviceSetting.dataLabel}
-                                    name={deviceSetting.dataLabel}
-                                    placeholder={deviceSetting.placeholder}
+                    <DeviceSettingItemWrapper
+                        label={deviceSetting.label}
+                        popoverDescription={deviceSetting.popoverDescription}>
+                        <Switch>
+                            <Match when={deviceSetting.type === 'toggle'}>
+                                <ToggleSwitch
                                     id={deviceSetting.dataLabel}
-                                    minLength={deviceSetting.minLen}
-                                    maxLength={deviceSetting.maxLen}
-                                    required={deviceSetting.required}
-                                    type={deviceSetting.inputType}
-                                    value={
-                                        settings.networkSettings[
-                                            deviceSetting.key as keyof DeviceSettingsStore['networkSettings']
-                                        ] as string
-                                    }
-                                    onChange={(e) => {
+                                    aria-label={deviceSetting.ariaLabel}
+                                    label=""
+                                    onChange={(value) => {
                                         setSettingWithoutSubcategory(
                                             'networkSettings',
                                             deviceSetting.key as keyof DeviceSettingsStore['networkSettings'],
-                                            (e.target as HTMLInputElement).value,
+                                            value,
                                         )
                                     }}
                                 />
-                            </DeviceSettingItemWrapper>
-                        </Match>
-                    </Switch>
+                            </Match>
+                            <Match when={deviceSetting.type === 'input'}>
+                                <Flex
+                                    flexDirection="row"
+                                    justifyContent="end"
+                                    alignItems="center"
+                                    class="w-full">
+                                    <Input
+                                        autocomplete="off"
+                                        class="border border-accent"
+                                        data-label={deviceSetting.dataLabel}
+                                        name={deviceSetting.dataLabel}
+                                        placeholder={deviceSetting.placeholder}
+                                        id={deviceSetting.dataLabel}
+                                        minLength={deviceSetting.minLen}
+                                        maxLength={deviceSetting.maxLen}
+                                        required={deviceSetting.required}
+                                        type={handleSetInputType(deviceSetting.inputType)}
+                                        value={
+                                            settings.networkSettings[
+                                                deviceSetting.key as keyof DeviceSettingsStore['networkSettings']
+                                            ] as string
+                                        }
+                                        onChange={(e) => {
+                                            setSettingWithoutSubcategory(
+                                                'networkSettings',
+                                                deviceSetting.key as keyof DeviceSettingsStore['networkSettings'],
+                                                (e.target as HTMLInputElement).value,
+                                            )
+                                        }}
+                                    />
+                                    <Show when={deviceSetting.inputType === 'password'}>
+                                        <Button
+                                            styles="circle"
+                                            size="xs"
+                                            variant="ghost"
+                                            class="ml-[12px]"
+                                            onClick={togglePasswordVisibility}>
+                                            <Label
+                                                class="text-xs"
+                                                aria-label="Toggle password visibility"
+                                                size="xs"
+                                                for={deviceSetting.dataLabel}>
+                                                <Show
+                                                    when={inputType() === 'password'}
+                                                    aria-label="Show password"
+                                                    fallback={
+                                                        <FaSolidEyeLowVision size={18} class="" />
+                                                    }>
+                                                    <FaSolidEye size={18} class="" />
+                                                </Show>
+                                                {/* {inputType() === 'password' ? 'Show' : 'Hide'} */}
+                                            </Label>
+                                        </Button>
+                                    </Show>
+                                </Flex>
+                            </Match>
+                        </Switch>
+                    </DeviceSettingItemWrapper>
                 )}
             </For>
         </DeviceSettingContainer>

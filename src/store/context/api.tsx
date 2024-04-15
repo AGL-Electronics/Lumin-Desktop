@@ -438,7 +438,9 @@ export const AppAPIProvider: ParentComponent = (props) => {
         }
 
         if (deviceExists && typeof deviceExists?.network.address != 'undefined') {
-            deviceURL = 'http://' + deviceExists?.network.address
+            deviceURL = !deviceExists.network.wifi.apModeStatus
+                ? 'http://' + deviceExists?.network.address
+                : 'http://192.168.4.1'
         } else {
             deviceURL = 'http://localhost'
         }
