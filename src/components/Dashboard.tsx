@@ -1,4 +1,5 @@
 import { createSignal, For, Switch, Match, Show, createEffect, onCleanup, onMount } from 'solid-js'
+import { createAsyncMemo } from 'solidjs-use'
 import type { Component } from 'solid-js'
 import CustomSlideAnimation from '@components/CustomSlideAnimation'
 import DeviceComponent from '@components/Device'
@@ -19,6 +20,7 @@ import {
     DEVICE_STATUS,
     ENotificationType,
     POPOVER_ID,
+    RESTStatus,
 } from '@static/enums'
 import { Device } from '@static/types'
 
@@ -45,65 +47,34 @@ const Dashboard: Component<DashboardProps> = (props) => {
     const { addNotification } = useAppNotificationsContext()
 
     const [displayMode, setDisplayMode] = createSignal(POPOVER_ID.LIST)
+    const [rssi, setRssi] = createSignal(-95)
 
     //#region Handling Device Detection
 
-    const handleDeviceCheck = () => {
+    const handleDeviceCheck = async (device: Device) => {
         if (getDevices().size === 0) {
             return
         }
 
-        getDevices().allItems.forEach(async (device) => {
-            const resPing = await useRequestHook('ping', device.id)
+        try {
+            await useRequestHook('ping', device.id)
 
-            if (resPing.status === 'error') {
-                addNotification({
-                    title: 'Error',
-                    message: `${device.name} is not reachable.`,
-                    type: ENotificationType.ERROR,
-                })
+            const deviceRestStatus = device.network.restAPI.status
+            console.debug('Checking device:', device.name)
 
-                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
-
-                return
+            if (deviceRestStatus === RESTStatus.FAILED) {
+                console.debug('Device not reachable:', device.name)
+                throw new Error(`${device.name} is not reachable.`)
             }
 
             setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
-
-            if (
-                device.status === DEVICE_STATUS.FAILED ||
-                device.status === DEVICE_STATUS.DISABLED ||
-                device.status === DEVICE_STATUS.NONE ||
-                device.status === DEVICE_STATUS.LOADING
-            ) {
-                return
-            }
-
-            const resRSSI = await useRequestHook('wifiStrength', device.id, undefined, '?points=10')
-
-            if (resRSSI.status === 'error') {
-                addNotification({
-                    title: 'Error',
-                    message: 'Device is not reachable.',
-                    type: ENotificationType.ERROR,
-                })
-
-                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
-
-                return
-            }
-
-            const data = resRSSI.data as { rssi: number }
-
-            if (data.rssi < -80) {
-                addNotification({
-                    title: 'Warning',
-                    message: 'Device signal is weak.',
-                    type: ENotificationType.WARNING,
-                })
-            }
-
-            setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+        } catch (error) {
+            addNotification({
+                title: 'Device Detection Error',
+                message: `Failed to detect ${device.name} - ${error}.`,
+                type: ENotificationType.ERROR,
+            })
+            setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
 
             const _device: Device = {
                 ...device,
@@ -111,18 +82,91 @@ const Dashboard: Component<DashboardProps> = (props) => {
                     ...device.network,
                     wifi: {
                         ...device.network.wifi,
-                        rssi: data.rssi,
+                        rssi: -95,
                     },
                 },
             }
 
             setDevice(_device, DEVICE_MODIFY_EVENT.UPDATE)
-        })
+        }
+    }
+
+    const handleDeviceRSSI = async (device: Device) => {
+        if (getDevices().size === 0) {
+            return
+        }
+
+        try {
+            console.debug('Checking wifi strength:', device.name)
+
+            if (
+                [
+                    DEVICE_STATUS.FAILED,
+                    DEVICE_STATUS.DISABLED,
+                    DEVICE_STATUS.NONE,
+                    DEVICE_STATUS.LOADING,
+                ].includes(device.status)
+            ) {
+                console.debug('Device status is not active:', device.name)
+                throw new Error(`${device.name} is not reachable.`)
+            }
+
+            await useRequestHook('wifiStrength', device.id, undefined, '?points=10')
+
+            const wifiStatus = device.network.restAPI.status
+
+            if (wifiStatus === RESTStatus.FAILED) {
+                console.error('Failed to get wifi strength:', device.name)
+                throw new Error(`${device.name} is not reachable.`)
+            }
+
+            const wifiRes = device.network.restAPI.response
+
+            if (!wifiRes) {
+                throw new Error('Invalid RSSI response format')
+            }
+
+            // find the object in the data array that contains an rssi key
+            const rssi = wifiRes.find((d: any) => d.rssi)?.rssi
+            console.debug('RSSI:', rssi)
+            setRssi(rssi)
+        } catch (error) {
+            addNotification({
+                title: 'Device Detection Error',
+                message: `Failed to detect ${device.name} - ${error}.`,
+                type: ENotificationType.ERROR,
+            })
+            setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+
+            const _device: Device = {
+                ...device,
+                network: {
+                    ...device.network,
+                    wifi: {
+                        ...device.network.wifi,
+                        rssi: -95,
+                    },
+                },
+            }
+
+            setDevice(_device, DEVICE_MODIFY_EVENT.UPDATE)
+        }
     }
 
     createEffect(() => {
-        const interval = setInterval(() => {
-            handleDeviceCheck()
+        const interval = setInterval(async () => {
+            await Promise.all(
+                getDevices().allItems.map(async (device) => {
+                    // Handle each device independently
+                    await handleDeviceCheck(device)
+                }),
+            )
+            await Promise.all(
+                getDevices().allItems.map(async (device) => {
+                    // Handle each device independently
+                    await handleDeviceRSSI(device)
+                }),
+            )
         }, 30000)
 
         onCleanup(() => {
@@ -130,8 +174,47 @@ const Dashboard: Component<DashboardProps> = (props) => {
         })
     })
 
+    createEffect(() => {
+        const devices = getDevices().allItems
+        for (const device of devices) {
+            if (device.network.wifi.rssi !== rssi()) {
+                const _device: Device = {
+                    ...device,
+                    network: {
+                        ...device.network,
+                        wifi: {
+                            ...device.network.wifi,
+                            rssi: rssi(),
+                        },
+                    },
+                }
+                console.debug('Updating device RSSI:', device.name, rssi())
+                setDevice(_device, DEVICE_MODIFY_EVENT.UPDATE)
+            }
+        }
+    })
+
     onMount(() => {
-        handleDeviceCheck()
+        addNotification({
+            title: 'Welcome to the Lumin LED Controller',
+            message: 'This is the dashboard where you can manage your devices.',
+            type: ENotificationType.INFO,
+        })
+    })
+
+    onMount(async () => {
+        await Promise.all(
+            getDevices().allItems.map(async (device) => {
+                // Handle each device independently
+                await handleDeviceCheck(device)
+            }),
+        )
+        await Promise.all(
+            getDevices().allItems.map(async (device) => {
+                // Handle each device independently
+                await handleDeviceRSSI(device)
+            }),
+        )
     })
 
     //#endregion

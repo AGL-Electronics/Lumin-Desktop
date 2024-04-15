@@ -148,7 +148,7 @@ export const AppProvider: ParentComponent = (props) => {
     }
 
     createEffect(() => {
-        const { resume, pause } = useInterval(30000, {
+        const { resume, pause } = useInterval(300000, {
             controls: true,
             callback: handleSaveSettings,
         })

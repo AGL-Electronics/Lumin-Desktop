@@ -11,7 +11,7 @@ import { createStore, produce } from 'solid-js/store'
 import { useAppContext } from './app'
 import type { Device, AppStoreDevice } from '@static/types'
 import { UniqueArray } from '@src/static/uniqueArray'
-import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, DEVICE_TYPE, RESTStatus } from '@static/enums'
 
 interface AppDeviceContext {
     getDevices: Accessor<UniqueArray<Device>>
@@ -25,6 +25,8 @@ interface AppDeviceContext {
     setDeviceStatus: (deviceID: string, status: DEVICE_STATUS) => void
     setDeviceWS: (deviceID: string, ws: object) => void
     setSelectedDevice: (device: Device) => void
+    setDeviceRestResponse: (deviceID: string, response: object) => void
+    setDeviceRestStatus: (deviceID: string, status: RESTStatus) => void
     resetSelectedDevice: () => void
 }
 
@@ -135,6 +137,61 @@ export const AppDeviceProvider: ParentComponent = (props) => {
         )
     }
 
+    const setDeviceRestStatus = (deviceID: string, status: RESTStatus) => {
+        setState(
+            produce((s) => {
+                const newItems = s.devices.map((dvc) => {
+                    if (dvc.id === deviceID) {
+                        return {
+                            ...dvc,
+                            network: {
+                                ...dvc.network,
+                                restAPI: { ...dvc.network.restAPI, status },
+                            },
+                        }
+                    }
+                    return dvc
+                })
+
+                s.devices = UniqueArray.from(newItems)
+            }),
+        )
+    }
+
+    const setDeviceRestResponse = (deviceID: string, response: object) => {
+        setState(
+            produce((s) => {
+                // grab the device and push the response to the restAPI.response array
+                const newItems = s.devices.map((dvc) => {
+                    if (dvc.id === deviceID) {
+                        if (!Array.isArray(dvc.network.restAPI.response)) {
+                            console.error(
+                                'restAPI.response is not an array:',
+                                dvc.network.restAPI.response,
+                            )
+                        }
+                        const currentResponses = Array.isArray(dvc.network.restAPI.response)
+                            ? dvc.network.restAPI.response
+                            : []
+                        return {
+                            ...dvc,
+                            network: {
+                                ...dvc.network,
+                                restAPI: {
+                                    ...dvc.network.restAPI,
+                                    response: [...currentResponses, response],
+                                },
+                            },
+                        }
+                    }
+                    return dvc
+                })
+
+                s.devices = UniqueArray.from(newItems)
+            }),
+        )
+    }
+
     const deviceState = createMemo(() => state)
 
     const getDevices = createMemo(() => deviceState().devices)
@@ -175,6 +232,8 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 setDeviceStatus,
                 setDeviceWS,
                 setSelectedDevice,
+                setDeviceRestResponse,
+                setDeviceRestStatus,
                 resetSelectedDevice,
             }}>
             {props.children}

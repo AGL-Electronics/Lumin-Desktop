@@ -126,6 +126,7 @@ export interface Device {
         lanCode: string
         mdns?: string
         address: string
+        restAPI: IRest
         wifi: {
             apModeStatus: boolean
             ssid: string
@@ -174,7 +175,6 @@ export interface UIStore {
 }
 
 export interface AppStoreAPI {
-    restAPI: IRest
     ghAPI: IGHRest
 }
 
@@ -308,7 +308,7 @@ export interface IEndpoint {
 
 export interface IRest {
     status: RESTStatus
-    response: object
+    response: Array<object>
 }
 
 export interface IPOSTCommand {

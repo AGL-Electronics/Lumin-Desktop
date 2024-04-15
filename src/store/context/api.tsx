@@ -31,9 +31,6 @@ interface AppAPIContext {
     getGHEndpoint: Accessor<string>
     setGHRestStatus: (status: RESTStatus) => void
     setFirmware: (assets?: IGHAsset[], version?: string, type?: string) => void
-    //********************************* rest *************************************/
-    getRESTStatus: Accessor<RESTStatus>
-    setRESTStatus: (status: RESTStatus) => void
     //********************************* endpoints *************************************/
     getEndpoints: Accessor<Map<IEndpointKey, IEndpoint>>
     getEndpoint: (key: IEndpointKey) => IEndpoint | undefined
@@ -45,17 +42,14 @@ interface AppAPIContext {
         deviceID?: string,
         body?: IPOSTCommand,
         args?: string,
-    ) => Promise<{
-        status: string
-        data?: string | object | unknown
-    }>
+    ) => Promise<void>
     useOTA: (firmwareName: string, device: string) => Promise<void>
 }
 
 const AppAPIContext = createContext<AppAPIContext>()
 export const AppAPIProvider: ParentComponent = (props) => {
     const { addNotification } = useAppNotificationsContext()
-    const { getDevices } = useAppDeviceContext()
+    const { getDevices, setDeviceRestResponse, setDeviceRestStatus } = useAppDeviceContext()
 
     // TODO: change to firmware release repo
     const ghEndpoint = 'https://api.github.com/repos/Lumin/OpenIris/releases/latest'
@@ -78,10 +72,6 @@ export const AppAPIProvider: ParentComponent = (props) => {
     ])
 
     const defaultState: AppStoreAPI = {
-        restAPI: {
-            status: RESTStatus.COMPLETE,
-            response: {},
-        },
         ghAPI: {
             status: RESTStatus.COMPLETE,
             firmware: {
@@ -122,15 +112,6 @@ export const AppAPIProvider: ParentComponent = (props) => {
     //#endregion
     /********************************* rest *************************************/
     //#region rest
-    const setRESTStatus = (status: RESTStatus) => {
-        setState(
-            produce((s) => {
-                s.restAPI.status = status
-            }),
-        )
-    }
-
-    const getRESTStatus = createMemo(() => apiState().restAPI.status)
     const getEndpoints = createMemo(() => endpointsMap)
     const getEndpoint = (key: IEndpointKey) => endpointsMap.get(key)
     //#endregion
@@ -426,15 +407,14 @@ export const AppAPIProvider: ParentComponent = (props) => {
         }
     }
 
+    type __Result__<T, E> = { status: 'ok'; data: T } | { status: 'error'; error: E }
+
     const useRequestHook = async (
         endpointName: IEndpointKey,
         deviceID?: string,
         body?: IPOSTCommand,
         args?: string,
-    ): Promise<{
-        status: string
-        data: string | object | unknown
-    }> => {
+    ): Promise<void> => {
         const method: RESTType = getEndpoint(endpointName)!.type
         const devices = getDevices()
         const deviceExists = devices.find((d) => d.id === deviceID)
@@ -465,59 +445,51 @@ export const AppAPIProvider: ParentComponent = (props) => {
         console.debug('[RequestHook]: Device URL: ', deviceURL + endpoint)
 
         if (!deviceExists || !deviceURL || deviceURL.length === 0) {
-            const msg = 'No Device found at that address'
-            debug(msg)
-            addNotification({
-                title: 'Error',
-                message: msg,
-                type: ENotificationType.ERROR,
-            })
-            return {
-                status: 'error',
-                data: msg,
-            }
+            throw new Error(`No Device found at that address ${deviceURL}`)
         }
 
         if (args) {
             endpoint += args
         }
-        setRESTStatus(RESTStatus.LOADING)
+
+        setDeviceRestStatus(deviceExists.id, RESTStatus.LOADING)
 
         try {
-            console.log('[RequestHook]: Making request')
-            setRESTStatus(RESTStatus.ACTIVE)
-            const response = await makeRequest(endpoint, deviceURL, method, jsonBody)
+            console.log(
+                `Handling request for device ${deviceExists.name} at ${new Date().toISOString()}`,
+            )
+            setDeviceRestStatus(deviceExists.id, RESTStatus.ACTIVE)
+
+            const timeoutPromise = new Promise(
+                (_, reject) => setTimeout(() => reject(new Error('Request timed out')), 10000), // 10 seconds timeout
+            )
+
+            const response = (await Promise.race([
+                makeRequest(endpoint, deviceURL, method, jsonBody),
+                timeoutPromise,
+            ])) as __Result__<string, string>
+
+            console.debug('[REST Response]: ', response)
 
             if (response.status === 'error') {
-                setRESTStatus(RESTStatus.FAILED)
-                error(`[REST Request]: ${response.error}`)
-                addNotification({
-                    title: 'Error',
-                    message: response.error,
-                    type: ENotificationType.ERROR,
-                })
-                return {
-                    status: 'error',
-                    data: response.error,
-                }
+                console.debug('[REST Request]: ', response.error)
+                throw new Error(`${deviceExists.name} is not reachable. ${response.error}`)
             }
-            setRESTStatus(RESTStatus.COMPLETE)
 
-            console.debug('[REST Request]: ', response.data)
+            console.debug('[REST Request]: ', response)
 
+            setDeviceRestStatus(deviceExists.id, RESTStatus.COMPLETE)
             const data = JSON.parse(response.data)
 
-            return {
-                status: response.status,
-                data: data,
-            }
+            setDeviceRestResponse(deviceExists.id, data)
         } catch (err) {
-            setRESTStatus(RESTStatus.FAILED)
+            setDeviceRestStatus(deviceExists.id, RESTStatus.FAILED)
             error(`[REST Request]: ${err}`)
-            return {
-                status: 'error',
-                data: err,
-            }
+            addNotification({
+                title: 'REST Request Error',
+                message: `${deviceExists.name} is not reachable.`,
+                type: ENotificationType.ERROR,
+            })
         }
     }
 
@@ -527,20 +499,37 @@ export const AppAPIProvider: ParentComponent = (props) => {
      * @param device The device to upload the firmware to
      *
      */
-    const useOTA = async (firmwareName: string, device: string) => {
-        const res = await useRequestHook('ota', device)
+    const useOTA = async (firmwareName: string, deviceID: string) => {
+        try {
+            await useRequestHook('ping', deviceID)
 
-        if (!res) {
+            const devices = getDevices()
+            const device = devices.find((d) => d.id === deviceID)
+            const endpoint: string = getEndpoint('ota')!.url
+
+            if (!device) {
+                throw new Error('No device found that matches the device ID')
+            }
+
+            const res = device.network.restAPI.response
+
+            if (!res) {
+                throw new Error('No response from device')
+            }
+
+            const firmwarePath = await join(await appConfigDir(), firmwareName + '.bin')
+
+            const deviceURL = 'http://' + device.network.address + endpoint
+
+            await upload(deviceURL, firmwarePath)
+        } catch (err) {
+            error(`[OTA Error]: ${err}`)
             addNotification({
-                title: 'Error',
-                message: 'Failed to upload firmware',
+                title: 'OTA Upload Error',
+                message: `Failed to upload firmware ${err}`,
                 type: ENotificationType.ERROR,
             })
-            return
         }
-
-        const path = await join(await appConfigDir(), firmwareName + '.bin')
-        await upload(device, path)
     }
     //#endregion
 
@@ -551,12 +540,10 @@ export const AppAPIProvider: ParentComponent = (props) => {
                 getGHRestStatus,
                 getFirmware,
                 getGHEndpoint,
-                getRESTStatus,
                 getEndpoints,
                 getEndpoint,
                 setGHRestStatus,
                 setFirmware,
-                setRESTStatus,
                 downloadAsset,
                 doGHRequest,
                 useRequestHook,
