@@ -438,9 +438,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
         }
 
         if (deviceExists && typeof deviceExists?.network.address != 'undefined') {
-            deviceURL = !deviceExists.network.wifi.apModeStatus
-                ? 'http://' + deviceExists?.network.address
-                : 'http://192.168.4.1'
+            deviceURL = 'http://' + deviceExists?.network.address
         } else {
             deviceURL = 'http://localhost'
         }
@@ -449,6 +447,14 @@ export const AppAPIProvider: ParentComponent = (props) => {
 
         if (!deviceExists || !deviceURL || deviceURL.length === 0) {
             throw new Error(`No Device found at that address ${deviceURL}`)
+        }
+
+        if (deviceExists.network.wifi.apModeStatus) {
+            addNotification({
+                title: 'REST Request',
+                message: `Sending request to ${deviceExists.name} at ${deviceURL + endpoint}`,
+                type: ENotificationType.INFO,
+            })
         }
 
         if (args) {

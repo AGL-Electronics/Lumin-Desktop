@@ -161,7 +161,7 @@ const GeneralSettings: Component<GeneralSettingsProps> = () => {
                                 <ToggleSwitch
                                     id={deviceSetting.dataLabel}
                                     aria-label={deviceSetting.ariaLabel}
-                                    label={deviceSetting.label}
+                                    label=""
                                     onChange={(value) => {
                                         setSettingWithoutSubcategory(
                                             'generalSettings',
@@ -169,6 +169,11 @@ const GeneralSettings: Component<GeneralSettingsProps> = () => {
                                             value,
                                         )
                                     }}
+                                    checked={
+                                        settings.generalSettings[
+                                            deviceSetting.key as keyof DeviceSettingsStore['generalSettings']
+                                        ] as boolean
+                                    }
                                 />
                             </Match>
                         </Switch>

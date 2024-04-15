@@ -52,6 +52,20 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                 message: `${device.name} device config has been updated.`,
                 type: ENotificationType.SUCCESS,
             })
+
+            const res = await useRequestHook('save', device.id)
+
+            if (res.status === RESTStatus.FAILED) {
+                throw new Error(`Failed to save ${device.name} device config. ${res.response}`)
+            }
+
+            console.debug('Device saved:', res.response)
+
+            addNotification({
+                title: 'Device Config Saved',
+                message: `${device.name} device config has been saved. Device has been rebooted.`,
+                type: ENotificationType.SUCCESS,
+            })
         } catch (error) {
             console.error('Error:', error)
             addNotification({
@@ -186,30 +200,6 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                         },
                     },
                 }
-                const command: IPOSTCommand = {
-                    commands: [
-                        {
-                            command: 'set_wifi',
-                            data: {
-                                ssid: settings.networkSettings.wifiSSID,
-                                password: settings.networkSettings.wifiPassword,
-                                channel: 1,
-                                power: 52,
-                                adhoc: false,
-                            },
-                        },
-                        {
-                            command: 'set_mqtt',
-                            data: {
-                                broker: settings.generalSettings.printerIP,
-                                password: settings.generalSettings.lanCode,
-                                printerSerialNumber: settings.generalSettings.printerSerialNumber,
-                            },
-                        },
-                    ],
-                }
-
-                await handleDeviceRequest(device, command)
 
                 setDevice(device, DEVICE_MODIFY_EVENT.UPDATE)
                 console.debug('Updating device')
@@ -330,6 +320,35 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                 setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
             }
 
+            const command: IPOSTCommand = {
+                commands: [
+                    {
+                        command: 'set_mqtt',
+                        data: {
+                            broker: settings.generalSettings.printerIP,
+                            password: settings.generalSettings.lanCode,
+                            printerSerialNumber: settings.generalSettings.printerSerialNumber,
+                        },
+                    },
+                    {
+                        command: 'set_wifi',
+                        data: {
+                            ssid: settings.networkSettings.wifiSSID,
+                            password: settings.networkSettings.wifiPassword,
+                            channel: 1,
+                            power: 52,
+                            adhoc: false,
+                        },
+                    },
+                ],
+            }
+
+            if (settings.generalSettings.reboot) {
+                await handleDeviceRequest(device, command)
+            }
+
+            clearStore()
+
             let notification: Notifications
 
             if (props.createNewDevice) {
@@ -348,8 +367,7 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
 
             addNotification(notification)
 
-            wiredFormHandler.resetForm()
-            clearStore()
+            //wiredFormHandler.resetForm()
 
             if (settings.generalSettings.flashFirmware) navigate('/flashFirmware')
             else navigate('/')

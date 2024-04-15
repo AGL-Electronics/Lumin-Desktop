@@ -47,6 +47,7 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
             printerIP: '',
             lanCode: '',
             flashFirmware: false,
+            reboot: true,
         },
         networkSettings: {
             wifiSSID: '',
@@ -252,6 +253,7 @@ type SettingsKnownDataLabel =
     | 'printer-ip'
     | 'lan-code'
     | 'flash-firmware'
+    | 'reboot'
     | 'wifi-ssid'
     | 'wifi-password'
     | 'lumin-device-address'
@@ -432,6 +434,16 @@ export const deviceSettings: SettingCategories = {
             required: true,
             type: 'toggle',
             key: 'flashFirmware',
+        },
+        {
+            label: 'Reboot Device',
+            dataLabel: 'reboot',
+            popoverDescription:
+                'Do you want to reboot the device? This is necessary to load the new changes on your Lumin device',
+            placeholder: 'Reboot Device',
+            required: true,
+            type: 'toggle',
+            key: 'reboot',
         },
     ],
     networkSettings: [

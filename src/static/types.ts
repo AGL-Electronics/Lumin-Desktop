@@ -42,6 +42,7 @@ export interface GeneralSettings {
     printerIP: string
     lanCode: string
     flashFirmware: boolean
+    reboot: boolean
 }
 
 export interface NetworkSettings {
@@ -332,7 +333,14 @@ export interface IRest {
 
 export interface IPOSTCommand {
     commands: Array<{
-        command: 'set_leds' | 'set_mdns' | 'set_wifi' | 'set_mqtt' | 'set_ota' | 'set_http'
+        command:
+            | 'set_leds'
+            | 'set_mdns'
+            | 'set_wifi'
+            | 'set_mqtt'
+            | 'set_ota'
+            | 'set_http'
+            | 'set_save'
         data: object
     }>
 }

@@ -70,6 +70,12 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
         )
     })
 
+    createEffect(() => {
+        // set the device address to the default value if the apModeToggle is enabled
+        if (settings.networkSettings.apModeToggle)
+            setSettingWithoutSubcategory('networkSettings', 'luminDeviceAddress', '192.168.4.1')
+    })
+
     return (
         <DeviceSettingContainer label="Lumin Network Setup" layout="col">
             {/* Network Setup */}
@@ -113,6 +119,15 @@ const NetworkSettings: Component<NetworkSettingsProps> = (props) => {
                     ) {
                         return false
                     }
+
+                    // Exclude 'lumin-device-address' setting if the apModeStatus is true
+                    if (
+                        settings.networkSettings.apModeToggle &&
+                        setting.dataLabel === 'lumin-device-address'
+                    ) {
+                        return false
+                    }
+
                     return true // Include the setting by default
                 })}>
                 {(deviceSetting) => (
