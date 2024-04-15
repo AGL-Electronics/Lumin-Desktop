@@ -7,6 +7,7 @@ import {
     type Accessor,
     onMount,
     createEffect,
+    createSignal,
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
@@ -22,7 +23,8 @@ interface AppContext {
     setDebugMode: (mode: DebugMode | undefined) => void
     setEnableMDNS: (enable: boolean) => void
     setScanForDeviceOnStartup: (enable: boolean) => void
-    setDevices: (devices: Device[]) => void
+    handleDeviceChange: (updatedDevices: Device[]) => void
+    devices: Accessor<Device[]>
 }
 
 const AppContext = createContext<AppContext>()
@@ -32,7 +34,6 @@ export const AppProvider: ParentComponent = (props) => {
         debugMode: DebugMode.OFF,
         enableMDNS: false,
         scanForDevicesOnStartup: false,
-        devices: [],
     }
 
     const [state, setState] = createStore<AppStore>(defaultState)
@@ -41,14 +42,6 @@ export const AppProvider: ParentComponent = (props) => {
         setState(
             produce((s) => {
                 s.debugMode = mode || DebugMode.INFO
-            }),
-        )
-    }
-
-    const setDevices = (devices: Device[]) => {
-        setState(
-            produce((s) => {
-                s.devices = devices
             }),
         )
     }
@@ -70,6 +63,7 @@ export const AppProvider: ParentComponent = (props) => {
     }
 
     const appState = createMemo(() => state)
+
     //#endregion
 
     //#region App Boot
@@ -85,6 +79,8 @@ export const AppProvider: ParentComponent = (props) => {
         checkPermission,
         addNotification,
     } = useAppNotificationsContext()
+
+    const [devices, setDevices] = createSignal<Device[]>([])
 
     onMount(() => {
         // load the app settings from the persistent store and assign to the global state
@@ -126,23 +122,29 @@ export const AppProvider: ParentComponent = (props) => {
             enableMDNS: appState().enableMDNS,
             debugMode: appState().debugMode,
             scanForDevicesOnStartup: appState().scanForDevicesOnStartup,
-            devices: appState().devices,
+            devices: devices(),
         }
         return settings
     }
 
     const handleSaveSettings = async () => {
-        // check if the settings have changed and save to the store if they have
         const storedSettings = await get('settings')
-        if (!isEqual(storedSettings, createSettingsObject())) {
-            debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
-            addNotification({
-                title: 'Settings Saved',
-                message: 'Settings have been saved successfully',
-                type: ENotificationType.INFO,
-            })
-            await set('settings', createSettingsObject())
+
+        if (isEqual(storedSettings, createSettingsObject())) {
+            return
         }
+
+        debug(`[Routes]: Saving Settings - ${JSON.stringify(createSettingsObject())}`)
+        addNotification({
+            title: 'Settings Saved',
+            message: 'Settings have been saved successfully',
+            type: ENotificationType.INFO,
+        })
+        await set('settings', createSettingsObject())
+    }
+
+    const handleDeviceChange = (updatedDevices: Device[]) => {
+        setDevices(updatedDevices)
     }
 
     createEffect(() => {
@@ -167,8 +169,9 @@ export const AppProvider: ParentComponent = (props) => {
                 appState,
                 setDebugMode,
                 setEnableMDNS,
-                setDevices,
                 setScanForDeviceOnStartup,
+                handleDeviceChange,
+                devices,
             }}>
             <AppUIProvider>{props.children}</AppUIProvider>
         </AppContext.Provider>

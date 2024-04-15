@@ -130,6 +130,7 @@ export interface Device {
             apModeStatus: boolean
             ssid: string
             password: string
+            rssi: number
         }
     }
     led: LEDDevice
@@ -153,9 +154,7 @@ export interface Inputs {
 
 //********************************* Stores *************************************/
 
-export interface AppStore extends AppSettings {
-    devices: Device[]
-}
+export interface AppStore extends AppSettings {}
 
 export interface AppStoreNotifications {
     notifications?: ToasterStore<Notifications>

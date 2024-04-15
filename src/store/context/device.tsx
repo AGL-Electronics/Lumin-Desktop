@@ -4,11 +4,10 @@ import {
     createMemo,
     type ParentComponent,
     Accessor,
-    createEffect,
     onMount,
+    createEffect,
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
-import { debug } from 'tauri-plugin-log-api'
 import { useAppContext } from './app'
 import type { Device, AppStoreDevice } from '@static/types'
 import { UniqueArray } from '@src/static/uniqueArray'
@@ -31,7 +30,7 @@ interface AppDeviceContext {
 
 const AppDeviceContext = createContext<AppDeviceContext>()
 export const AppDeviceProvider: ParentComponent = (props) => {
-    const { setDevices, appState } = useAppContext()
+    const { handleDeviceChange, devices } = useAppContext()
 
     const defaultState: AppStoreDevice = {
         devices: UniqueArray.from([]),
@@ -44,8 +43,11 @@ export const AppDeviceProvider: ParentComponent = (props) => {
         setState(
             produce((s) => {
                 switch (event) {
-                    case DEVICE_MODIFY_EVENT.PUSH:
-                        return s.devices.add(device)
+                    case DEVICE_MODIFY_EVENT.PUSH: {
+                        s.devices.add(device)
+                        handleDeviceChange(s.devices.allItems)
+                        return s
+                    }
                     case DEVICE_MODIFY_EVENT.UPDATE: {
                         const newItems = s.devices.map((dvc) => {
                             if (dvc.id === device.id) {
@@ -55,11 +57,14 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                         })
 
                         s.devices = UniqueArray.from(newItems)
+
+                        handleDeviceChange(s.devices.allItems)
                         return s
                     }
                     case DEVICE_MODIFY_EVENT.DELETE: {
                         const newItems = s.devices.filter((dvc) => dvc.id !== device.id)
                         s.devices = UniqueArray.from(newItems)
+                        handleDeviceChange(s.devices.allItems)
                         return s
                     }
                     default:
@@ -139,39 +144,21 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice?.type)
     const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice?.ws)
 
-    /*  const { get } = usePersistentStore()
-
     onMount(() => {
-        get('settings').then((settings) => {
-            if (!settings) {
-                console.debug('No settings file found')
-                return
-            }
-
-
-            settings.devices.allItems.forEach((device: Device) => {
-                setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
-            })
-        })
-
-        doGHRequest()
+        /*  doGHRequest()
         useMDNSScanner('_lumin._tcp', 5).then(() => {
             // TODO: handle devices found
-        })
-    }) */
+        }) */
+    })
 
     createEffect(() => {
-        // load the devices from the app context and assign to the global state
-        appState().devices.forEach((device: Device) => {
-            setDevice(device, DEVICE_MODIFY_EVENT.PUSH)
-        })
-
-        if (getDevices().size === 0) {
-            debug('No devices found in settings file')
-            return
+        if (devices()) {
+            setState(
+                produce((s) => {
+                    s.devices = UniqueArray.from(devices())
+                }),
+            )
         }
-
-        setDevices(getDevices().allItems)
     })
 
     return (
