@@ -1,9 +1,9 @@
+import { Titlebar } from '@components/Titlebar/Titlebar'
+import { TITLEBAR_ACTION } from '@src/static/types/enums'
 import { FaSolidGear } from 'solid-icons/fa'
 import { Component } from 'solid-js'
 import DebugModeMenu from '../Debug'
-import { Titlebar } from '@components/Titlebar/Titlebar'
 import { debugModalId } from '@src/static'
-import { TITLEBAR_ACTION } from '@src/static/types/enums'
 
 export interface IProps {
     debugMode: string

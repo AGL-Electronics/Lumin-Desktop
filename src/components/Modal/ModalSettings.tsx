@@ -72,11 +72,7 @@ const CropSettingsSection: CropSettingsSectionTab = (props) => {
         tabRef()!.classList.add(...activeTabClasses)
     }
 
-    return (
-        <ModalTabs onClick={handleClick}>
-            
-        </ModalTabs>
-    )
+    return <ModalTabs onClick={handleClick} />
 }
 
 export default CropSettingsSection

@@ -145,7 +145,7 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                     },
                 ],
             }
-            
+
             await handleLEDRequest(device, command)
         } catch (error) {
             const errors = ((error as object)['validationResult'] as Array<object>) ?? []

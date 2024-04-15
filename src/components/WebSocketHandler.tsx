@@ -20,7 +20,7 @@ export const LoaderHandler = (props: IWsProps) => {
             when={props.hasCamera}
             fallback={
                 <Image.Root>
-                    <Image.Img class='rounded-t-md' src="/images/pcb.png" alt="lumin pcb" />
+                    <Image.Img class="rounded-t-md" src="/images/pcb.png" alt="lumin pcb" />
                 </Image.Root>
             }>
             <Switch>

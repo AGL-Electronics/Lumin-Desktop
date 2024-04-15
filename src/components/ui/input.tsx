@@ -33,7 +33,7 @@ const Input: Component<InputProps> = (props) => {
             {...props}
             mode="input"
             render={(field) => (
-                <div class='w-full' classList={local.classList}>
+                <div class="w-full" classList={local.classList}>
                     <input
                         type={props.type}
                         class={cn(
