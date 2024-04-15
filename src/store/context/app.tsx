@@ -12,7 +12,7 @@ import {
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener, useInterval } from 'solidjs-use'
 import { debug } from 'tauri-plugin-log-api'
-import type { AppStore, Device, PersistentSettings } from '@static/types'
+import type { AppStore, Device, PersistentDevice, PersistentSettings } from '@static/types'
 import { DebugMode, ENotificationAction, ENotificationType } from '@static/enums'
 import { useAppNotificationsContext } from '@store/context/notifications'
 import { AppUIProvider } from '@store/context/ui'
@@ -24,14 +24,14 @@ interface AppContext {
     setEnableMDNS: (enable: boolean) => void
     setScanForDeviceOnStartup: (enable: boolean) => void
     handleDeviceChange: (updatedDevices: Device[]) => void
-    devices: Accessor<Device[]>
+    devices: Accessor<PersistentDevice[]>
 }
 
 const AppContext = createContext<AppContext>()
 export const AppProvider: ParentComponent = (props) => {
     //#region Store
     const defaultState: AppStore = {
-        debugMode: DebugMode.OFF,
+        debugMode: DebugMode.INFO,
         enableMDNS: false,
         scanForDevicesOnStartup: false,
     }
@@ -67,7 +67,7 @@ export const AppProvider: ParentComponent = (props) => {
     //#endregion
 
     //#region App Boot
-    const { get, set } = usePersistentStore()
+    const { get, set, save } = usePersistentStore()
 
     const {
         setEnableNotifications,
@@ -80,7 +80,7 @@ export const AppProvider: ParentComponent = (props) => {
         addNotification,
     } = useAppNotificationsContext()
 
-    const [devices, setDevices] = createSignal<Device[]>([])
+    const [devices, setDevices] = createSignal<PersistentDevice[]>([])
 
     onMount(() => {
         // load the app settings from the persistent store and assign to the global state
@@ -141,10 +141,32 @@ export const AppProvider: ParentComponent = (props) => {
             type: ENotificationType.INFO,
         })
         await set('settings', createSettingsObject())
+        await save()
     }
 
     const handleDeviceChange = (updatedDevices: Device[]) => {
-        setDevices(updatedDevices)
+        const persistentDevices: PersistentDevice[] = updatedDevices.map((device) => {
+            const persistentDevice: PersistentDevice = {
+                id: device.id,
+                name: device.name,
+                type: device.type,
+                serialNumber: device.serialNumber,
+                network: {
+                    lanCode: device.network.lanCode,
+                    mdns: device.network.mdns,
+                    address: device.network.address,
+                    wifi: {
+                        ssid: device.network.wifi.ssid,
+                        password: device.network.wifi.password,
+                    },
+                },
+                led: device.led,
+                hasCamera: device.hasCamera,
+                ws: device.ws ? device.ws : undefined,
+            }
+            return persistentDevice
+        })
+        setDevices(persistentDevices)
     }
 
     createEffect(() => {

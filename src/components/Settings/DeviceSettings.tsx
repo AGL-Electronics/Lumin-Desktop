@@ -20,7 +20,7 @@ import { Icons } from '@components/ui/icon'
 import { Label } from '@components/ui/label'
 import { capitalizeFirstLetter } from '@src/lib/utils'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
-import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType, RESTStatus } from '@static/enums'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType } from '@static/enums'
 import { Device, Notifications } from '@static/types'
 import { useAppDeviceContext } from '@store/context/device'
 import { wiredFormHandler, useDeviceSettingsContext } from '@store/context/deviceSettings'
@@ -170,10 +170,6 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                     status: DEVICE_STATUS.LOADING,
                     serialNumber: settings.generalSettings.printerSerialNumber,
                     network: {
-                        restAPI: {
-                            status: RESTStatus.LOADING,
-                            response: [],
-                        },
                         lanCode: settings.generalSettings.lanCode,
                         address:
                             settings.networkSettings.luminDeviceAddress === 'auto'

@@ -17,10 +17,13 @@ import {
     IGHAsset,
     IGHRelease,
     IPOSTCommand,
+    IRest,
 } from '@static/types'
 import { makeRequest } from 'tauri-plugin-request-client'
 
-interface AppAPIContext {
+//type __Result__<T, E> = { status: 'ok'; data: T } | { status: 'error'; error: E }
+
+interface IAppAPIContext {
     //********************************* gh rest *************************************/
     getGHRestStatus: Accessor<RESTStatus>
     getFirmware: Accessor<{
@@ -42,14 +45,14 @@ interface AppAPIContext {
         deviceID?: string,
         body?: IPOSTCommand,
         args?: string,
-    ) => Promise<void>
+    ) => Promise<IRest>
     useOTA: (firmwareName: string, device: string) => Promise<void>
 }
 
-const AppAPIContext = createContext<AppAPIContext>()
+const AppAPIContext = createContext<IAppAPIContext>()
 export const AppAPIProvider: ParentComponent = (props) => {
     const { addNotification } = useAppNotificationsContext()
-    const { getDevices, setDeviceRestResponse, setDeviceRestStatus } = useAppDeviceContext()
+    const { getDeviceState } = useAppDeviceContext()
 
     // TODO: change to firmware release repo
     const ghEndpoint = 'https://api.github.com/repos/Lumin/OpenIris/releases/latest'
@@ -407,16 +410,14 @@ export const AppAPIProvider: ParentComponent = (props) => {
         }
     }
 
-    type __Result__<T, E> = { status: 'ok'; data: T } | { status: 'error'; error: E }
-
     const useRequestHook = async (
         endpointName: IEndpointKey,
         deviceID?: string,
         body?: IPOSTCommand,
         args?: string,
-    ): Promise<void> => {
+    ): Promise<IRest> => {
         const method: RESTType = getEndpoint(endpointName)!.type
-        const devices = getDevices()
+        const devices = getDeviceState().devices
         const deviceExists = devices.find((d) => d.id === deviceID)
         let endpoint: string = getEndpoint(endpointName)!.url
         let deviceURL: string = ''
@@ -452,23 +453,20 @@ export const AppAPIProvider: ParentComponent = (props) => {
             endpoint += args
         }
 
-        setDeviceRestStatus(deviceExists.id, RESTStatus.LOADING)
-
+        let restStatus: RESTStatus = RESTStatus.LOADING
         try {
             console.log(
                 `Handling request for device ${deviceExists.name} at ${new Date().toISOString()}`,
             )
-            setDeviceRestStatus(deviceExists.id, RESTStatus.ACTIVE)
+            /*  const timeoutPromise = new Promise(
+                (_, reject) => setTimeout(() => reject(new Error('Request timed out')), 30000), // 10 seconds timeout
+            ) */
 
-            const timeoutPromise = new Promise(
-                (_, reject) => setTimeout(() => reject(new Error('Request timed out')), 10000), // 10 seconds timeout
-            )
-
-            const response = (await Promise.race([
-                makeRequest(endpoint, deviceURL, method, jsonBody),
+            /* const response = (await Promise.race([
                 timeoutPromise,
-            ])) as __Result__<string, string>
+            ])) as __Result__<string, string> */
 
+            const response = await makeRequest(endpoint, deviceURL, method, jsonBody)
             console.debug('[REST Response]: ', response)
 
             if (response.status === 'error') {
@@ -478,18 +476,27 @@ export const AppAPIProvider: ParentComponent = (props) => {
 
             console.debug('[REST Request]: ', response)
 
-            setDeviceRestStatus(deviceExists.id, RESTStatus.COMPLETE)
+            restStatus = RESTStatus.COMPLETE
             const data = JSON.parse(response.data)
 
-            setDeviceRestResponse(deviceExists.id, data)
+            return {
+                status: restStatus,
+                response: data,
+            }
         } catch (err) {
-            setDeviceRestStatus(deviceExists.id, RESTStatus.FAILED)
+            restStatus = RESTStatus.FAILED
+
             error(`[REST Request]: ${err}`)
             addNotification({
                 title: 'REST Request Error',
                 message: `${deviceExists.name} is not reachable.`,
                 type: ENotificationType.ERROR,
             })
+
+            return {
+                status: restStatus,
+                response: { error: err },
+            }
         }
     }
 
@@ -501,9 +508,9 @@ export const AppAPIProvider: ParentComponent = (props) => {
      */
     const useOTA = async (firmwareName: string, deviceID: string) => {
         try {
-            await useRequestHook('ping', deviceID)
+            const res = await useRequestHook('ping', deviceID)
 
-            const devices = getDevices()
+            const devices = getDeviceState().devices
             const device = devices.find((d) => d.id === deviceID)
             const endpoint: string = getEndpoint('ota')!.url
 
@@ -511,9 +518,7 @@ export const AppAPIProvider: ParentComponent = (props) => {
                 throw new Error('No device found that matches the device ID')
             }
 
-            const res = device.network.restAPI.response
-
-            if (!res) {
+            if (res.status === RESTStatus.FAILED) {
                 throw new Error('No response from device')
             }
 
@@ -558,7 +563,9 @@ export const AppAPIProvider: ParentComponent = (props) => {
 export const useAppAPIContext = () => {
     const context = useContext(AppAPIContext)
     if (context === undefined) {
-        throw new Error('useAppAPIContext must be used within an AppAPIProvider')
+        throw new Error(
+            'useAppAPIContext must be used within an AppAPIProvider. Make sure the component is wrapped in the provider component to access the context',
+        )
     }
     return context
 }

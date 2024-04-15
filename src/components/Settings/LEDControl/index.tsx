@@ -12,6 +12,7 @@ import {
     DEVICE_STATUS,
     ENotificationType,
     ESPLEDPatterns,
+    RESTStatus,
 } from '@static/enums'
 import { Device, IPOSTCommand } from '@static/types'
 import { useAppDeviceContext } from '@store/context/device'
@@ -29,6 +30,46 @@ const LEDControl: Component<LEDControlProps> = (props) => {
     const { settings } = useDeviceSettingsContext()
     const navigate = useNavigate()
 
+    const handleLEDRequest = async (device: Device, command: IPOSTCommand) => {
+        try {
+            const response = await useRequestHook('jsonHandler', device.id, command)
+
+            console.debug('Response:', response)
+
+            if (response.status === RESTStatus.FAILED) {
+                throw new Error(`Failed to update ${device.name} LEDs. ${response.response}`)
+            }
+
+            addNotification({
+                title: 'LED Update',
+                message: `${device.name} LEDs have been updated.`,
+                type: ENotificationType.SUCCESS,
+            })
+
+            // update the device in the store
+            const updatedDevice: Device = {
+                ...device,
+                led: {
+                    ...device.led,
+                    ledControlSettings: {
+                        ...device.led.ledControlSettings,
+                        behavior: settings.ledControlSettings.behavior,
+                    },
+                },
+            }
+
+            setDevice(updatedDevice, DEVICE_MODIFY_EVENT.UPDATE)
+        } catch (error) {
+            console.error('Error:', error)
+            addNotification({
+                title: 'Error',
+                message: `Failed to update device. ${error}`,
+                type: ENotificationType.ERROR,
+            })
+            setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
+        }
+    }
+
     const handleSubmit = async (e: Event) => {
         e.preventDefault()
 
@@ -39,6 +80,10 @@ const LEDControl: Component<LEDControlProps> = (props) => {
             // TODO: Implement addressable LEDs, and implement custom colors with the state object
             //{ "state": { "member": 'indicatorErrorColor', "color": { "r": 0, "g": 0, "b": 0 } }
             // TODO: Implement brightness control
+
+            if (device.status === DEVICE_STATUS.LOADING) {
+                throw new Error(`${device.name} is not reachable.`)
+            }
 
             // parse the pattern here
             // take the value of the behavior toggles and set the pattern according to the toggle that is true
@@ -100,62 +145,8 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                     },
                 ],
             }
-
-            // Check if the device is reachable with a ping request
-
-            const pingResponse = await useRequestHook('ping', device.id)
-            setDeviceStatus(device.id, DEVICE_STATUS.LOADING)
-
-            if (pingResponse.status === 'error') {
-                addNotification({
-                    title: 'Error',
-                    message: 'Device is not reachable.',
-                    type: ENotificationType.ERROR,
-                })
-
-                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
-
-                return
-            }
-
-            console.debug('Response:', pingResponse)
-            setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
-
-            const response = await useRequestHook('jsonHandler', device.id, command)
-
-            console.debug('Response:', response)
-
-            if (response.status === 'error') {
-                addNotification({
-                    title: 'Error',
-                    message: `Failed to update device. ${response.data}`,
-                    type: ENotificationType.ERROR,
-                })
-
-                setDeviceStatus(device.id, DEVICE_STATUS.FAILED)
-
-                return
-            }
-
-            addNotification({
-                title: 'LED Update',
-                message: `${device.name} LEDs have been updated.`,
-                type: ENotificationType.SUCCESS,
-            })
-
-            // update the device in the store
-            const updatedDevice: Device = {
-                ...device,
-                led: {
-                    ...device.led,
-                    ledControlSettings: {
-                        ...device.led.ledControlSettings,
-                        behavior: settings.ledControlSettings.behavior,
-                    },
-                },
-            }
-
-            setDevice(updatedDevice, DEVICE_MODIFY_EVENT.UPDATE)
+            
+            await handleLEDRequest(device, command)
         } catch (error) {
             const errors = ((error as object)['validationResult'] as Array<object>) ?? []
 

@@ -9,12 +9,11 @@ import {
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import { useAppContext } from './app'
-import type { Device, AppStoreDevice } from '@static/types'
-import { UniqueArray } from '@src/static/uniqueArray'
-import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, DEVICE_TYPE, RESTStatus } from '@static/enums'
+import type { Device, AppStoreDevice, PersistentDevice } from '@static/types'
+import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, DEVICE_TYPE } from '@static/enums'
 
-interface AppDeviceContext {
-    getDevices: Accessor<UniqueArray<Device>>
+interface IAppDeviceContext {
+    getDeviceState: Accessor<AppStoreDevice>
     getSelectedDevice: Accessor<Device | undefined>
     getSelectedDeviceAddress: Accessor<string | undefined>
     getSelectedDeviceStatus: Accessor<DEVICE_STATUS | undefined>
@@ -25,52 +24,48 @@ interface AppDeviceContext {
     setDeviceStatus: (deviceID: string, status: DEVICE_STATUS) => void
     setDeviceWS: (deviceID: string, ws: object) => void
     setSelectedDevice: (device: Device) => void
-    setDeviceRestResponse: (deviceID: string, response: object) => void
-    setDeviceRestStatus: (deviceID: string, status: RESTStatus) => void
+    setDeviceRSSI: (deviceID: string, rssi: number) => void
     resetSelectedDevice: () => void
 }
 
-const AppDeviceContext = createContext<AppDeviceContext>()
+const AppDeviceContext = createContext<IAppDeviceContext>()
 export const AppDeviceProvider: ParentComponent = (props) => {
     const { handleDeviceChange, devices } = useAppContext()
 
     const defaultState: AppStoreDevice = {
-        devices: UniqueArray.from([]),
+        devices: [],
         selectedDevice: undefined,
     }
 
-    const [state, setState] = createStore<AppStoreDevice>(defaultState)
+    const [deviceState, setState] = createStore<AppStoreDevice>(defaultState)
 
     const setDevice = (device: Device, event: DEVICE_MODIFY_EVENT) => {
         setState(
             produce((s) => {
                 switch (event) {
                     case DEVICE_MODIFY_EVENT.PUSH: {
-                        s.devices.add(device)
-                        handleDeviceChange(s.devices.allItems)
+                        s.devices.push(device)
+                        handleDeviceChange(s.devices)
                         return s
                     }
                     case DEVICE_MODIFY_EVENT.UPDATE: {
-                        const newItems = s.devices.map((dvc) => {
-                            if (dvc.id === device.id) {
-                                return device
-                            }
-                            return dvc
-                        })
+                        const _device = s.devices.find((dvc) => dvc.id === device.id)
+                        if (!_device) return
 
-                        s.devices = UniqueArray.from(newItems)
-
-                        handleDeviceChange(s.devices.allItems)
+                        // pop the device and push the updated device
+                        const newItems = s.devices.filter((dvc) => dvc.id !== device.id)
+                        newItems.push(device)
+                        s.devices = newItems
+                        handleDeviceChange(s.devices)
                         return s
                     }
                     case DEVICE_MODIFY_EVENT.DELETE: {
                         const newItems = s.devices.filter((dvc) => dvc.id !== device.id)
-                        s.devices = UniqueArray.from(newItems)
-                        handleDeviceChange(s.devices.allItems)
+                        s.devices = newItems
+                        handleDeviceChange(s.devices)
                         return s
                     }
                     default:
-                        return s
                 }
             }),
         )
@@ -79,14 +74,19 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setDeviceMDNS = (deviceID: string, mdns: string) => {
         setState(
             produce((s) => {
-                const newItems = s.devices.map((dvc) => {
+                const device = s.devices.find((dvc) => dvc.id === deviceID)
+                if (!device) return
+                s.devices.forEach((dvc) => {
                     if (dvc.id === deviceID) {
-                        return { ...dvc, network: { ...dvc.network, mdns } }
+                        dvc.network.mdns = mdns
+                        return dvc
                     }
-                    return dvc
                 })
 
-                s.devices = UniqueArray.from(newItems)
+                console.debug(
+                    'Updated device:',
+                    s.devices.find((dvc) => dvc.id === deviceID),
+                )
             }),
         )
     }
@@ -94,14 +94,37 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setDeviceStatus = (deviceID: string, status: DEVICE_STATUS) => {
         setState(
             produce((s) => {
-                const newItems = s.devices.map((dvc) => {
+                const device = s.devices.find((dvc) => dvc.id === deviceID)
+                if (!device) return
+                s.devices.forEach((dvc) => {
                     if (dvc.id === deviceID) {
-                        return { ...dvc, status }
+                        dvc.status = status
+                        return dvc
                     }
-                    return dvc
                 })
+                console.debug(
+                    'Updated device:',
+                    s.devices.find((dvc) => dvc.id === deviceID),
+                )
+            }),
+        )
+    }
 
-                s.devices = UniqueArray.from(newItems)
+    const setDeviceRSSI = (deviceID: string, rssi: number) => {
+        setState(
+            produce((s) => {
+                const device = s.devices.find((dvc) => dvc.id === deviceID)
+                if (!device) return
+                s.devices.forEach((dvc) => {
+                    if (dvc.id === deviceID) {
+                        dvc.network.wifi.rssi = rssi
+                        return dvc
+                    }
+                })
+                console.debug(
+                    'Updated device:',
+                    s.devices.find((dvc) => dvc.id === deviceID),
+                )
             }),
         )
     }
@@ -109,14 +132,18 @@ export const AppDeviceProvider: ParentComponent = (props) => {
     const setDeviceWS = (deviceID: string, ws: object) => {
         setState(
             produce((s) => {
-                const newItems = s.devices.map((dvc) => {
+                const device = s.devices.find((dvc) => dvc.id === deviceID)
+                if (!device) return
+                s.devices.forEach((dvc) => {
                     if (dvc.id === deviceID) {
-                        return { ...dvc, ws }
+                        dvc.ws = ws
+                        return dvc
                     }
-                    return dvc
                 })
-
-                s.devices = UniqueArray.from(newItems)
+                console.debug(
+                    'Updated device:',
+                    s.devices.find((dvc) => dvc.id === deviceID),
+                )
             }),
         )
     }
@@ -137,69 +164,54 @@ export const AppDeviceProvider: ParentComponent = (props) => {
         )
     }
 
-    const setDeviceRestStatus = (deviceID: string, status: RESTStatus) => {
-        setState(
-            produce((s) => {
-                const newItems = s.devices.map((dvc) => {
-                    if (dvc.id === deviceID) {
-                        return {
-                            ...dvc,
-                            network: {
-                                ...dvc.network,
-                                restAPI: { ...dvc.network.restAPI, status },
-                            },
-                        }
-                    }
-                    return dvc
-                })
+    const getDeviceState = createMemo(() => deviceState)
+    const getSelectedDevice = createMemo(() => getDeviceState().selectedDevice)
+    const getSelectedDeviceAddress = createMemo(
+        () => getDeviceState().selectedDevice?.network.address,
+    )
+    const getSelectedDeviceStatus = createMemo(() => getDeviceState().selectedDevice?.status)
+    const getSelectedDeviceType = createMemo(() => getDeviceState().selectedDevice?.type)
+    const getSelectedDeviceSocket = createMemo(() => getDeviceState().selectedDevice?.ws)
 
-                s.devices = UniqueArray.from(newItems)
-            }),
-        )
+    const _handleDeviceChange = (updatedDevices: PersistentDevice[]) => {
+        const devices: Device[] = updatedDevices.map((device) => {
+            const _device: Device = {
+                id: device.id,
+                name: device.name,
+                type: device.type,
+                serialNumber: device.serialNumber,
+                status: DEVICE_STATUS.LOADING,
+                lastUpdate: Date.now(),
+                network: {
+                    lanCode: device.network.lanCode,
+                    mdns: device.network.mdns,
+                    address: device.network.address,
+                    wifi: {
+                        ssid: device.network.wifi.ssid,
+                        password: device.network.wifi.password,
+                        apModeStatus: false,
+                        rssi: -95,
+                    },
+                },
+                led: device.led,
+                hasCamera: device.hasCamera,
+                ws: device.ws ? device.ws : undefined,
+            }
+            return _device
+        })
+
+        // compare the equality of the devices to the getDeviceState().devices
+        const _devices = getDeviceState().devices
+        if (_devices.length === devices.length) {
+            for (let i = 0; i < _devices.length; i++) {
+                if (_devices[i].id !== devices[i].id) {
+                    setDevice(devices[i], DEVICE_MODIFY_EVENT.UPDATE)
+                }
+            }
+        } else {
+            setDevice(devices[devices.length - 1], DEVICE_MODIFY_EVENT.PUSH)
+        }
     }
-
-    const setDeviceRestResponse = (deviceID: string, response: object) => {
-        setState(
-            produce((s) => {
-                // grab the device and push the response to the restAPI.response array
-                const newItems = s.devices.map((dvc) => {
-                    if (dvc.id === deviceID) {
-                        if (!Array.isArray(dvc.network.restAPI.response)) {
-                            console.error(
-                                'restAPI.response is not an array:',
-                                dvc.network.restAPI.response,
-                            )
-                        }
-                        const currentResponses = Array.isArray(dvc.network.restAPI.response)
-                            ? dvc.network.restAPI.response
-                            : []
-                        return {
-                            ...dvc,
-                            network: {
-                                ...dvc.network,
-                                restAPI: {
-                                    ...dvc.network.restAPI,
-                                    response: [...currentResponses, response],
-                                },
-                            },
-                        }
-                    }
-                    return dvc
-                })
-
-                s.devices = UniqueArray.from(newItems)
-            }),
-        )
-    }
-
-    const deviceState = createMemo(() => state)
-
-    const getDevices = createMemo(() => deviceState().devices)
-    const getSelectedDevice = createMemo(() => deviceState().selectedDevice)
-    const getSelectedDeviceAddress = createMemo(() => deviceState().selectedDevice?.network.address)
-    const getSelectedDeviceStatus = createMemo(() => deviceState().selectedDevice?.status)
-    const getSelectedDeviceType = createMemo(() => deviceState().selectedDevice?.type)
-    const getSelectedDeviceSocket = createMemo(() => deviceState().selectedDevice?.ws)
 
     onMount(() => {
         /*  doGHRequest()
@@ -210,18 +222,14 @@ export const AppDeviceProvider: ParentComponent = (props) => {
 
     createEffect(() => {
         if (devices()) {
-            setState(
-                produce((s) => {
-                    s.devices = UniqueArray.from(devices())
-                }),
-            )
+            _handleDeviceChange(devices())
         }
     })
 
     return (
         <AppDeviceContext.Provider
             value={{
-                getDevices,
+                getDeviceState,
                 getSelectedDevice,
                 getSelectedDeviceAddress,
                 getSelectedDeviceStatus,
@@ -232,8 +240,7 @@ export const AppDeviceProvider: ParentComponent = (props) => {
                 setDeviceStatus,
                 setDeviceWS,
                 setSelectedDevice,
-                setDeviceRestResponse,
-                setDeviceRestStatus,
+                setDeviceRSSI,
                 resetSelectedDevice,
             }}>
             {props.children}

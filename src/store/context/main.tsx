@@ -7,6 +7,7 @@ import { useEventListener } from 'solidjs-use'
 import { attachConsole, debug } from 'tauri-plugin-log-api'
 import { AppAPIProvider } from './api'
 import { AppDeviceProvider } from './device'
+import { AppDeviceDiscoveryProvider } from './deviceCheck'
 import type { MainApp } from '@static/types'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ExitCodes } from '@static/enums'
@@ -118,7 +119,11 @@ export const AppContextMainProvider: ParentComponent = (props) => {
             <AppNotificationProvider>
                 <AppProvider>
                     <AppDeviceProvider>
-                        <AppAPIProvider>{props.children}</AppAPIProvider>
+                        <AppAPIProvider>
+                            <AppDeviceDiscoveryProvider>
+                                {props.children}
+                            </AppDeviceDiscoveryProvider>
+                        </AppAPIProvider>
                     </AppDeviceProvider>
                 </AppProvider>
             </AppNotificationProvider>

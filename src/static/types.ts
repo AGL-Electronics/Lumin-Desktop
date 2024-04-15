@@ -1,4 +1,3 @@
-import { UniqueArray } from './uniqueArray'
 import type {
     ENotificationType,
     ENotificationAction,
@@ -126,7 +125,6 @@ export interface Device {
         lanCode: string
         mdns?: string
         address: string
-        restAPI: IRest
         wifi: {
             apModeStatus: boolean
             ssid: string
@@ -179,7 +177,7 @@ export interface AppStoreAPI {
 }
 
 export interface AppStoreDevice {
-    devices: UniqueArray<Device>
+    devices: Device[]
     selectedDevice?: Device
 }
 
@@ -194,6 +192,25 @@ export interface AppStoreNetwork {
 
 //********************************* Config *************************************/
 
+export interface PersistentDevice {
+    id: string
+    name: string
+    type: DEVICE_TYPE
+    serialNumber: string
+    network: {
+        lanCode: string
+        mdns?: string
+        address: string
+        wifi: {
+            ssid: string
+            password: string
+        }
+    }
+    led: LEDDevice
+    hasCamera: boolean
+    ws?: object
+}
+
 /**
  * @description This is the export type that is passed to the Tauri Store instance to handle persistent data within the app.
  * @export typedef {Object} PersistentSettings
@@ -203,7 +220,7 @@ export interface AppStoreNetwork {
  */
 export type PersistentSettings = {
     user?: string
-    devices: Device[]
+    devices: PersistentDevice[]
 } & AppSettings &
     AppStoreNotifications
 
@@ -308,7 +325,7 @@ export interface IEndpoint {
 
 export interface IRest {
     status: RESTStatus
-    response: Array<object>
+    response: object
 }
 
 export interface IPOSTCommand {
