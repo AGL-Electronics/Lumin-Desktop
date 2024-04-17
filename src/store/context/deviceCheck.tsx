@@ -6,8 +6,10 @@ import {
     createEffect,
     onCleanup,
 } from 'solid-js'
+import { warn } from 'tauri-plugin-log-api'
 import { useAppAPIContext } from './api'
 import { useAppDeviceContext } from './device'
+import { useDeviceSettingsContext } from './deviceSettings'
 import { useAppNotificationsContext } from './notifications'
 import type { Device } from '@static/types'
 import { DEVICE_STATUS, ENotificationType, RESTStatus } from '@static/enums'
@@ -18,6 +20,7 @@ const AppDeviceDiscoveryContext = createContext<IAppDeviceDiscoveryContext>()
 export const AppDeviceDiscoveryProvider: ParentComponent = (props) => {
     const { useRequestHook } = useAppAPIContext()
     const { setDeviceStatus, setDeviceRSSI, getDeviceState } = useAppDeviceContext()
+    const { settings } = useDeviceSettingsContext()
     const { addNotification } = useAppNotificationsContext()
 
     const handleDeviceDetectionError = (device: Device, error: Error) => {
@@ -40,7 +43,12 @@ export const AppDeviceDiscoveryProvider: ParentComponent = (props) => {
                     throw new Error(`${device.name} is not reachable.`)
                 }
 
-                useRequestHook('wifiStrength', device.id, undefined, '?points=10')
+                if (device.network.wifi.apModeStatus) {
+                    warn('AP Mode is enabled. Skipping wifi strength check.')
+                    return
+                }
+
+                useRequestHook('wifiStrength', device.id, '?points=10')
                     .then((res) => {
                         if (res.status === RESTStatus.FAILED) {
                             console.error('Failed to get wifi strength:', device.name)
@@ -50,9 +58,22 @@ export const AppDeviceDiscoveryProvider: ParentComponent = (props) => {
                         const rssi = res.response['rssi']
                         console.debug('RSSI:', rssi)
 
-                        if (!rssi) {
+                        // check if the rssi key exists on the response object
+                        const rssiKeys = Object.keys(res.response)
+                        if (!rssiKeys.includes('rssi')) {
                             throw new Error('Invalid RSSI response format')
                         }
+
+                        if (!rssi) {
+                            addNotification({
+                                title: 'Device AP Mode',
+                                message: `${device.name} is in AP mode.`,
+                                type: ENotificationType.INFO,
+                            })
+                            setDeviceRSSI(device.id, -70)
+                            setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
+                        }
+
                         setDeviceRSSI(device.id, rssi)
                         setDeviceStatus(device.id, DEVICE_STATUS.ACTIVE)
                     })

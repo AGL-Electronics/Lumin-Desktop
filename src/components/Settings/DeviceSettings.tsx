@@ -1,4 +1,5 @@
 import { useNavigate } from '@solidjs/router'
+import { confirm, ConfirmDialogOptions } from '@tauri-apps/api/dialog'
 import { createMemo, Show, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
@@ -39,7 +40,7 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
 
     const handleDeviceRequest = async (device: Device, command: IPOSTCommand) => {
         try {
-            const response = await useRequestHook('jsonHandler', device.id, command)
+            const response = await useRequestHook('jsonHandler', device.id, undefined, command)
 
             console.debug('Response:', response)
 
@@ -391,10 +392,31 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
         }
     }
 
-    const handleDelete = (e: PointerEvent) => {
+    const handleDelete = async (e: PointerEvent) => {
         e.preventDefault()
         const selectedDevice = getSelectedDevice()
         if (!selectedDevice) return
+
+        const confirmOptions: ConfirmDialogOptions = {
+            title: `Delete ${selectedDevice.name}`,
+            type: 'warning',
+        }
+
+        const confirmed = await confirm('Are you sure?', confirmOptions)
+        const confirmed2 = await confirm(
+            'This action cannot be reverted. Are you sure?',
+            confirmOptions,
+        )
+
+        if (!confirmed || !confirmed2) {
+            addNotification({
+                title: 'Delete Cancelled',
+                message: `${selectedDevice.name} has not been deleted.`,
+                type: ENotificationType.INFO,
+            })
+            return
+        }
+
         console.debug('Delete', selectedDevice.id, selectedDevice.name)
         setDevice(selectedDevice, DEVICE_MODIFY_EVENT.DELETE)
 

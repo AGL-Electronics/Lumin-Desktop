@@ -8,7 +8,7 @@ import { useAppDeviceContext } from '@store/context/device'
 
 export default function Main() {
     const { getFirmware } = useAppAPIContext()
-    const { getDevices, setSelectedDevice, resetSelectedDevice } = useAppDeviceContext()
+    const { setSelectedDevice, resetSelectedDevice } = useAppDeviceContext()
     const [firmwareVersion, setFirmwareVersion] = createSignal('0.0.0')
 
     createEffect(() => {
@@ -22,7 +22,6 @@ export default function Main() {
             <CardContent class="flex flex-1">
                 <Dashboard
                     firmwareVersion={firmwareVersion()}
-                    devices={getDevices()}
                     onClickNavigateDevice={(device) => {
                         navigate('/deviceSettings/false', { replace: true })
                         setSelectedDevice(device)

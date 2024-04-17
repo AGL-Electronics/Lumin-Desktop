@@ -12,6 +12,7 @@ import type { MainApp } from '@static/types'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ExitCodes } from '@static/enums'
 import { AppProvider } from '@store/context/app'
+import { DeviceSettingsProvider } from '@store/context/deviceSettings'
 import { AppNotificationProvider } from '@store/context/notifications'
 import { usePersistentStore } from '@store/tauriStore'
 import { setFrontendReady } from 'tauri-plugin-splashscreen'
@@ -120,9 +121,11 @@ export const AppContextMainProvider: ParentComponent = (props) => {
                 <AppProvider>
                     <AppDeviceProvider>
                         <AppAPIProvider>
-                            <AppDeviceDiscoveryProvider>
-                                {props.children}
-                            </AppDeviceDiscoveryProvider>
+                            <DeviceSettingsProvider>
+                                <AppDeviceDiscoveryProvider>
+                                    {props.children}
+                                </AppDeviceDiscoveryProvider>
+                            </DeviceSettingsProvider>
                         </AppAPIProvider>
                     </AppDeviceProvider>
                 </AppProvider>

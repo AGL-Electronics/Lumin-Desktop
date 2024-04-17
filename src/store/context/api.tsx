@@ -43,8 +43,8 @@ interface IAppAPIContext {
     useRequestHook: (
         endpointName: IEndpointKey,
         deviceID?: string,
-        body?: IPOSTCommand,
         args?: string,
+        body?: IPOSTCommand,
     ) => Promise<IRest>
     useOTA: (firmwareName: string, device: string) => Promise<void>
 }
@@ -413,8 +413,8 @@ export const AppAPIProvider: ParentComponent = (props) => {
     const useRequestHook = async (
         endpointName: IEndpointKey,
         deviceID?: string,
-        body?: IPOSTCommand,
         args?: string,
+        body?: IPOSTCommand,
     ): Promise<IRest> => {
         const method: RESTType = getEndpoint(endpointName)!.type
         const devices = getDeviceState().devices
@@ -466,13 +466,6 @@ export const AppAPIProvider: ParentComponent = (props) => {
             console.log(
                 `Handling request for device ${deviceExists.name} at ${new Date().toISOString()}`,
             )
-            /*  const timeoutPromise = new Promise(
-                (_, reject) => setTimeout(() => reject(new Error('Request timed out')), 30000), // 10 seconds timeout
-            ) */
-
-            /* const response = (await Promise.race([
-                timeoutPromise,
-            ])) as __Result__<string, string> */
 
             const response = await makeRequest(endpoint, deviceURL, method, jsonBody)
             console.debug('[REST Response]: ', response)
