@@ -3,6 +3,13 @@
 [![semantic versioning](https://img.shields.io/badge/semantic%20versioning-2.0.0-green.svg)](https://semver.org)
 > All notable changes to this project will be documented in this file
 
+## [1.0.1](https://github.com/AGL-Electronics/Lumin-Desktop/compare/v1.0.0...v1.0.1) (2024-04-19)
+
+
+### 🐛 Bug Fixes
+
+* Update deviceSettings.tsx to increase the minLen and maxLen for the password input field ([c66086e](https://github.com/AGL-Electronics/Lumin-Desktop/commit/c66086e66387f8e1561ac75a1807102796618163))
+
 ## 1.0.0 (2024-04-19)
 
 

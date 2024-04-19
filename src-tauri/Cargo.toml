@@ -1,6 +1,6 @@
 [package]
 name = "lumin-desktop"
-version = "1.0.0"
+version = "1.0.1"
 description = "Lumin Desktop is a desktop application for the Lumin platform. It allows you to manage your Lumin devices, create and manage your Lumin account, and more."
 authors = ["DaOfficialWizard"]
 license = "MIT"
@@ -11,6 +11,7 @@ rust-version = "1.69"
 
 [dependencies]
 sysinfo = "0.29.11"
+
 [dependencies.tauri-plugin-splashscreen]
 path = "src/lib/splashscreen"
 
@@ -82,6 +83,7 @@ workspace = true
 
 [workspace]
 members = ["src/lib/util", "src/lib/splashscreen", "src/lib/api"]
+
 [workspace.dependencies]
 anyhow = "1.0.81"
 url = "2.5.0"
