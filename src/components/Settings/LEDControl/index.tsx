@@ -32,7 +32,7 @@ const LEDControl: Component<LEDControlProps> = (props) => {
 
     const handleLEDRequest = async (device: Device, command: IPOSTCommand) => {
         try {
-            const response = await useRequestHook('jsonHandler', device.id, command)
+            const response = await useRequestHook('jsonHandler', device.id, undefined, command)
 
             console.debug('Response:', response)
 
