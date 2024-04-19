@@ -2,8 +2,8 @@ import { lazy } from 'solid-js'
 import type { RouteDefinition } from '@solidjs/router'
 import { capitalizeFirstLetter } from '@src/lib/utils'
 
-const Main = lazy(() => import('@pages/Home'))
-const AppSettings = lazy(() => import('@pages/Settings'))
+const Main = lazy(() => import('@pages/home'))
+const AppSettings = lazy(() => import('@pages/settings'))
 const DeviceSettings = lazy(() => import('@pages/DeviceSettings'))
 //const FlashFirmware = lazy(() => import('@containers/FlashFirmware'))
 const page404 = lazy(() => import('@pages/page404'))
