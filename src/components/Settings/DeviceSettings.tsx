@@ -402,6 +402,7 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
             type: 'warning',
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const confirmed = await confirm('Are you sure?', confirmOptions as any)
         const confirmed2 = await confirm(
             'This action cannot be reverted. Are you sure?',
