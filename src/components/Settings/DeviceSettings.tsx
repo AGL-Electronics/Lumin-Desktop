@@ -22,7 +22,13 @@ import { Label } from '@components/ui/label'
 import { capitalizeFirstLetter } from '@src/lib/utils'
 import { useAppAPIContext } from '@src/store/context/api'
 import { useAppNotificationsContext } from '@src/store/context/notifications'
-import { DEVICE_MODIFY_EVENT, DEVICE_STATUS, ENotificationType, RESTStatus } from '@static/enums'
+import {
+    DEVICE_MODIFY_EVENT,
+    DEVICE_STATUS,
+    ENotificationType,
+    REST_CMDS,
+    RESTStatus,
+} from '@static/enums'
 import { Device, IPOSTCommand, Notifications } from '@static/types'
 import { useAppDeviceContext } from '@store/context/device'
 import { wiredFormHandler, useDeviceSettingsContext } from '@store/context/deviceSettings'
@@ -324,7 +330,7 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
             const command: IPOSTCommand = {
                 commands: [
                     {
-                        command: 'set_mqtt',
+                        command: REST_CMDS.SET_MQTT,
                         data: {
                             broker: settings.generalSettings.printerIP,
                             password: settings.generalSettings.lanCode,
@@ -332,7 +338,7 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
                         },
                     },
                     {
-                        command: 'set_wifi',
+                        command: REST_CMDS.SET_WIFI,
                         data: {
                             ssid: settings.networkSettings.wifiSSID,
                             password: settings.networkSettings.wifiPassword,
