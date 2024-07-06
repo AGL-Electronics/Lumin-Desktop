@@ -1,5 +1,5 @@
 import { useNavigate } from '@solidjs/router'
-import { confirm } from '@tauri-apps/api/dialog'
+import { confirm, type ConfirmDialogOptions } from '@tauri-apps/api/dialog'
 import { createMemo, Show, type Component } from 'solid-js'
 // eslint-disable-next-line import/named
 import { v4 as uuidv4 } from 'uuid'
@@ -403,16 +403,16 @@ const DeviceSettingsMain: Component<DeviceSettingsMainProps> = (props) => {
         const selectedDevice = getSelectedDevice()
         if (!selectedDevice) return
 
-        const confirmOptions = {
+        const confirmOptions: ConfirmDialogOptions = {
             title: `Delete ${selectedDevice.name}`,
             type: 'warning',
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const confirmed = await confirm('Are you sure?', confirmOptions as any)
+        const confirmed = await confirm('Are you sure?', confirmOptions)
         const confirmed2 = await confirm(
             'This action cannot be reverted. Are you sure?',
-            confirmOptions as any,
+            confirmOptions,
         )
 
         if (!confirmed || !confirmed2) {
