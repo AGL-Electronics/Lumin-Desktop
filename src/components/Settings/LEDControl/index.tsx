@@ -153,7 +153,7 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                             enabled: true,
                             num_leds: settings.ledSettings.ledBarsConnected,
                             brightness: 255,
-                            pattern: pattern,
+                            pattern: pattern.toLowerCase(),
                             pinType: settings.ledSettings.ledConnectionPoint.toUpperCase(),
                             ledType: ledType,
                             ledBar: ledBar,
