@@ -139,7 +139,6 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                 if (ledType === 'LedBar') {
                     ledBar = true
                 }
-
                 ledType = 'RGB'
             } else {
                 ledType = settings.ledSettings.ledType
@@ -154,8 +153,8 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                             num_leds: settings.ledSettings.ledBarsConnected,
                             brightness: 255,
                             pattern: pattern.toLowerCase(),
-                            pinType: settings.ledSettings.ledConnectionPoint.toUpperCase(),
-                            ledType: ledType,
+                            pinType: settings.ledSettings.ledConnectionPoint.toLowerCase(),
+                            ledType: ledType.toLowerCase(),
                             ledBar: ledBar,
                         },
                     },
