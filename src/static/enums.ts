@@ -1,5 +1,8 @@
 //********************************* Device *************************************/
 
+// import the genTypes file and export all the types from it
+export * from './genTypes'
+
 export enum DEVICE_VIEW_MODE {
     LIST = 'LIST',
     GRIP = 'GRIP',
@@ -129,22 +132,6 @@ export enum ESPCommands {
     SET_MQTT = 'set_mqtt',
     SET_OTA = 'set_ota',
     SET_HTTP = 'set_http',
-}
-
-export enum ESPLEDPatterns {
-    UPDATE = 'update',
-    RGB_CYCLE = 'rgb_cycle',
-    RGB = 'rgb',
-    RED = 'red',
-    GREEN = 'green',
-    BLUE = 'blue',
-    WHITE = 'white',
-    WARM = 'warm',
-    COLD = 'cold',
-    WARM_COLD = 'warm_cold',
-    WIFI_STRENGTH = 'wifi_strength',
-    CUSTOM = 'custom',
-    NONE = 'none',
 }
 
 /**

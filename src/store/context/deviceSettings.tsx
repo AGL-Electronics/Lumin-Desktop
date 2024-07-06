@@ -4,7 +4,8 @@ import { yupSchema } from 'solid-form-handler/yup'
 import { createContext, useContext, type ParentComponent } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
 import * as yup from 'yup'
-import { DEVICE_TYPE, ESPLEDPatterns } from '@src/static/enums'
+import { toFirstLetterCaps } from '@src/lib/utils'
+import { DEVICE_TYPE, LED_Connection_Type_e, LED_Pattern_e } from '@src/static/enums'
 import { DeviceSettingsStore } from '@src/static/types'
 
 interface DeviceSettingsContext {
@@ -58,7 +59,7 @@ export const DeviceSettingsProvider: ParentComponent = (props) => {
         },
         ledControlSettings: {
             behavior: {
-                pattern: ESPLEDPatterns.RGB_CYCLE,
+                pattern: LED_Pattern_e.RGB_CYCLE,
                 maintenanceModeToggle: false,
                 rgbCycleToggle: true,
                 replicateLedStateToggle: false,
@@ -340,32 +341,28 @@ export const deviceSettings: SettingCategories = {
             key: 'ledType',
         },
         {
+            label: 'LED Connection Type',
+            dataLabel: 'led-connection-point',
+            placeholder: 'Select...',
+            popoverDescription: 'The type of connection protocol for the LED device',
+            ariaLabel: 'Select LED Connection Protocol Type',
+            options: [
+                ...Object.values(LED_Connection_Type_e).map((type) => toFirstLetterCaps(type)),
+            ],
+            required: true,
+            type: 'select',
+            key: 'ledConnectionPoint',
+        },
+        {
             label: 'LED Bars Connected',
             dataLabel: 'led-bars-connected',
             placeholder: '2',
             popoverDescription: 'The number of LED bars connected',
             required: true,
             minLen: 1,
-            maxLen: 23,
+            maxLen: 1000,
             type: 'input',
             key: 'ledBarsConnected',
-        },
-        {
-            label: 'LED Connection Point',
-            dataLabel: 'led-connection-point',
-            placeholder: 'Select...',
-            popoverDescription: 'The type of connector for the LED device',
-            ariaLabel: 'Select LED Connection Point',
-            options: [
-                'Molex',
-                'Screw Terminal',
-                'Screw Terminal RGBW',
-                'Screw Terminal RGB',
-                'Screw Terminal RGBWW/RGBCCT',
-            ],
-            required: true,
-            type: 'select',
-            key: 'ledConnectionPoint',
         },
     ],
     generalSettings: [
@@ -559,7 +556,7 @@ export const deviceSettings: SettingCategories = {
                 dataLabel: 'led-pattern',
                 popoverDescription: 'Select the LED pattern',
                 placeholder: 'Select...',
-                options: [...Object.values(ESPLEDPatterns)],
+                options: [...Object.values(LED_Pattern_e)],
                 required: true,
                 type: 'select',
                 key: 'pattern',

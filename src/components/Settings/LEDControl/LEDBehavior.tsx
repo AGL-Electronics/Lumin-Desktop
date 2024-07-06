@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from '@components/ui/select'
 import { Switch as ToggleSwitch } from '@components/ui/switch'
-import { ESPLEDPatterns } from '@src/static/enums'
+import { LED_Pattern_e } from '@src/static/enums'
 import { useAppDeviceContext } from '@store/context/device'
 import { useDeviceSettingsContext, deviceSettings } from '@store/context/deviceSettings'
 
@@ -102,7 +102,7 @@ const LEDBehavior: Component<LEDBehaviorProps> = () => {
                                             'ledControlSettings',
                                             'behavior',
                                             deviceSetting.key as LEDBehaviorKey,
-                                            value as ESPLEDPatterns,
+                                            value as LED_Pattern_e,
                                         )
                                     }
                                     defaultValue={

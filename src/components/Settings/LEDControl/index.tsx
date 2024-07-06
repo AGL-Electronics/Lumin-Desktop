@@ -11,7 +11,8 @@ import {
     DEVICE_MODIFY_EVENT,
     DEVICE_STATUS,
     ENotificationType,
-    ESPLEDPatterns,
+    LED_Pattern_e,
+    REST_CMDS,
     RESTStatus,
 } from '@static/enums'
 import { Device, IPOSTCommand } from '@static/types'
@@ -89,39 +90,39 @@ const LEDControl: Component<LEDControlProps> = (props) => {
             // take the value of the behavior toggles and set the pattern according to the toggle that is true
             // if none are true, set the pattern to the default pattern
 
-            let pattern: ESPLEDPatterns = ESPLEDPatterns.RGB_CYCLE
+            let pattern: LED_Pattern_e = LED_Pattern_e.RGB_CYCLE
             const { behavior } = settings.ledControlSettings
             Object.keys(behavior).forEach((key) => {
                 // switch over the keys and set the pattern to the key that is true
                 switch (key) {
                     case 'maintenanceModeToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.WARM_COLD
+                            pattern = LED_Pattern_e.WARM_COLD
                         }
                         break
                     case 'rgbCycleToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.RGB_CYCLE
+                            pattern = LED_Pattern_e.RGB_CYCLE
                         }
                         break
                     case 'replicateLedStateToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.UPDATE
+                            pattern = LED_Pattern_e.UPDATE
                         }
                         break
                     case 'testLedsToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.RGB
+                            pattern = LED_Pattern_e.RGB
                         }
                         break
                     case 'showWifiStrengthToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.WIFI_STRENGTH
+                            pattern = LED_Pattern_e.WIFI_STRENGTH
                         }
                         break
                     case 'disableLEDSToggle':
                         if (behavior[key]) {
-                            pattern = ESPLEDPatterns.NONE
+                            pattern = LED_Pattern_e.NONE
                         }
                         break
 
@@ -130,17 +131,32 @@ const LEDControl: Component<LEDControlProps> = (props) => {
                 }
             })
 
+            // convert the ledType to the correct format - LED_Type_e
+            let ledType = settings.ledSettings.ledType
+            let ledBar = false
+            // if the ledType is WLED or LedBar, set the type to RGB - however if it is LedBar set the ledBar bool to true
+            if (ledType === 'WLED' || ledType === 'LedBar') {
+                if (ledType === 'LedBar') {
+                    ledBar = true
+                }
+
+                ledType = 'RGB'
+            } else {
+                ledType = settings.ledSettings.ledType
+            }
+
             const command: IPOSTCommand = {
                 commands: [
                     {
-                        command: 'set_leds',
+                        command: REST_CMDS.SET_LEDS,
                         data: {
                             enabled: true,
                             num_leds: settings.ledSettings.ledBarsConnected,
                             brightness: 255,
                             pattern: pattern,
-                            type: settings.ledSettings.ledType,
-                            connectionPoint: settings.ledSettings.ledConnectionPoint,
+                            pinType: settings.ledSettings.ledConnectionPoint.toUpperCase(),
+                            ledType: ledType,
+                            ledBar: ledBar,
                         },
                     },
                 ],

@@ -7,7 +7,8 @@ import type {
     RESTStatus,
     DEVICE_TYPE,
     DebugMode,
-    ESPLEDPatterns,
+    LED_Pattern_e,
+    REST_CMDS,
 } from '@static/enums'
 import type { JSXElement } from 'solid-js'
 import type { ToasterStore } from 'terracotta'
@@ -54,7 +55,7 @@ export interface NetworkSettings {
 }
 
 export interface BehaviorSettings {
-    pattern?: ESPLEDPatterns
+    pattern?: LED_Pattern_e
     maintenanceModeToggle: boolean
     rgbCycleToggle: boolean
     replicateLedStateToggle: boolean
@@ -333,14 +334,7 @@ export interface IRest {
 
 export interface IPOSTCommand {
     commands: Array<{
-        command:
-            | 'set_leds'
-            | 'set_mdns'
-            | 'set_wifi'
-            | 'set_mqtt'
-            | 'set_ota'
-            | 'set_http'
-            | 'set_save'
+        command: REST_CMDS
         data: object
     }>
 }

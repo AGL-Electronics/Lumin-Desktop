@@ -50,10 +50,6 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
             if (setting.key === 'ledBarsConnected') {
                 return false
             }
-
-            if (setting.key === 'ledConnectionPoint') {
-                setting.options = setting.options?.filter((option) => option !== 'Molex')
-            }
             return true
         })
     }
@@ -108,8 +104,10 @@ const LEDSettings: Component<LEDSettingsProps> = () => {
                                             id={deviceSetting.dataLabel}
                                             required={true}
                                             type="number"
-                                            minLength={deviceSetting.minLen}
-                                            maxLength={deviceSetting.maxLen}
+                                            min={deviceSetting.minLen ?? 1}
+                                            max={deviceSetting.maxLen ?? 100}
+                                            //minLength={deviceSetting.minLen}
+                                            //maxLength={deviceSetting.maxLen}
                                             onChange={(e) => {
                                                 setSettingWithoutSubcategory(
                                                     'ledSettings',
