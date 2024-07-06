@@ -1,8 +1,15 @@
-import { FaSolidQuestion } from 'solid-icons/fa'
-import { FiCheckCircle } from 'solid-icons/fi'
-import { HiSolidPencilSquare } from 'solid-icons/hi'
-import { IoCalendarOutline, IoChatbubbles, IoSettingsSharp } from 'solid-icons/io'
-import { TbGardenCart, TbSelector } from 'solid-icons/tb'
+import {
+    FaSolidQuestion,
+    FaSolidGrip,
+    FaSolidListUl,
+    FaSolidLightbulb,
+    FaSolidPlus,
+    FaSolidArrowLeft,
+    FaSolidArrowRight,
+} from 'solid-icons/fa'
+import { IoSettingsSharp } from 'solid-icons/io'
+import { OcQuestion2 } from 'solid-icons/oc'
+import { TbDashboard, TbGardenCart, TbSelector } from 'solid-icons/tb'
 import { type ComponentProps, type Component, splitProps } from 'solid-js'
 
 export type IconProps = ComponentProps<'svg'> & {
@@ -48,10 +55,10 @@ const Icons = {
         </Icon>
     ),
     arrowRight: (props: IconProps) => (
-        <Icon {...props}>
-            <line x1="5" x2="19" y1="12" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-        </Icon>
+        <FaSolidArrowRight class={props.class} size={props.size} color={props.color} />
+    ),
+    arrowLeft: (props: IconProps) => (
+        <FaSolidArrowLeft class={props.class} size={props.size} color={props.color} />
     ),
     arrowUp: (props: IconProps) => (
         <Icon {...props}>
@@ -222,30 +229,96 @@ const Icons = {
         </Icon>
     ),
     plus: (props: IconProps) => (
-        <Icon {...props}>
-            <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 24 13 L 24 24 L 13 24 L 13 26 L 24 26 L 24 37 L 26 37 L 26 26 L 37 26 L 37 24 L 26 24 L 26 13 L 24 13 z" />
-        </Icon>
+        <FaSolidPlus class={props.class} size={props.size} color={props.color} />
     ),
-    calendar: (props: IconProps) => (
-        <IoCalendarOutline class={props.class} size={props.size} color={props.color} />
-    ),
-    journal: (props: IconProps) => (
-        <HiSolidPencilSquare class={props.class} size={props.size} color={props.color} />
-    ),
-    tasks: (props: IconProps) => (
-        <FiCheckCircle class={props.class} size={props.size} color={props.color} />
-    ),
-    chat: (props: IconProps) => (
-        <IoChatbubbles class={props.class} size={props.size} color={props.color} />
+    dashboard: (props: IconProps) => (
+        <TbDashboard class={props.class} size={props.size} color={props.color} />
     ),
     gear: (props: IconProps) => (
         <IoSettingsSharp class={props.class} size={props.size} color={props.color} />
     ),
+    grip: (props: IconProps) => (
+        <FaSolidGrip class={props.class} size={props.size} color={props.color} />
+    ),
+    list: (props: IconProps) => (
+        <FaSolidListUl class={props.class} size={props.size} color={props.color} />
+    ),
     question: (props: IconProps) => (
         <FaSolidQuestion class={props.class} size={props.size} color={props.color} />
     ),
+    questionCircle: (props: IconProps) => (
+        <OcQuestion2 class={props.class} size={props.size} color={props.color} />
+    ),
     profile: (props: IconProps) => (
         <TbGardenCart class={props.class} size={props.size} color={props.color} />
+    ),
+    led: (props: IconProps) => (
+        <FaSolidLightbulb class={props.class} size={props.size} color={props.color} />
+    ),
+    wifiHigh: (props: IconProps) => (
+        <Icon {...props}>
+            <g id="System / Wifi_High">
+                <path
+                    id="Vector"
+                    d="M8.34277 14.5899C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1446 11.2995 13.0025 11.9826 13.0001C12.6656 12.9977 13.3419 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1066 8.79745 9.66902C9.79893 9.23148 10.8793 9.00389 11.9721 9.00007C13.065 8.99626 14.1466 9.21651 15.1511 9.64704C16.1556 10.0776 17.0617 10.7094 17.8127 11.5035M3.22363 8.81635C4.34165 7.61742 5.69347 6.66028 7.19569 6.00398C8.69791 5.34768 10.3179 5.0058 11.9572 5.00007C13.5966 4.99435 15.2208 5.32472 16.7276 5.97052C18.2344 6.61632 19.5931 7.56458 20.7195 8.75568M12 19.0001C11.4477 19.0001 11 18.5524 11 18.0001C11 17.4478 11.4477 17.0001 12 17.0001C12.5523 17.0001 13 17.4478 13 18.0001C13 18.5524 12.5523 19.0001 12 19.0001Z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </Icon>
+    ),
+    wifiLow: (props: IconProps) => (
+        <Icon {...props}>
+            <g id="System / Wifi_Low">
+                <path
+                    id="Vector"
+                    d="M8.34277 14.5898C8.80861 14.0903 9.37187 13.6915 9.9978 13.418C10.6237 13.1445 11.2995 13.0024 11.9826 13C12.6656 12.9976 13.3418 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5645M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </Icon>
+    ),
+    wifiMedium: (props: IconProps) => (
+        <Icon {...props}>
+            <g id="System / Wifi_Medium">
+                <path
+                    id="Vector"
+                    d="M8.34375 14.5898C8.80959 14.0903 9.37285 13.6915 9.99877 13.418C10.6247 13.1446 11.2995 13.0024 11.9826 13C12.6656 12.9977 13.3418 13.1353 13.9697 13.4044C14.5975 13.6735 15.1637 14.0683 15.633 14.5646M6.14941 11.5439C6.89476 10.7446 7.79597 10.1065 8.79745 9.66899C9.79893 9.23146 10.8802 9.00386 11.9731 9.00005C13.066 8.99623 14.1475 9.21648 15.1521 9.64701C16.1566 10.0775 17.0617 10.7084 17.8127 11.5025M12 19C11.4477 19 11 18.5523 11 18C11 17.4478 11.4477 17 12 17C12.5523 17 13 17.4478 13 18C13 18.5523 12.5523 19 12 19Z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </Icon>
+    ),
+    wifiNone: (props: IconProps) => (
+        <Icon {...props}>
+            <g id="System / Wifi_None">
+                <path
+                    id="Vector"
+                    d="M11 18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18C13 17.4477 12.5523 17 12 17C11.4477 17 11 17.4477 11 18Z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </Icon>
+    ),
+    wifiProblem: (props: IconProps) => (
+        <Icon {...props}>
+            <g id="System / Wifi_Problem">
+                <path
+                    id="Vector"
+                    d="M8.34277 14.5898C8.80861 14.0902 9.37187 13.6914 9.9978 13.418C10.6237 13.1445 11.2995 13.0024 11.9826 13C12.6656 12.9976 13.3419 13.1353 13.9697 13.4044C14.5975 13.6734 15.1637 14.0682 15.633 14.5645M6.14941 11.5439C6.89312 10.7464 7.79203 10.1093 8.79091 9.67188C9.7898 9.23441 10.8678 9.00575 11.9583 9M3.22363 8.81649C4.34177 7.61743 5.69376 6.66021 7.19618 6.00391C8.69859 5.3476 10.3198 5.00558 11.9593 5M16 8.99997L18 6.99998M18 6.99998L20 5M18 6.99998L16 5M18 6.99998L20 8.99997M12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18C13 18.5523 12.5523 19 12 19Z"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </Icon>
     ),
 }
 

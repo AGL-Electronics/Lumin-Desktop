@@ -1,0 +1,14 @@
+.burger-fade-enter-active,
+.burger-fade-exit-active {
+    transition:
+        opacity 0.3s,
+        transform 0.3s;
+}
+.burger-fade-enter,
+.burger-fade-exit-to {
+    transform: translateX(-10px);
+    opacity: 0;
+}
+.burger-fade-enter {
+    transform: translateX(10px);
+}

@@ -83,6 +83,8 @@ async fn main() -> tauri::Result<()> {
         // persistent storage with file system
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_upload::init())
+        // Localhost request client
+        .plugin(tauri_plugin_request_client::init())
         // splashscreen support
         .plugin(tauri_plugin_splashscreen::init())
         // save window position and size between sessions
@@ -121,7 +123,7 @@ async fn main() -> tauri::Result<()> {
             // Configure IPC for custom protocol
             app.ipc_scope().configure_remote_access(
                 RemoteDomainAccessScope::new("localhost")
-                    .allow_on_scheme("eyetrackvr")
+                    .allow_on_scheme("Lumin")
                     .add_window("main"),
             );
 

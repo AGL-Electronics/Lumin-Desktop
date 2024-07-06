@@ -1,18 +1,28 @@
+import PageWrapper from './PageWrapper'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { Flex } from '@components/ui/flex'
+import { Label } from '@components/ui/label'
+
 const page404 = () => {
     return (
-        <section
-            class="text-white flex flex-col items-center justify-center fixed h-[100%] p-8"
-            style={{
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                '-webkit-transform': 'translate(-50%, -50%)',
-            }}>
-            <div class="card rounded-md bg-slate-700">
-                <h1 class="text-2xl font-bold">404: Not Found</h1>
-                <p class="mt-4 text-gray-400 text-lg">Welp, something went wrong 😞</p>
-            </div>
-        </section>
+        <PageWrapper>
+            <Flex class="h-screen" flexDirection="col" justifyContent="center" alignItems="center">
+                <Card class="card rounded-md bg-base-200">
+                    <CardHeader>
+                        <CardTitle>
+                            <Label class="text-pretty text-primary" size="2xl" weight="bold">
+                                404: Not Found
+                            </Label>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Label class="p-4 text-pretty text-secondary" size="lg" weight="bold">
+                            Welp, something went wrong 😞
+                        </Label>
+                    </CardContent>
+                </Card>
+            </Flex>
+        </PageWrapper>
     )
 }
 

@@ -6,9 +6,7 @@ import {
     useContext,
 } from 'solid-js'
 import { createStore, produce } from 'solid-js/store'
-import type { UITab, UIStore } from '@static/types'
-
-type TabEvent = 'add' | 'hide' | 'show' | 'active'
+import type { UIStore } from '@static/types'
 
 interface AppUIContext {
     openModalStatus: Accessor<
@@ -18,27 +16,21 @@ interface AppUIContext {
           }
         | undefined
     >
-    tabs: Accessor<UITab[]>
-    defaultTab: Accessor<UITab>
-    selectedTab: Accessor<UITab | null>
-    showSidebar: Accessor<boolean>
+
+    showDeviceView: Accessor<boolean>
     showNotifications: Accessor<boolean | undefined>
-    handleTab: (new_tab: UITab | UITab[], event: TabEvent) => void
     setOpenModal: (status: { openModal: boolean; editingMode: boolean }) => void
-    setShowSidebar: (showSidebar: boolean) => void
+    setShowDeviceView: (showDeviceView: boolean) => void
 }
 
 const AppUIContext = createContext<AppUIContext>()
 export const AppUIProvider: ParentComponent = (props) => {
     const defaultState: UIStore = {
-        showSidebar: true,
-        selectedTab: null,
-        tabs: [],
+        showDeviceView: false,
         modalStatus: {
             openModal: false,
             editingMode: false,
         },
-        loggedIn: false,
         showNotifications: true,
     }
 
@@ -52,68 +44,10 @@ export const AppUIProvider: ParentComponent = (props) => {
         )
     }
 
-    const setShowSidebar = (showSidebar: boolean) => {
+    const setShowDeviceView = (showDeviceView: boolean) => {
         setState(
             produce((s) => {
-                s.showSidebar = showSidebar
-            }),
-        )
-    }
-
-    const handleTab = (new_tab: UITab | UITab[], event: TabEvent) => {
-        setState(
-            produce((draft) => {
-                switch (event) {
-                    case 'active':
-                        // handle tabs being an array
-                        if (Array.isArray(new_tab)) break
-                        draft.selectedTab = new_tab
-                        break
-                    case 'add':
-                        if (Array.isArray(new_tab)) {
-                            draft.tabs = new_tab
-                            break
-                        }
-                        draft.tabs.push(new_tab)
-                        break
-                    case 'hide':
-                        if (Array.isArray(new_tab)) {
-                            draft.tabs.forEach((tab) => {
-                                new_tab.forEach((t) => {
-                                    if (tab.id === t.id) {
-                                        tab.visible = false
-                                    }
-                                })
-                            })
-
-                            break
-                        }
-                        draft.tabs.forEach((tab) => {
-                            if (tab.id === new_tab.id) {
-                                tab.visible = false
-                            }
-                        })
-                        break
-                    case 'show':
-                        if (Array.isArray(new_tab)) {
-                            draft.tabs.forEach((tab) => {
-                                new_tab.forEach((t) => {
-                                    if (tab.id === t.id) {
-                                        tab.visible = true
-                                    }
-                                })
-                            })
-                            break
-                        }
-                        draft.tabs.forEach((tab) => {
-                            if (tab.id === new_tab.id) {
-                                tab.visible = true
-                            }
-                        })
-                        break
-                    default:
-                        break
-                }
+                s.showDeviceView = showDeviceView
             }),
         )
     }
@@ -121,24 +55,17 @@ export const AppUIProvider: ParentComponent = (props) => {
     const uiState = createMemo(() => state)
 
     const openModalStatus = createMemo(() => uiState().modalStatus)
-    const tabs = createMemo(() => uiState().tabs)
     const showNotifications = createMemo(() => uiState().showNotifications)
-    const showSidebar = createMemo(() => uiState().showSidebar)
-    const selectedTab = createMemo(() => uiState().selectedTab)
-    const defaultTab = createMemo(() => tabs().find((tab) => tab.id === 'part_history')!)
+    const showDeviceView = createMemo(() => uiState().showDeviceView)
 
     return (
         <AppUIContext.Provider
             value={{
                 openModalStatus,
-                tabs,
-                defaultTab,
-                selectedTab,
-                showSidebar,
+                showDeviceView,
                 showNotifications,
-                handleTab,
                 setOpenModal,
-                setShowSidebar,
+                setShowDeviceView,
             }}>
             {props.children}
         </AppUIContext.Provider>

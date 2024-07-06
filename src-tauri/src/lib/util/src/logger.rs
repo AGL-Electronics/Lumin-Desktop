@@ -4,12 +4,12 @@
 //use crate::{colors::Color, f};
 //use log::{LevelFilter, Log, Metadata, Record, SetLoggerError};
 
-/* pub struct EyeTrackVRLogger {
+/* pub struct LuminLogger {
   inner: Filter,
 }
 
-impl EyeTrackVRLogger {
-  pub fn new(log_level: LevelFilter) -> EyeTrackVRLogger {
+impl LuminLogger {
+  pub fn new(log_level: LevelFilter) -> LuminLogger {
     let mut builder = Builder::new();
 
     //builder
@@ -17,7 +17,7 @@ impl EyeTrackVRLogger {
     //    .filter(Some("desktop_cleaner"), LevelFilter::Debug);
 
     builder.filter_level(log_level);
-    EyeTrackVRLogger {
+    LuminLogger {
       inner: builder.build(),
     }
   }
@@ -29,7 +29,7 @@ impl EyeTrackVRLogger {
   }
 }
 
-impl Log for EyeTrackVRLogger {
+impl Log for LuminLogger {
   fn enabled(&self, metadata: &Metadata) -> bool {
     self.inner.enabled(metadata)
   }
@@ -42,7 +42,7 @@ impl Log for EyeTrackVRLogger {
           "{} {}",
           Color::new(
             f!(
-              "[EyeTrackVR - {}]:",
+              "[Lumin - {}]:",
               Color::new(record.level().as_str())
                 .map_level(record.level())
                 .bold(),
@@ -62,14 +62,15 @@ impl Log for EyeTrackVRLogger {
 
 #[macro_export]
 macro_rules! etvr_stderr {
-    ($($arg:tt)+) => (println!("{}", f!("{} {}", Color::new("[EyeTrackVR]:").bold().green(), Color::new($($arg)+).red())));
+    ($($arg:tt)+) => (println!("{}", f!("{} {}", Color::new("[Lumin]:").bold().green(), Color::new($($arg)+).red())));
 }
 
 #[macro_export]
 macro_rules! etvr_stdout {
-    ($($arg:tt)+) => (println!("{}", f!("{} {}", Color::new("[EyeTrackVR]:").bold().green(), Color::new($($arg)+).green())));
+    ($($arg:tt)+) => (println!("{}", f!("{} {}", Color::new("[Lumin]:").bold().green(), Color::new($($arg)+).green())));
 }
 
 #[allow(unused_imports)]
 pub(crate) use etvr_stderr;
+#[allow(unused_imports)]
 pub(crate) use etvr_stdout;

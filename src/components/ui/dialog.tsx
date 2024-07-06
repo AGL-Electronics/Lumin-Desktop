@@ -17,9 +17,7 @@ const DialogPortal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
     const [, rest] = splitProps(props, ['children'])
     return (
         <DialogPrimitive.Portal {...rest}>
-            <div class="z-[50] modal modal-open modal-bottom sm:modal-middle">
-                {props.children}
-            </div>
+            <div class="z-[50] modal modal-open modal-bottom sm:modal-middle">{props.children}</div>
         </DialogPrimitive.Portal>
     )
 }
@@ -73,7 +71,10 @@ const DialogAction: Component<ComponentProps<'div'>> = (props) => {
     const [, rest] = splitProps(props, ['class'])
     return (
         <div
-            class={cn('modal-action flex flex-col space-y-1.5 text-center sm:text-left', props.class)}
+            class={cn(
+                'modal-action flex flex-col space-y-1.5 text-center sm:text-left',
+                props.class,
+            )}
             {...rest}
         />
     )
@@ -101,12 +102,7 @@ const DialogTitle: Component<DialogPrimitive.DialogTitleProps> = (props) => {
 
 const DialogDescription: Component<DialogPrimitive.DialogDescriptionProps> = (props) => {
     const [, rest] = splitProps(props, ['class'])
-    return (
-        <DialogPrimitive.Description
-            class={cn('text-sm', props.class)}
-            {...rest}
-        />
-    )
+    return <DialogPrimitive.Description class={cn('text-sm', props.class)} {...rest} />
 }
 
 export {

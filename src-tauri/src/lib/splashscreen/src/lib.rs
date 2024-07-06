@@ -4,7 +4,8 @@ use tauri::{
     AppHandle, Manager, Runtime,
 };
 
-use utils::prelude::*;
+#[allow(unused_imports)]
+use utils::prelude::{collect_commands, generate_plugin_path, ts};
 
 const PLUGIN_NAME: &str = "tauri-plugin-splashscreen";
 
@@ -65,6 +66,7 @@ async fn set_frontend_ready<R: Runtime>(app: AppHandle<R>) {
     }
 }
 
+#[allow(unused_macros)]
 macro_rules! specta_builder {
     ($e:expr, Runtime) => {
         ts::builder()
@@ -73,7 +75,9 @@ macro_rules! specta_builder {
                 set_frontend_ready::<$e>
             ])
             .path(generate_plugin_path(PLUGIN_NAME))
-            .config(specta::ts::ExportConfig::default().formatter(specta::ts::prettier))
+            .config(
+                specta::ts::ExportConfig::default().formatter(specta::js_doc::formatter::prettier),
+            )
         //.events(collect_events![RandomNumber])
     };
 }

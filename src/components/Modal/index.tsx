@@ -13,7 +13,7 @@ import { Label } from '@components/ui/label'
 
 export interface ModalEvents {
     onCancel: (e: PointerEvent) => void
-    onSubmit: (e: PointerEvent) => void
+    onSubmit?: (e: PointerEvent) => void
 }
 
 interface ModalProps extends ModalEvents {

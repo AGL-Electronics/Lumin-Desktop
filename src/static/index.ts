@@ -1,7 +1,6 @@
 import * as enums from '@static/enums'
-import * as types from '@static/types'
 
-const themes = [
+export const themes = [
     'light',
     'dark',
     'cupcake',
@@ -35,5 +34,15 @@ const themes = [
     'nord',
     'sunset',
 ]
-
-export { themes, enums, types }
+export const radius = 25
+export const portBaudRate = 115200
+export const defaultMdnsLength = 24
+export const mdnsLength = 12
+export const staticMdns = 'lumin'
+export const installModalClassName = 'mdc-button__label'
+export const installModalTarget = 'Install'
+export const installationSuccess = 'Installation complete!'
+export const questionModalId = 'questionModal'
+export const apModalID = 'apMode'
+export const debugModalId = 'debugModal'
+export const debugModes = [...Object.values(enums.DebugMode)]

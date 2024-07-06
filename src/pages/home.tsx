@@ -1,33 +1,37 @@
+import { useNavigate } from '@solidjs/router'
 import { createEffect, createSignal } from 'solid-js'
-import MonthCalendar from '@components/Calendar/MonthCalendar'
-import SidebarContent from '@components/Sidebar/Content'
-import Sidebar from '@components/Sidebar/index'
-import { Card, CardContent } from '@components/ui/card'
-import PageWrapper from '@src/pages/PageWrapper'
-import { useCalendarContext } from '@store/context/calendar'
-
-// TODO: Add journal
-// TODO: Add Tasks with Todo list
+import Dashboard from '@components/Dashboard'
+import { CardContent } from '@components/ui/card'
+import PageWrapper from '@pages/PageWrapper'
+import { useAppAPIContext } from '@store/context/api'
+import { useAppDeviceContext } from '@store/context/device'
 
 export default function Main() {
-    const { getMonth, selectedCalendar } = useCalendarContext()
-    const [currentMonth, setCurrentMonth] = createSignal(getMonth())
+    const { getFirmware } = useAppAPIContext()
+    const { setSelectedDevice, resetSelectedDevice } = useAppDeviceContext()
+    const [firmwareVersion, setFirmwareVersion] = createSignal('0.0.0')
 
     createEffect(() => {
-        if (!selectedCalendar()) return
-        setCurrentMonth(getMonth(selectedCalendar()!.currentMonthIdx))
+        setFirmwareVersion(getFirmware().version)
     })
+
+    const navigate = useNavigate()
 
     return (
         <PageWrapper>
-            <Card class="overflow-auto border-none w-auto rounded-none bg-primary-300 h-screen">
-                <CardContent class="flex flex-1">
-                    <Sidebar>
-                        <SidebarContent />
-                    </Sidebar>
-                    <MonthCalendar month={currentMonth()} />
-                </CardContent>
-            </Card>
+            <CardContent class="flex flex-1">
+                <Dashboard
+                    firmwareVersion={firmwareVersion()}
+                    onClickNavigateDevice={(device) => {
+                        navigate('/deviceSettings/false', { replace: true })
+                        setSelectedDevice(device)
+                    }}
+                    onClickNavigateCreateDevice={() => {
+                        navigate('/deviceSettings/true', { replace: true })
+                        resetSelectedDevice()
+                    }}
+                />
+            </CardContent>
         </PageWrapper>
     )
 }

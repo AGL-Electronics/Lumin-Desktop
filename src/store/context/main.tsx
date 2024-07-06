@@ -5,12 +5,14 @@ import { createContext, useContext, createMemo, type ParentComponent, Accessor }
 import { createStore, produce } from 'solid-js/store'
 import { useEventListener } from 'solidjs-use'
 import { attachConsole, debug } from 'tauri-plugin-log-api'
-
+import { AppAPIProvider } from './api'
+import { AppDeviceProvider } from './device'
+import { AppDeviceDiscoveryProvider } from './deviceCheck'
 import type { MainApp } from '@static/types'
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { ExitCodes } from '@static/enums'
 import { AppProvider } from '@store/context/app'
-import { CalendarProvider } from '@store/context/calendar'
+import { DeviceSettingsProvider } from '@store/context/deviceSettings'
 import { AppNotificationProvider } from '@store/context/notifications'
 import { usePersistentStore } from '@store/tauriStore'
 import { setFrontendReady } from 'tauri-plugin-splashscreen'
@@ -74,7 +76,6 @@ export const AppContextMainProvider: ParentComponent = (props) => {
 
         //TODO: Start mdns and websocket clients only after the backend is ready
         // TODO: call REST api to start the backend
-        console.log('[App Boot]: Starting Python Backend')
     }
 
     const handleTitlebar = (main = false) => {
@@ -104,9 +105,8 @@ export const AppContextMainProvider: ParentComponent = (props) => {
 
     //#endregion
 
-    const GlobalState = createMemo(() => state)
-
-    const loggedIn = createMemo(() => GlobalState().loggedIn)
+    const globalState = createMemo(() => state)
+    const loggedIn = createMemo(() => globalState().loggedIn)
 
     return (
         <AppContextMain.Provider
@@ -119,7 +119,15 @@ export const AppContextMainProvider: ParentComponent = (props) => {
             }}>
             <AppNotificationProvider>
                 <AppProvider>
-                    <CalendarProvider>{props.children}</CalendarProvider>
+                    <AppDeviceProvider>
+                        <AppAPIProvider>
+                            <DeviceSettingsProvider>
+                                <AppDeviceDiscoveryProvider>
+                                    {props.children}
+                                </AppDeviceDiscoveryProvider>
+                            </DeviceSettingsProvider>
+                        </AppAPIProvider>
+                    </AppDeviceProvider>
                 </AppProvider>
             </AppNotificationProvider>
         </AppContextMain.Provider>

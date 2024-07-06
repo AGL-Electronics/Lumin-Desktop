@@ -1,0 +1,37 @@
+{
+    "LED_Connection_Type_e": {
+        "enum": [
+            "ADDRESSABLE",
+            "GPIO"
+        ],
+        "type": "string"
+    },
+    "LED_Pattern_e": {
+        "enum": [
+            "UPDATE",
+            "RGB_CYCLE",
+            "RGB",
+            "RED",
+            "GREEN",
+            "BLUE",
+            "WHITE",
+            "WARM",
+            "COLD",
+            "WARM_COLD",
+            "WIFI_STRENGTH",
+            "CUSTOM",
+            "ON",
+            "NONE"
+        ],
+        "type": "string"
+    },
+    "LED_Type_e": {
+        "enum": [
+            "RGB",
+            "RGBW",
+            "RGBWW",
+            "RGBWWW"
+        ],
+        "type": "string"
+    }
+}

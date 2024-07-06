@@ -1,14 +1,40 @@
-import type { Component } from 'solid-js'
-import PageWrapper from '@src/pages/PageWrapper'
+import PageWrapper from './PageWrapper'
+import DeveloperSettings from '@components/Settings/AppSettings/DeveloperSettings'
+import FirmwareSelection from '@components/Settings/AppSettings/FirmwareSelection'
+import { CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { Flex } from '@components/ui/flex'
+import { Label } from '@components/ui/label'
+//import DeviceConfig from '@components/AppSettings/DeviceConfig'
 
-const SettingsPage: Component = () => {
+// TODO: Setup check for firmware updates
+// TODO: Setup menu for selection logging mode
+
+const AppSettingsPage = () => {
     return (
         <PageWrapper>
-            <div class="flex flex-col items-center justify-center h-screen">
-                <h1 class="text-5xl font-bold">Tasks</h1>
-            </div>
+            <CardHeader>
+                <Flex flexDirection="col" justifyContent="between" alignItems="center">
+                    <CardTitle>
+                        <Label class="text-white" size="3xl" weight="extraBold">
+                            Settings
+                        </Label>
+                    </CardTitle>
+                </Flex>
+            </CardHeader>
+            <CardContent class="w-full h-full overflow-y-scroll">
+                <div class="h-full w-full overflow-y-scroll">
+                    <Flex
+                        class="w-full lg:items-start lg:flex-row gap-5"
+                        flexDirection="col"
+                        justifyContent="center"
+                        alignItems="center">
+                        <FirmwareSelection />
+                        <DeveloperSettings />
+                    </Flex>
+                </div>
+            </CardContent>
         </PageWrapper>
     )
 }
 
-export default SettingsPage
+export default AppSettingsPage
